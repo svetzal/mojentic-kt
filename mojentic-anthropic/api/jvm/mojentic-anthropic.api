@@ -1,0 +1,23 @@
+public final class com/mojentic/anthropic/AnthropicGateway : com/mojentic/llm/LlmGateway {
+	public static final field Companion Lcom/mojentic/anthropic/AnthropicGateway$Companion;
+	public static final field DEFAULT_MAX_TOKENS I
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/ktor/client/engine/HttpClientEngine;Lkotlinx/serialization/json/Json;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/ktor/client/engine/HttpClientEngine;Lkotlinx/serialization/json/Json;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun availableModels (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun close ()V
+	public fun complete (Ljava/lang/String;Ljava/util/List;Ljava/util/List;Lcom/mojentic/llm/CompletionConfig;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun completeJson (Ljava/lang/String;Ljava/util/List;Lkotlinx/serialization/json/JsonObject;Lcom/mojentic/llm/CompletionConfig;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun stream (Ljava/lang/String;Ljava/util/List;Ljava/util/List;Lcom/mojentic/llm/CompletionConfig;)Lkotlinx/coroutines/flow/Flow;
+}
+
+public final class com/mojentic/anthropic/AnthropicGateway$Companion {
+	public final fun getDEFAULT_JSON ()Lkotlinx/serialization/json/Json;
+	public final fun trivialStringSchema (Ljava/lang/String;)Lkotlinx/serialization/json/JsonObject;
+	public static synthetic fun trivialStringSchema$default (Lcom/mojentic/anthropic/AnthropicGateway$Companion;Ljava/lang/String;ILjava/lang/Object;)Lkotlinx/serialization/json/JsonObject;
+}
+
+public final class com/mojentic/anthropic/AnthropicGatewayKt {
+	public static final field DEFAULT_ANTHROPIC_HOST Ljava/lang/String;
+	public static final field DEFAULT_ANTHROPIC_VERSION Ljava/lang/String;
+}
+

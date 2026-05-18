@@ -1,0 +1,13 @@
+public final class com/mojentic/realtime/openai/OpenAiRealtimeGateway : com/mojentic/realtime/RealtimeGateway {
+	public static final field Companion Lcom/mojentic/realtime/openai/OpenAiRealtimeGateway$Companion;
+	public static final field DEFAULT_BASE_URL Ljava/lang/String;
+	public static final field DEFAULT_BETA_HEADER Ljava/lang/String;
+	public fun <init> (Ljava/lang/String;Lio/ktor/client/HttpClient;Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Lio/ktor/client/HttpClient;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun open (Ljava/lang/String;Lcom/mojentic/realtime/RealtimeVoiceConfig;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/mojentic/realtime/openai/OpenAiRealtimeGateway$Companion {
+	public final fun defaultClient ()Lio/ktor/client/HttpClient;
+}
+

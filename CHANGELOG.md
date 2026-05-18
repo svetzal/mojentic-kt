@@ -10,6 +10,72 @@ patch versions move independently.
 
 ## [Unreleased]
 
+## [0.7.0] - Phase 7 ✅ Shipped (2026-05-18)
+
+Documentation polish and 1.x stabilization. Dokka v2 multi-module HTML
+aggregation across all six library modules, four handwritten Use Case guides
+under `docs/use-cases/`, a binary-compatibility-validator baseline so future
+API changes have to be explicit, and reference samples for the two consumer
+surfaces (Android via Compose, iOS via SPM + XCFramework). Library code is
+unchanged — Phase 7 is documentation, packaging, and process.
+
+### Added
+
+- **Dokka v2** wired across the library. `org.jetbrains.dokka` applied at root
+  and per library module (`mojentic-core`, `mojentic-ollama`, `mojentic-openai`,
+  `mojentic-anthropic`, `mojentic-realtime-openai`,
+  `mojentic-websearch-serpapi`). Root `dependencies { dokka(project(":…")) }`
+  aggregates all six into a single multi-module HTML site rendered to
+  `build/dokka/html/`. `dokkaGenerate` is the canonical task. Opt-in flag
+  `org.jetbrains.dokka.experimental.gradle.pluginMode=V2Enabled` set in
+  `gradle.properties`.
+- **`docs/index.md`** — top-level landing page included in the Dokka publication
+  via the root `dokka { dokkaPublications.html { includes.from(...) } }` block.
+- **`docs/use-cases/`** — four handwritten Markdown Use Case guides covering
+  the core capabilities, parallel to the Python reference's docs layout:
+  `building-chatbots.md`, `structured-output.md`, `building-agents.md`,
+  `image-analysis.md`. Index page at `docs/use-cases/index.md`.
+- **Binary-compatibility validator** (`kotlinx.binary-compatibility-validator`
+  0.18.1) applied at the root. `apiValidation { ignoredProjects = …;
+  nonPublicMarkers += "com.mojentic.internal.InternalApi" }` excludes every
+  `examples/` subproject from the public-API baseline since those are
+  demonstration code, not part of the published surface. `./gradlew apiDump`
+  generated initial baselines (`<module>/api/jvm/<module>.api`) for all six
+  library modules. `./gradlew apiCheck` is now wired into the quality gate.
+- **`samples/android-compose-chat/`** — reference integration showing how to
+  consume `mojentic-core + mojentic-openai` from an Android Compose app:
+  `ChatViewModel` (owns the `ChatSession`, exposes `StateFlow<List<UiMessage>>`,
+  cancels in-flight turns on barge-in), `ChatScreen` (stateless Composable with
+  `LazyColumn` + input row), `MainActivity` (ComponentActivity wiring),
+  `AndroidManifest.xml`, `strings.xml`, and a README explaining the copy-paste
+  integration recipe. Deliberately not a separate Gradle module — the sample is
+  documentation, not part of the library distribution.
+- **`samples/ios-spm-smoke/`** — manual recipe for verifying iOS consumption
+  via XCFramework + SPM end-to-end. Covers Gradle XCFramework assembly, SPM
+  `binaryTarget` wiring, a one-line Swift main that exercises a Mojentic type,
+  and `xcodebuild` simulator verification. Documented as the procedure CI will
+  automate in a `macos-latest` job once Maven Central publishing is live.
+
+### Quality gate
+
+`./gradlew ktlintCheck detekt build allTests apiCheck` green across JVM,
+Android-host, and iOS-simulator targets. 509 actionable tasks executed clean.
+
+### Known followups (infrastructure side, not library code)
+
+- Maven Central publishing pipeline (`gradle-maven-publish-plugin` +
+  Sonatype OSSRH credentials) — code is ready, secrets are not yet wired into
+  CI.
+- GitHub Pages deployment job (`./gradlew dokkaGenerate` → `gh-pages` branch)
+  on every `v*` tag — pages enablement is a one-time repo-admin action.
+- OWASP `dependencyCheckAggregate` task — plugin is declared in
+  `libs.versions.toml` but not yet applied; deferred to avoid the initial-CVE
+  triage thrash on a `0.7.0` release-candidate baseline. Plan: enable in
+  `0.7.1` with an explicit suppressions file.
+- XCFramework task declarations on each library module's
+  `build.gradle.kts` (`val xcf = XCFramework("…"); target.binaries.framework`)
+  — documented in `samples/ios-spm-smoke/README.md` as the next step.
+
 ## [0.6.0] - Phase 6 ✅ Shipped (2026-05-18)
 
 Anthropic gateway — new `mojentic-anthropic` module brings Claude support to

@@ -1,0 +1,1798 @@
+public final class com/mojentic/Mojentic {
+	public static final field INSTANCE Lcom/mojentic/Mojentic;
+	public static final field VERSION Ljava/lang/String;
+}
+
+public abstract interface class com/mojentic/agents/Agent {
+	public abstract fun receiveEvent (Lcom/mojentic/agents/Event;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract class com/mojentic/agents/AsyncAggregatorAgent : com/mojentic/agents/Agent {
+	public fun <init> (Ljava/util/List;)V
+	public fun processEvents (Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun receiveEvent (Lcom/mojentic/agents/Event;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun waitForEvents (Ljava/lang/String;Ljava/lang/Long;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun waitForEvents$default (Lcom/mojentic/agents/AsyncAggregatorAgent;Ljava/lang/String;Ljava/lang/Long;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class com/mojentic/agents/AsyncDispatcher {
+	public fun <init> (Lcom/mojentic/agents/Router;Lcom/mojentic/tracer/Tracer;IJ)V
+	public synthetic fun <init> (Lcom/mojentic/agents/Router;Lcom/mojentic/tracer/Tracer;IJILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun dispatch (Lcom/mojentic/agents/Event;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun queueSize (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun start (Lkotlinx/coroutines/CoroutineScope;)Lkotlinx/coroutines/Job;
+	public final fun stop (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun waitForEmptyQueue (Ljava/lang/Long;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun waitForEmptyQueue$default (Lcom/mojentic/agents/AsyncDispatcher;Ljava/lang/Long;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public class com/mojentic/agents/BaseAgent : com/mojentic/agents/Agent {
+	public fun <init> ()V
+	public fun receiveEvent (Lcom/mojentic/agents/Event;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public class com/mojentic/agents/BaseAsyncLlmAgent : com/mojentic/agents/Agent {
+	public fun <init> (Lcom/mojentic/llm/LlmBroker;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lcom/mojentic/llm/CompletionConfig;)V
+	public synthetic fun <init> (Lcom/mojentic/llm/LlmBroker;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lcom/mojentic/llm/CompletionConfig;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun addTool (Lcom/mojentic/llm/tools/LlmTool;)V
+	protected fun createInitialMessages ()Ljava/util/List;
+	public fun generateResponse (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun getBehaviour ()Ljava/lang/String;
+	public final fun getBroker ()Lcom/mojentic/llm/LlmBroker;
+	public final fun getConfig ()Lcom/mojentic/llm/CompletionConfig;
+	public final fun getModel ()Ljava/lang/String;
+	public final fun getTools ()Ljava/util/List;
+	public fun receiveEvent (Lcom/mojentic/agents/Event;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun setBehaviour (Ljava/lang/String;)V
+}
+
+public class com/mojentic/agents/BaseAsyncLlmAgentWithMemory : com/mojentic/agents/BaseAsyncLlmAgent {
+	public fun <init> (Lcom/mojentic/llm/LlmBroker;Ljava/lang/String;Lcom/mojentic/context/SharedWorkingMemory;Ljava/lang/String;Ljava/lang/String;Lcom/mojentic/llm/CompletionConfig;)V
+	public synthetic fun <init> (Lcom/mojentic/llm/LlmBroker;Ljava/lang/String;Lcom/mojentic/context/SharedWorkingMemory;Ljava/lang/String;Ljava/lang/String;Lcom/mojentic/llm/CompletionConfig;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	protected fun createInitialMessages ()Ljava/util/List;
+	public fun generateResponse (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun getInstructions ()Ljava/lang/String;
+	public final fun getMemory ()Lcom/mojentic/context/SharedWorkingMemory;
+	public final fun mergeMemory (Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public class com/mojentic/agents/Event {
+	public fun <init> ()V
+	public fun <init> (Lkotlin/reflect/KClass;Ljava/lang/String;)V
+	public synthetic fun <init> (Lkotlin/reflect/KClass;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getCorrelationId ()Ljava/lang/String;
+	public final fun getSource ()Lkotlin/reflect/KClass;
+	public final fun setCorrelationId (Ljava/lang/String;)V
+}
+
+public final class com/mojentic/agents/GoalState {
+	public fun <init> (Ljava/lang/String;IILjava/lang/String;Z)V
+	public synthetic fun <init> (Ljava/lang/String;IILjava/lang/String;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()I
+	public final fun component3 ()I
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Z
+	public final fun copy (Ljava/lang/String;IILjava/lang/String;Z)Lcom/mojentic/agents/GoalState;
+	public static synthetic fun copy$default (Lcom/mojentic/agents/GoalState;Ljava/lang/String;IILjava/lang/String;ZILjava/lang/Object;)Lcom/mojentic/agents/GoalState;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getGoal ()Ljava/lang/String;
+	public final fun getIteration ()I
+	public final fun getMaxIterations ()I
+	public final fun getSolution ()Ljava/lang/String;
+	public fun hashCode ()I
+	public final fun isComplete ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/agents/IterativeProblemSolver {
+	public static final field Companion Lcom/mojentic/agents/IterativeProblemSolver$Companion;
+	public static final field DEFAULT_SYSTEM_PROMPT Ljava/lang/String;
+	public fun <init> (Lcom/mojentic/llm/LlmBroker;Ljava/lang/String;Ljava/util/List;ILjava/lang/String;Lcom/mojentic/llm/CompletionConfig;)V
+	public synthetic fun <init> (Lcom/mojentic/llm/LlmBroker;Ljava/lang/String;Ljava/util/List;ILjava/lang/String;Lcom/mojentic/llm/CompletionConfig;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun solve (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/mojentic/agents/IterativeProblemSolver$Companion {
+}
+
+public final class com/mojentic/agents/ReActAgent {
+	public static final field Companion Lcom/mojentic/agents/ReActAgent$Companion;
+	public static final field DEFAULT_SYSTEM_PROMPT Ljava/lang/String;
+	public fun <init> (Lcom/mojentic/llm/LlmBroker;Ljava/lang/String;Ljava/util/List;ILjava/lang/String;Lcom/mojentic/llm/CompletionConfig;)V
+	public synthetic fun <init> (Lcom/mojentic/llm/LlmBroker;Ljava/lang/String;Ljava/util/List;ILjava/lang/String;Lcom/mojentic/llm/CompletionConfig;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun solve (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun steps ()Ljava/util/List;
+}
+
+public final class com/mojentic/agents/ReActAgent$Companion {
+}
+
+public final class com/mojentic/agents/ReActStep {
+	public fun <init> (ILjava/lang/String;Ljava/util/List;Z)V
+	public final fun component1 ()I
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/util/List;
+	public final fun component4 ()Z
+	public final fun copy (ILjava/lang/String;Ljava/util/List;Z)Lcom/mojentic/agents/ReActStep;
+	public static synthetic fun copy$default (Lcom/mojentic/agents/ReActStep;ILjava/lang/String;Ljava/util/List;ZILjava/lang/Object;)Lcom/mojentic/agents/ReActStep;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFinal ()Z
+	public final fun getIteration ()I
+	public final fun getResponse ()Ljava/lang/String;
+	public final fun getToolCalls ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/agents/Router {
+	public fun <init> ()V
+	public fun <init> (Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun addRoute (Lkotlin/reflect/KClass;Lcom/mojentic/agents/Agent;)V
+	public final fun getAgents (Lcom/mojentic/agents/Event;)Ljava/util/List;
+}
+
+public final class com/mojentic/agents/SimpleRecursiveAgent {
+	public static final field Companion Lcom/mojentic/agents/SimpleRecursiveAgent$Companion;
+	public static final field DEFAULT_TIMEOUT_MS J
+	public fun <init> (Lcom/mojentic/llm/LlmBroker;Ljava/lang/String;Ljava/util/List;ILjava/lang/String;Lcom/mojentic/llm/CompletionConfig;)V
+	public synthetic fun <init> (Lcom/mojentic/llm/LlmBroker;Ljava/lang/String;Ljava/util/List;ILjava/lang/String;Lcom/mojentic/llm/CompletionConfig;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun history ()Ljava/util/List;
+	public final fun solve (Ljava/lang/String;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun solve$default (Lcom/mojentic/agents/SimpleRecursiveAgent;Ljava/lang/String;JLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class com/mojentic/agents/SimpleRecursiveAgent$Companion {
+}
+
+public abstract interface class com/mojentic/agents/SolverEvent {
+	public abstract fun getState ()Lcom/mojentic/agents/GoalState;
+}
+
+public final class com/mojentic/agents/SolverEvent$GoalAchieved : com/mojentic/agents/SolverEvent {
+	public fun <init> (Lcom/mojentic/agents/GoalState;)V
+	public final fun component1 ()Lcom/mojentic/agents/GoalState;
+	public final fun copy (Lcom/mojentic/agents/GoalState;)Lcom/mojentic/agents/SolverEvent$GoalAchieved;
+	public static synthetic fun copy$default (Lcom/mojentic/agents/SolverEvent$GoalAchieved;Lcom/mojentic/agents/GoalState;ILjava/lang/Object;)Lcom/mojentic/agents/SolverEvent$GoalAchieved;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getState ()Lcom/mojentic/agents/GoalState;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/agents/SolverEvent$GoalFailed : com/mojentic/agents/SolverEvent {
+	public fun <init> (Lcom/mojentic/agents/GoalState;)V
+	public final fun component1 ()Lcom/mojentic/agents/GoalState;
+	public final fun copy (Lcom/mojentic/agents/GoalState;)Lcom/mojentic/agents/SolverEvent$GoalFailed;
+	public static synthetic fun copy$default (Lcom/mojentic/agents/SolverEvent$GoalFailed;Lcom/mojentic/agents/GoalState;ILjava/lang/Object;)Lcom/mojentic/agents/SolverEvent$GoalFailed;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getState ()Lcom/mojentic/agents/GoalState;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/agents/SolverEvent$GoalSubmitted : com/mojentic/agents/SolverEvent {
+	public fun <init> (Lcom/mojentic/agents/GoalState;)V
+	public final fun component1 ()Lcom/mojentic/agents/GoalState;
+	public final fun copy (Lcom/mojentic/agents/GoalState;)Lcom/mojentic/agents/SolverEvent$GoalSubmitted;
+	public static synthetic fun copy$default (Lcom/mojentic/agents/SolverEvent$GoalSubmitted;Lcom/mojentic/agents/GoalState;ILjava/lang/Object;)Lcom/mojentic/agents/SolverEvent$GoalSubmitted;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getState ()Lcom/mojentic/agents/GoalState;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/agents/SolverEvent$IterationCompleted : com/mojentic/agents/SolverEvent {
+	public fun <init> (Lcom/mojentic/agents/GoalState;Ljava/lang/String;)V
+	public final fun component1 ()Lcom/mojentic/agents/GoalState;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Lcom/mojentic/agents/GoalState;Ljava/lang/String;)Lcom/mojentic/agents/SolverEvent$IterationCompleted;
+	public static synthetic fun copy$default (Lcom/mojentic/agents/SolverEvent$IterationCompleted;Lcom/mojentic/agents/GoalState;Ljava/lang/String;ILjava/lang/Object;)Lcom/mojentic/agents/SolverEvent$IterationCompleted;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getResponse ()Ljava/lang/String;
+	public fun getState ()Lcom/mojentic/agents/GoalState;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/agents/SolverEvent$TimedOut : com/mojentic/agents/SolverEvent {
+	public fun <init> (Lcom/mojentic/agents/GoalState;)V
+	public final fun component1 ()Lcom/mojentic/agents/GoalState;
+	public final fun copy (Lcom/mojentic/agents/GoalState;)Lcom/mojentic/agents/SolverEvent$TimedOut;
+	public static synthetic fun copy$default (Lcom/mojentic/agents/SolverEvent$TimedOut;Lcom/mojentic/agents/GoalState;ILjava/lang/Object;)Lcom/mojentic/agents/SolverEvent$TimedOut;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getState ()Lcom/mojentic/agents/GoalState;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public class com/mojentic/agents/TerminateEvent : com/mojentic/agents/Event {
+	public fun <init> ()V
+	public fun <init> (Lkotlin/reflect/KClass;)V
+	public synthetic fun <init> (Lkotlin/reflect/KClass;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class com/mojentic/agents/ToolWrapper : com/mojentic/llm/tools/LlmTool {
+	public fun <init> (Lcom/mojentic/agents/BaseAsyncLlmAgent;Ljava/lang/String;Ljava/lang/String;)V
+	public fun execute (Lkotlinx/serialization/json/JsonObject;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getDescription ()Ljava/lang/String;
+	public fun getDescriptor ()Lcom/mojentic/llm/tools/ToolDescriptor;
+	public fun getName ()Ljava/lang/String;
+	public fun matches (Ljava/lang/String;)Z
+}
+
+public final class com/mojentic/context/SharedWorkingMemory {
+	public fun <init> ()V
+	public fun <init> (Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getWorkingMemory (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun mergeToWorkingMemory (Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun replaceWorkingMemory (Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/mojentic/errors/LlmGatewayException : com/mojentic/errors/MojenticException {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class com/mojentic/errors/MaxToolIterationsExceededException : com/mojentic/errors/MojenticException {
+	public fun <init> (Ljava/lang/String;)V
+}
+
+public abstract class com/mojentic/errors/MojenticException : java/lang/RuntimeException {
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class com/mojentic/errors/RealtimeGatewayException : com/mojentic/errors/MojenticException {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class com/mojentic/errors/ToolExecutionException : com/mojentic/errors/MojenticException {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class com/mojentic/errors/WebSearchGatewayException : com/mojentic/errors/MojenticException {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class com/mojentic/internal/JsonSchemaGenerator {
+	public static final field INSTANCE Lcom/mojentic/internal/JsonSchemaGenerator;
+	public final fun schemaFor (Lkotlinx/serialization/descriptors/SerialDescriptor;)Lkotlinx/serialization/json/JsonObject;
+}
+
+public final class com/mojentic/llm/ChatSession {
+	public fun <init> (Lcom/mojentic/llm/LlmBroker;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lcom/mojentic/llm/CompletionConfig;)V
+	public synthetic fun <init> (Lcom/mojentic/llm/LlmBroker;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lcom/mojentic/llm/CompletionConfig;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun messages (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun reset (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun send (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun stream (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+}
+
+public final class com/mojentic/llm/CompletionConfig {
+	public static final field Companion Lcom/mojentic/llm/CompletionConfig$Companion;
+	public static final field DEFAULT_MAX_TOKENS I
+	public static final field DEFAULT_MAX_TOOL_ITERATIONS I
+	public static final field DEFAULT_NUM_CTX I
+	public static final field DEFAULT_NUM_PREDICT I
+	public static final field DEFAULT_TEMPERATURE D
+	public fun <init> ()V
+	public fun <init> (DIIILcom/mojentic/llm/ReasoningEffort;I)V
+	public synthetic fun <init> (DIIILcom/mojentic/llm/ReasoningEffort;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()D
+	public final fun component2 ()I
+	public final fun component3 ()I
+	public final fun component4 ()I
+	public final fun component5 ()Lcom/mojentic/llm/ReasoningEffort;
+	public final fun component6 ()I
+	public final fun copy (DIIILcom/mojentic/llm/ReasoningEffort;I)Lcom/mojentic/llm/CompletionConfig;
+	public static synthetic fun copy$default (Lcom/mojentic/llm/CompletionConfig;DIIILcom/mojentic/llm/ReasoningEffort;IILjava/lang/Object;)Lcom/mojentic/llm/CompletionConfig;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getMaxTokens ()I
+	public final fun getMaxToolIterations ()I
+	public final fun getNumCtx ()I
+	public final fun getNumPredict ()I
+	public final fun getReasoningEffort ()Lcom/mojentic/llm/ReasoningEffort;
+	public final fun getTemperature ()D
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/llm/CompletionConfig$Companion {
+}
+
+public abstract interface class com/mojentic/llm/EmbeddingsGateway {
+	public abstract fun embed (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun embedBatch (Ljava/lang/String;Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class com/mojentic/llm/GatewayStreamEvent {
+}
+
+public final class com/mojentic/llm/GatewayStreamEvent$Content : com/mojentic/llm/GatewayStreamEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lcom/mojentic/llm/GatewayStreamEvent$Content;
+	public static synthetic fun copy$default (Lcom/mojentic/llm/GatewayStreamEvent$Content;Ljava/lang/String;ILjava/lang/Object;)Lcom/mojentic/llm/GatewayStreamEvent$Content;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getText ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/llm/GatewayStreamEvent$Raw : com/mojentic/llm/GatewayStreamEvent {
+	public fun <init> (Lkotlinx/serialization/json/JsonElement;)V
+	public final fun component1 ()Lkotlinx/serialization/json/JsonElement;
+	public final fun copy (Lkotlinx/serialization/json/JsonElement;)Lcom/mojentic/llm/GatewayStreamEvent$Raw;
+	public static synthetic fun copy$default (Lcom/mojentic/llm/GatewayStreamEvent$Raw;Lkotlinx/serialization/json/JsonElement;ILjava/lang/Object;)Lcom/mojentic/llm/GatewayStreamEvent$Raw;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getPayload ()Lkotlinx/serialization/json/JsonElement;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/llm/GatewayStreamEvent$Thinking : com/mojentic/llm/GatewayStreamEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lcom/mojentic/llm/GatewayStreamEvent$Thinking;
+	public static synthetic fun copy$default (Lcom/mojentic/llm/GatewayStreamEvent$Thinking;Ljava/lang/String;ILjava/lang/Object;)Lcom/mojentic/llm/GatewayStreamEvent$Thinking;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getText ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/llm/GatewayStreamEvent$ToolCalls : com/mojentic/llm/GatewayStreamEvent {
+	public fun <init> (Ljava/util/List;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;)Lcom/mojentic/llm/GatewayStreamEvent$ToolCalls;
+	public static synthetic fun copy$default (Lcom/mojentic/llm/GatewayStreamEvent$ToolCalls;Ljava/util/List;ILjava/lang/Object;)Lcom/mojentic/llm/GatewayStreamEvent$ToolCalls;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCalls ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/llm/ImageContent : com/mojentic/llm/MessageContent {
+	public static final field Companion Lcom/mojentic/llm/ImageContent$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Lcom/mojentic/llm/ImageContent;
+	public static synthetic fun copy$default (Lcom/mojentic/llm/ImageContent;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/mojentic/llm/ImageContent;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getData ()Ljava/lang/String;
+	public final fun getMimeType ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class com/mojentic/llm/ImageContent$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lcom/mojentic/llm/ImageContent$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lcom/mojentic/llm/ImageContent;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lcom/mojentic/llm/ImageContent;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class com/mojentic/llm/ImageContent$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class com/mojentic/llm/LlmBroker {
+	public static final field Companion Lcom/mojentic/llm/LlmBroker$Companion;
+	public fun <init> (Lcom/mojentic/llm/LlmGateway;Lcom/mojentic/tracer/Tracer;Lcom/mojentic/llm/tools/ToolRunner;Lkotlinx/serialization/json/Json;)V
+	public synthetic fun <init> (Lcom/mojentic/llm/LlmGateway;Lcom/mojentic/tracer/Tracer;Lcom/mojentic/llm/tools/ToolRunner;Lkotlinx/serialization/json/Json;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun complete (Ljava/lang/String;Ljava/util/List;Ljava/util/List;Lcom/mojentic/llm/CompletionConfig;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun complete$default (Lcom/mojentic/llm/LlmBroker;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Lcom/mojentic/llm/CompletionConfig;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun completeJsonElement (Ljava/lang/String;Ljava/util/List;Lkotlinx/serialization/json/JsonObject;Lcom/mojentic/llm/CompletionConfig;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun getJson ()Lkotlinx/serialization/json/Json;
+	public final fun stream (Ljava/lang/String;Ljava/util/List;Ljava/util/List;Lcom/mojentic/llm/CompletionConfig;Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun stream$default (Lcom/mojentic/llm/LlmBroker;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Lcom/mojentic/llm/CompletionConfig;Ljava/lang/String;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+}
+
+public final class com/mojentic/llm/LlmBroker$Companion {
+	public final fun getDEFAULT_JSON ()Lkotlinx/serialization/json/Json;
+}
+
+public abstract interface class com/mojentic/llm/LlmGateway {
+	public abstract fun availableModels (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun complete (Ljava/lang/String;Ljava/util/List;Ljava/util/List;Lcom/mojentic/llm/CompletionConfig;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun complete$default (Lcom/mojentic/llm/LlmGateway;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Lcom/mojentic/llm/CompletionConfig;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public abstract fun completeJson (Ljava/lang/String;Ljava/util/List;Lkotlinx/serialization/json/JsonObject;Lcom/mojentic/llm/CompletionConfig;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun completeJson$default (Lcom/mojentic/llm/LlmGateway;Ljava/lang/String;Ljava/util/List;Lkotlinx/serialization/json/JsonObject;Lcom/mojentic/llm/CompletionConfig;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public abstract fun stream (Ljava/lang/String;Ljava/util/List;Ljava/util/List;Lcom/mojentic/llm/CompletionConfig;)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun stream$default (Lcom/mojentic/llm/LlmGateway;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Lcom/mojentic/llm/CompletionConfig;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+}
+
+public final class com/mojentic/llm/LlmGateway$DefaultImpls {
+	public static synthetic fun complete$default (Lcom/mojentic/llm/LlmGateway;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Lcom/mojentic/llm/CompletionConfig;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun completeJson$default (Lcom/mojentic/llm/LlmGateway;Ljava/lang/String;Ljava/util/List;Lkotlinx/serialization/json/JsonObject;Lcom/mojentic/llm/CompletionConfig;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun stream$default (Lcom/mojentic/llm/LlmGateway;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Lcom/mojentic/llm/CompletionConfig;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+}
+
+public final class com/mojentic/llm/LlmGatewayResponse {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Lkotlinx/serialization/json/JsonElement;
+	public final fun copy (Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;)Lcom/mojentic/llm/LlmGatewayResponse;
+	public static synthetic fun copy$default (Lcom/mojentic/llm/LlmGatewayResponse;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;ILjava/lang/Object;)Lcom/mojentic/llm/LlmGatewayResponse;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getContent ()Ljava/lang/String;
+	public final fun getStructuredJson ()Lkotlinx/serialization/json/JsonElement;
+	public final fun getThinking ()Ljava/lang/String;
+	public final fun getToolCalls ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/llm/LlmMessage {
+	public static final field Companion Lcom/mojentic/llm/LlmMessage$Companion;
+	public fun <init> ()V
+	public fun <init> (Lcom/mojentic/llm/MessageRole;Ljava/lang/String;Ljava/util/List;Ljava/util/List;)V
+	public synthetic fun <init> (Lcom/mojentic/llm/MessageRole;Ljava/lang/String;Ljava/util/List;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lcom/mojentic/llm/MessageRole;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/util/List;
+	public final fun component4 ()Ljava/util/List;
+	public final fun copy (Lcom/mojentic/llm/MessageRole;Ljava/lang/String;Ljava/util/List;Ljava/util/List;)Lcom/mojentic/llm/LlmMessage;
+	public static synthetic fun copy$default (Lcom/mojentic/llm/LlmMessage;Lcom/mojentic/llm/MessageRole;Ljava/lang/String;Ljava/util/List;Ljava/util/List;ILjava/lang/Object;)Lcom/mojentic/llm/LlmMessage;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getContent ()Ljava/lang/String;
+	public final fun getContentParts ()Ljava/util/List;
+	public final fun getRole ()Lcom/mojentic/llm/MessageRole;
+	public final fun getToolCalls ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class com/mojentic/llm/LlmMessage$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lcom/mojentic/llm/LlmMessage$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lcom/mojentic/llm/LlmMessage;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lcom/mojentic/llm/LlmMessage;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class com/mojentic/llm/LlmMessage$Companion {
+	public final fun assistant (Ljava/lang/String;Ljava/util/List;)Lcom/mojentic/llm/LlmMessage;
+	public static synthetic fun assistant$default (Lcom/mojentic/llm/LlmMessage$Companion;Ljava/lang/String;Ljava/util/List;ILjava/lang/Object;)Lcom/mojentic/llm/LlmMessage;
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+	public final fun system (Ljava/lang/String;)Lcom/mojentic/llm/LlmMessage;
+	public final fun tool (Ljava/lang/String;Lcom/mojentic/llm/LlmToolCall;)Lcom/mojentic/llm/LlmMessage;
+	public final fun user (Ljava/lang/String;)Lcom/mojentic/llm/LlmMessage;
+	public final fun user (Ljava/util/List;)Lcom/mojentic/llm/LlmMessage;
+}
+
+public final class com/mojentic/llm/LlmToolCall {
+	public static final field Companion Lcom/mojentic/llm/LlmToolCall$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Lkotlinx/serialization/json/JsonObject;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;)Lcom/mojentic/llm/LlmToolCall;
+	public static synthetic fun copy$default (Lcom/mojentic/llm/LlmToolCall;Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;ILjava/lang/Object;)Lcom/mojentic/llm/LlmToolCall;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getArguments ()Lkotlinx/serialization/json/JsonObject;
+	public final fun getId ()Ljava/lang/String;
+	public final fun getName ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class com/mojentic/llm/LlmToolCall$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lcom/mojentic/llm/LlmToolCall$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lcom/mojentic/llm/LlmToolCall;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lcom/mojentic/llm/LlmToolCall;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class com/mojentic/llm/LlmToolCall$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public abstract interface class com/mojentic/llm/MessageContent {
+	public static final field Companion Lcom/mojentic/llm/MessageContent$Companion;
+}
+
+public final class com/mojentic/llm/MessageContent$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class com/mojentic/llm/MessageRole : java/lang/Enum {
+	public static final field Assistant Lcom/mojentic/llm/MessageRole;
+	public static final field Companion Lcom/mojentic/llm/MessageRole$Companion;
+	public static final field System Lcom/mojentic/llm/MessageRole;
+	public static final field Tool Lcom/mojentic/llm/MessageRole;
+	public static final field User Lcom/mojentic/llm/MessageRole;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public final fun getWireValue ()Ljava/lang/String;
+	public static fun valueOf (Ljava/lang/String;)Lcom/mojentic/llm/MessageRole;
+	public static fun values ()[Lcom/mojentic/llm/MessageRole;
+}
+
+public final class com/mojentic/llm/MessageRole$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class com/mojentic/llm/ReasoningEffort : java/lang/Enum {
+	public static final field HIGH Lcom/mojentic/llm/ReasoningEffort;
+	public static final field LOW Lcom/mojentic/llm/ReasoningEffort;
+	public static final field MEDIUM Lcom/mojentic/llm/ReasoningEffort;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public final fun getWireValue ()Ljava/lang/String;
+	public static fun valueOf (Ljava/lang/String;)Lcom/mojentic/llm/ReasoningEffort;
+	public static fun values ()[Lcom/mojentic/llm/ReasoningEffort;
+}
+
+public abstract interface class com/mojentic/llm/StreamEvent {
+}
+
+public final class com/mojentic/llm/StreamEvent$TextChunk : com/mojentic/llm/StreamEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lcom/mojentic/llm/StreamEvent$TextChunk;
+	public static synthetic fun copy$default (Lcom/mojentic/llm/StreamEvent$TextChunk;Ljava/lang/String;ILjava/lang/Object;)Lcom/mojentic/llm/StreamEvent$TextChunk;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getText ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/llm/StreamEvent$ThinkingChunk : com/mojentic/llm/StreamEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lcom/mojentic/llm/StreamEvent$ThinkingChunk;
+	public static synthetic fun copy$default (Lcom/mojentic/llm/StreamEvent$ThinkingChunk;Ljava/lang/String;ILjava/lang/Object;)Lcom/mojentic/llm/StreamEvent$ThinkingChunk;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getText ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/llm/StreamEvent$ToolCall : com/mojentic/llm/StreamEvent {
+	public fun <init> (Lcom/mojentic/llm/LlmToolCall;)V
+	public final fun component1 ()Lcom/mojentic/llm/LlmToolCall;
+	public final fun copy (Lcom/mojentic/llm/LlmToolCall;)Lcom/mojentic/llm/StreamEvent$ToolCall;
+	public static synthetic fun copy$default (Lcom/mojentic/llm/StreamEvent$ToolCall;Lcom/mojentic/llm/LlmToolCall;ILjava/lang/Object;)Lcom/mojentic/llm/StreamEvent$ToolCall;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCall ()Lcom/mojentic/llm/LlmToolCall;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/llm/StreamEvent$ToolResult : com/mojentic/llm/StreamEvent {
+	public fun <init> (Lcom/mojentic/llm/LlmToolCall;Ljava/lang/String;Z)V
+	public final fun component1 ()Lcom/mojentic/llm/LlmToolCall;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Z
+	public final fun copy (Lcom/mojentic/llm/LlmToolCall;Ljava/lang/String;Z)Lcom/mojentic/llm/StreamEvent$ToolResult;
+	public static synthetic fun copy$default (Lcom/mojentic/llm/StreamEvent$ToolResult;Lcom/mojentic/llm/LlmToolCall;Ljava/lang/String;ZILjava/lang/Object;)Lcom/mojentic/llm/StreamEvent$ToolResult;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCall ()Lcom/mojentic/llm/LlmToolCall;
+	public final fun getResult ()Ljava/lang/String;
+	public fun hashCode ()I
+	public final fun isError ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/llm/TextContent : com/mojentic/llm/MessageContent {
+	public static final field Companion Lcom/mojentic/llm/TextContent$Companion;
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lcom/mojentic/llm/TextContent;
+	public static synthetic fun copy$default (Lcom/mojentic/llm/TextContent;Ljava/lang/String;ILjava/lang/Object;)Lcom/mojentic/llm/TextContent;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getText ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class com/mojentic/llm/TextContent$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lcom/mojentic/llm/TextContent$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lcom/mojentic/llm/TextContent;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lcom/mojentic/llm/TextContent;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class com/mojentic/llm/TextContent$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public abstract interface class com/mojentic/llm/TokenizerGateway {
+	public fun countTokens (Ljava/lang/String;)I
+	public abstract fun decode (Ljava/util/List;)Ljava/lang/String;
+	public abstract fun encode (Ljava/lang/String;)Ljava/util/List;
+}
+
+public final class com/mojentic/llm/TokenizerGateway$DefaultImpls {
+	public static fun countTokens (Lcom/mojentic/llm/TokenizerGateway;Ljava/lang/String;)I
+}
+
+public final class com/mojentic/llm/tools/AskUserTool : com/mojentic/llm/tools/LlmTool {
+	public fun <init> (Lcom/mojentic/llm/tools/UserInteractionGateway;)V
+	public fun execute (Lkotlinx/serialization/json/JsonObject;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getDescription ()Ljava/lang/String;
+	public fun getDescriptor ()Lcom/mojentic/llm/tools/ToolDescriptor;
+	public fun getName ()Ljava/lang/String;
+	public fun matches (Ljava/lang/String;)Z
+}
+
+public final class com/mojentic/llm/tools/ConsoleUserInteractionGateway : com/mojentic/llm/tools/UserInteractionGateway {
+	public fun <init> ()V
+	public fun ask (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun tell (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/mojentic/llm/tools/CurrentDateTimeTool : com/mojentic/llm/tools/LlmTool {
+	public fun <init> ()V
+	public fun <init> (Lkotlin/time/Clock;Lkotlinx/datetime/TimeZone;)V
+	public synthetic fun <init> (Lkotlin/time/Clock;Lkotlinx/datetime/TimeZone;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun execute (Lkotlinx/serialization/json/JsonObject;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getDescription ()Ljava/lang/String;
+	public fun getDescriptor ()Lcom/mojentic/llm/tools/ToolDescriptor;
+	public fun getName ()Ljava/lang/String;
+	public fun matches (Ljava/lang/String;)Z
+}
+
+public final class com/mojentic/llm/tools/DateResolverTool : com/mojentic/llm/tools/LlmTool {
+	public fun <init> ()V
+	public fun <init> (Lkotlin/time/Clock;Lkotlinx/datetime/TimeZone;)V
+	public synthetic fun <init> (Lkotlin/time/Clock;Lkotlinx/datetime/TimeZone;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun execute (Lkotlinx/serialization/json/JsonObject;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getDescription ()Ljava/lang/String;
+	public fun getDescriptor ()Lcom/mojentic/llm/tools/ToolDescriptor;
+	public fun getName ()Ljava/lang/String;
+	public fun matches (Ljava/lang/String;)Z
+}
+
+public abstract interface class com/mojentic/llm/tools/LlmTool {
+	public abstract fun execute (Lkotlinx/serialization/json/JsonObject;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getDescription ()Ljava/lang/String;
+	public abstract fun getDescriptor ()Lcom/mojentic/llm/tools/ToolDescriptor;
+	public fun getName ()Ljava/lang/String;
+	public fun matches (Ljava/lang/String;)Z
+}
+
+public final class com/mojentic/llm/tools/LlmTool$DefaultImpls {
+	public static fun getDescription (Lcom/mojentic/llm/tools/LlmTool;)Ljava/lang/String;
+	public static fun getName (Lcom/mojentic/llm/tools/LlmTool;)Ljava/lang/String;
+	public static fun matches (Lcom/mojentic/llm/tools/LlmTool;Ljava/lang/String;)Z
+}
+
+public final class com/mojentic/llm/tools/ParallelToolRunner : com/mojentic/llm/tools/ToolRunner {
+	public fun <init> ()V
+	public fun <init> (Lcom/mojentic/tracer/Tracer;Ljava/lang/String;)V
+	public synthetic fun <init> (Lcom/mojentic/tracer/Tracer;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun runBatch (Ljava/util/List;Ljava/util/List;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/mojentic/llm/tools/SerialToolRunner : com/mojentic/llm/tools/ToolRunner {
+	public fun <init> ()V
+	public fun runBatch (Ljava/util/List;Ljava/util/List;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/mojentic/llm/tools/TellUserTool : com/mojentic/llm/tools/LlmTool {
+	public fun <init> (Lcom/mojentic/llm/tools/UserInteractionGateway;)V
+	public fun execute (Lkotlinx/serialization/json/JsonObject;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getDescription ()Ljava/lang/String;
+	public fun getDescriptor ()Lcom/mojentic/llm/tools/ToolDescriptor;
+	public fun getName ()Ljava/lang/String;
+	public fun matches (Ljava/lang/String;)Z
+}
+
+public final class com/mojentic/llm/tools/ToolDescriptor {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Lkotlinx/serialization/json/JsonObject;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;)Lcom/mojentic/llm/tools/ToolDescriptor;
+	public static synthetic fun copy$default (Lcom/mojentic/llm/tools/ToolDescriptor;Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;ILjava/lang/Object;)Lcom/mojentic/llm/tools/ToolDescriptor;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDescription ()Ljava/lang/String;
+	public final fun getName ()Ljava/lang/String;
+	public final fun getParameters ()Lkotlinx/serialization/json/JsonObject;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/llm/tools/ToolOutcome {
+	public synthetic fun <init> (Lcom/mojentic/llm/LlmToolCall;Ljava/lang/String;Ljava/lang/Throwable;JILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lcom/mojentic/llm/LlmToolCall;Ljava/lang/String;Ljava/lang/Throwable;JLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lcom/mojentic/llm/LlmToolCall;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/Throwable;
+	public final fun component4-UwyO8pc ()J
+	public final fun copy-Wn2Vu4Y (Lcom/mojentic/llm/LlmToolCall;Ljava/lang/String;Ljava/lang/Throwable;J)Lcom/mojentic/llm/tools/ToolOutcome;
+	public static synthetic fun copy-Wn2Vu4Y$default (Lcom/mojentic/llm/tools/ToolOutcome;Lcom/mojentic/llm/LlmToolCall;Ljava/lang/String;Ljava/lang/Throwable;JILjava/lang/Object;)Lcom/mojentic/llm/tools/ToolOutcome;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCall ()Lcom/mojentic/llm/LlmToolCall;
+	public final fun getDuration-UwyO8pc ()J
+	public final fun getError ()Ljava/lang/Throwable;
+	public final fun getResult ()Ljava/lang/String;
+	public fun hashCode ()I
+	public final fun isOk ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class com/mojentic/llm/tools/ToolRunner {
+	public abstract fun runBatch (Ljava/util/List;Ljava/util/List;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun runBatch$default (Lcom/mojentic/llm/tools/ToolRunner;Ljava/util/List;Ljava/util/List;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class com/mojentic/llm/tools/ToolRunner$DefaultImpls {
+	public static synthetic fun runBatch$default (Lcom/mojentic/llm/tools/ToolRunner;Ljava/util/List;Ljava/util/List;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public abstract interface class com/mojentic/llm/tools/UserInteractionGateway {
+	public abstract fun ask (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun tell (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/mojentic/llm/tools/files/CreateDirectoryTool : com/mojentic/llm/tools/LlmTool {
+	public fun <init> (Lcom/mojentic/llm/tools/files/FilesystemGateway;)V
+	public fun execute (Lkotlinx/serialization/json/JsonObject;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getDescription ()Ljava/lang/String;
+	public fun getDescriptor ()Lcom/mojentic/llm/tools/ToolDescriptor;
+	public fun getName ()Ljava/lang/String;
+	public fun matches (Ljava/lang/String;)Z
+}
+
+public final class com/mojentic/llm/tools/files/FileToolsKt {
+	public static final fun fileToolsFor (Lcom/mojentic/llm/tools/files/FilesystemGateway;)Ljava/util/List;
+}
+
+public abstract interface class com/mojentic/llm/tools/files/FilesystemGateway {
+	public abstract fun createDirectory (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun findFilesByGlob (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun findFilesContaining (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun findLinesMatching (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun listAllFiles (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun ls (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun read (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun write (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/mojentic/llm/tools/files/FindFilesByGlobTool : com/mojentic/llm/tools/LlmTool {
+	public fun <init> (Lcom/mojentic/llm/tools/files/FilesystemGateway;)V
+	public fun execute (Lkotlinx/serialization/json/JsonObject;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getDescription ()Ljava/lang/String;
+	public fun getDescriptor ()Lcom/mojentic/llm/tools/ToolDescriptor;
+	public fun getName ()Ljava/lang/String;
+	public fun matches (Ljava/lang/String;)Z
+}
+
+public final class com/mojentic/llm/tools/files/FindFilesContainingTool : com/mojentic/llm/tools/LlmTool {
+	public fun <init> (Lcom/mojentic/llm/tools/files/FilesystemGateway;)V
+	public fun execute (Lkotlinx/serialization/json/JsonObject;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getDescription ()Ljava/lang/String;
+	public fun getDescriptor ()Lcom/mojentic/llm/tools/ToolDescriptor;
+	public fun getName ()Ljava/lang/String;
+	public fun matches (Ljava/lang/String;)Z
+}
+
+public final class com/mojentic/llm/tools/files/FindLinesMatchingTool : com/mojentic/llm/tools/LlmTool {
+	public fun <init> (Lcom/mojentic/llm/tools/files/FilesystemGateway;)V
+	public fun execute (Lkotlinx/serialization/json/JsonObject;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getDescription ()Ljava/lang/String;
+	public fun getDescriptor ()Lcom/mojentic/llm/tools/ToolDescriptor;
+	public fun getName ()Ljava/lang/String;
+	public fun matches (Ljava/lang/String;)Z
+}
+
+public final class com/mojentic/llm/tools/files/LineMatch {
+	public fun <init> (ILjava/lang/String;)V
+	public final fun component1 ()I
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (ILjava/lang/String;)Lcom/mojentic/llm/tools/files/LineMatch;
+	public static synthetic fun copy$default (Lcom/mojentic/llm/tools/files/LineMatch;ILjava/lang/String;ILjava/lang/Object;)Lcom/mojentic/llm/tools/files/LineMatch;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getContent ()Ljava/lang/String;
+	public final fun getLineNumber ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/llm/tools/files/ListAllFilesTool : com/mojentic/llm/tools/LlmTool {
+	public fun <init> (Lcom/mojentic/llm/tools/files/FilesystemGateway;)V
+	public fun execute (Lkotlinx/serialization/json/JsonObject;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getDescription ()Ljava/lang/String;
+	public fun getDescriptor ()Lcom/mojentic/llm/tools/ToolDescriptor;
+	public fun getName ()Ljava/lang/String;
+	public fun matches (Ljava/lang/String;)Z
+}
+
+public final class com/mojentic/llm/tools/files/ListFilesTool : com/mojentic/llm/tools/LlmTool {
+	public fun <init> (Lcom/mojentic/llm/tools/files/FilesystemGateway;)V
+	public fun execute (Lkotlinx/serialization/json/JsonObject;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getDescription ()Ljava/lang/String;
+	public fun getDescriptor ()Lcom/mojentic/llm/tools/ToolDescriptor;
+	public fun getName ()Ljava/lang/String;
+	public fun matches (Ljava/lang/String;)Z
+}
+
+public final class com/mojentic/llm/tools/files/OkioFilesystemGateway : com/mojentic/llm/tools/files/FilesystemGateway {
+	public fun <init> (Lokio/FileSystem;Ljava/lang/String;)V
+	public fun createDirectory (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun findFilesByGlob (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun findFilesContaining (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun findLinesMatching (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun listAllFiles (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun ls (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun read (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun write (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/mojentic/llm/tools/files/ReadFileTool : com/mojentic/llm/tools/LlmTool {
+	public fun <init> (Lcom/mojentic/llm/tools/files/FilesystemGateway;)V
+	public fun execute (Lkotlinx/serialization/json/JsonObject;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getDescription ()Ljava/lang/String;
+	public fun getDescriptor ()Lcom/mojentic/llm/tools/ToolDescriptor;
+	public fun getName ()Ljava/lang/String;
+	public fun matches (Ljava/lang/String;)Z
+}
+
+public final class com/mojentic/llm/tools/files/SandboxEscapeException : java/lang/RuntimeException {
+	public fun <init> (Ljava/lang/String;)V
+}
+
+public final class com/mojentic/llm/tools/files/WriteFileTool : com/mojentic/llm/tools/LlmTool {
+	public fun <init> (Lcom/mojentic/llm/tools/files/FilesystemGateway;)V
+	public fun execute (Lkotlinx/serialization/json/JsonObject;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getDescription ()Ljava/lang/String;
+	public fun getDescriptor ()Lcom/mojentic/llm/tools/ToolDescriptor;
+	public fun getName ()Ljava/lang/String;
+	public fun matches (Ljava/lang/String;)Z
+}
+
+public final class com/mojentic/llm/tools/tasks/AppendTaskTool : com/mojentic/llm/tools/LlmTool {
+	public fun <init> (Lcom/mojentic/llm/tools/tasks/EphemeralTaskList;)V
+	public fun execute (Lkotlinx/serialization/json/JsonObject;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getDescription ()Ljava/lang/String;
+	public fun getDescriptor ()Lcom/mojentic/llm/tools/ToolDescriptor;
+	public fun getName ()Ljava/lang/String;
+	public fun matches (Ljava/lang/String;)Z
+}
+
+public final class com/mojentic/llm/tools/tasks/ClearTasksTool : com/mojentic/llm/tools/LlmTool {
+	public fun <init> (Lcom/mojentic/llm/tools/tasks/EphemeralTaskList;)V
+	public fun execute (Lkotlinx/serialization/json/JsonObject;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getDescription ()Ljava/lang/String;
+	public fun getDescriptor ()Lcom/mojentic/llm/tools/ToolDescriptor;
+	public fun getName ()Ljava/lang/String;
+	public fun matches (Ljava/lang/String;)Z
+}
+
+public final class com/mojentic/llm/tools/tasks/CompleteTaskTool : com/mojentic/llm/tools/LlmTool {
+	public fun <init> (Lcom/mojentic/llm/tools/tasks/EphemeralTaskList;)V
+	public fun execute (Lkotlinx/serialization/json/JsonObject;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getDescription ()Ljava/lang/String;
+	public fun getDescriptor ()Lcom/mojentic/llm/tools/ToolDescriptor;
+	public fun getName ()Ljava/lang/String;
+	public fun matches (Ljava/lang/String;)Z
+}
+
+public final class com/mojentic/llm/tools/tasks/EphemeralTask {
+	public static final field Companion Lcom/mojentic/llm/tools/tasks/EphemeralTask$Companion;
+	public fun <init> (ILjava/lang/String;Lcom/mojentic/llm/tools/tasks/TaskStatus;)V
+	public synthetic fun <init> (ILjava/lang/String;Lcom/mojentic/llm/tools/tasks/TaskStatus;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()I
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Lcom/mojentic/llm/tools/tasks/TaskStatus;
+	public final fun copy (ILjava/lang/String;Lcom/mojentic/llm/tools/tasks/TaskStatus;)Lcom/mojentic/llm/tools/tasks/EphemeralTask;
+	public static synthetic fun copy$default (Lcom/mojentic/llm/tools/tasks/EphemeralTask;ILjava/lang/String;Lcom/mojentic/llm/tools/tasks/TaskStatus;ILjava/lang/Object;)Lcom/mojentic/llm/tools/tasks/EphemeralTask;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDescription ()Ljava/lang/String;
+	public final fun getId ()I
+	public final fun getStatus ()Lcom/mojentic/llm/tools/tasks/TaskStatus;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class com/mojentic/llm/tools/tasks/EphemeralTask$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lcom/mojentic/llm/tools/tasks/EphemeralTask$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lcom/mojentic/llm/tools/tasks/EphemeralTask;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lcom/mojentic/llm/tools/tasks/EphemeralTask;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class com/mojentic/llm/tools/tasks/EphemeralTask$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class com/mojentic/llm/tools/tasks/EphemeralTaskList {
+	public fun <init> ()V
+	public final fun append (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun clear (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun complete (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun insertAfter (ILjava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun list (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun prepend (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun start (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/mojentic/llm/tools/tasks/InsertTaskAfterTool : com/mojentic/llm/tools/LlmTool {
+	public fun <init> (Lcom/mojentic/llm/tools/tasks/EphemeralTaskList;)V
+	public fun execute (Lkotlinx/serialization/json/JsonObject;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getDescription ()Ljava/lang/String;
+	public fun getDescriptor ()Lcom/mojentic/llm/tools/ToolDescriptor;
+	public fun getName ()Ljava/lang/String;
+	public fun matches (Ljava/lang/String;)Z
+}
+
+public final class com/mojentic/llm/tools/tasks/ListTasksTool : com/mojentic/llm/tools/LlmTool {
+	public fun <init> (Lcom/mojentic/llm/tools/tasks/EphemeralTaskList;)V
+	public fun execute (Lkotlinx/serialization/json/JsonObject;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getDescription ()Ljava/lang/String;
+	public fun getDescriptor ()Lcom/mojentic/llm/tools/ToolDescriptor;
+	public fun getName ()Ljava/lang/String;
+	public fun matches (Ljava/lang/String;)Z
+}
+
+public final class com/mojentic/llm/tools/tasks/PrependTaskTool : com/mojentic/llm/tools/LlmTool {
+	public fun <init> (Lcom/mojentic/llm/tools/tasks/EphemeralTaskList;)V
+	public fun execute (Lkotlinx/serialization/json/JsonObject;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getDescription ()Ljava/lang/String;
+	public fun getDescriptor ()Lcom/mojentic/llm/tools/ToolDescriptor;
+	public fun getName ()Ljava/lang/String;
+	public fun matches (Ljava/lang/String;)Z
+}
+
+public final class com/mojentic/llm/tools/tasks/StartTaskTool : com/mojentic/llm/tools/LlmTool {
+	public fun <init> (Lcom/mojentic/llm/tools/tasks/EphemeralTaskList;)V
+	public fun execute (Lkotlinx/serialization/json/JsonObject;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getDescription ()Ljava/lang/String;
+	public fun getDescriptor ()Lcom/mojentic/llm/tools/ToolDescriptor;
+	public fun getName ()Ljava/lang/String;
+	public fun matches (Ljava/lang/String;)Z
+}
+
+public final class com/mojentic/llm/tools/tasks/TaskStatus : java/lang/Enum {
+	public static final field Companion Lcom/mojentic/llm/tools/tasks/TaskStatus$Companion;
+	public static final field Completed Lcom/mojentic/llm/tools/tasks/TaskStatus;
+	public static final field InProgress Lcom/mojentic/llm/tools/tasks/TaskStatus;
+	public static final field Pending Lcom/mojentic/llm/tools/tasks/TaskStatus;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public final fun getWireValue ()Ljava/lang/String;
+	public static fun valueOf (Ljava/lang/String;)Lcom/mojentic/llm/tools/tasks/TaskStatus;
+	public static fun values ()[Lcom/mojentic/llm/tools/tasks/TaskStatus;
+}
+
+public final class com/mojentic/llm/tools/tasks/TaskStatus$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class com/mojentic/llm/tools/tasks/TaskToolsKt {
+	public static final fun taskToolsFor (Lcom/mojentic/llm/tools/tasks/EphemeralTaskList;)Ljava/util/List;
+}
+
+public final class com/mojentic/llm/tools/websearch/OrganicWebSearchTool : com/mojentic/llm/tools/LlmTool {
+	public fun <init> (Lcom/mojentic/llm/tools/websearch/WebSearchGateway;)V
+	public fun execute (Lkotlinx/serialization/json/JsonObject;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getDescription ()Ljava/lang/String;
+	public fun getDescriptor ()Lcom/mojentic/llm/tools/ToolDescriptor;
+	public fun getName ()Ljava/lang/String;
+	public fun matches (Ljava/lang/String;)Z
+}
+
+public abstract interface class com/mojentic/llm/tools/websearch/WebSearchGateway {
+	public abstract fun search (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun search$default (Lcom/mojentic/llm/tools/websearch/WebSearchGateway;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class com/mojentic/llm/tools/websearch/WebSearchGateway$DefaultImpls {
+	public static synthetic fun search$default (Lcom/mojentic/llm/tools/websearch/WebSearchGateway;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class com/mojentic/llm/tools/websearch/WebSearchResult {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/mojentic/llm/tools/websearch/WebSearchResult;
+	public static synthetic fun copy$default (Lcom/mojentic/llm/tools/websearch/WebSearchResult;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/mojentic/llm/tools/websearch/WebSearchResult;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getLink ()Ljava/lang/String;
+	public final fun getSnippet ()Ljava/lang/String;
+	public final fun getTitle ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/realtime/AudioFrame {
+	public static final field Companion Lcom/mojentic/realtime/AudioFrame$Companion;
+	public static final field DEFAULT_SAMPLE_RATE_HZ I
+	public fun <init> ([SI)V
+	public synthetic fun <init> ([SIILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()[S
+	public final fun component2 ()I
+	public final fun copy ([SI)Lcom/mojentic/realtime/AudioFrame;
+	public static synthetic fun copy$default (Lcom/mojentic/realtime/AudioFrame;[SIILjava/lang/Object;)Lcom/mojentic/realtime/AudioFrame;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getSampleRateHz ()I
+	public final fun getSamples ()[S
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/realtime/AudioFrame$Companion {
+}
+
+public abstract interface class com/mojentic/realtime/ClientRealtimeEvent {
+}
+
+public final class com/mojentic/realtime/ClientRealtimeEvent$FunctionCallOutput : com/mojentic/realtime/ClientRealtimeEvent {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Lcom/mojentic/realtime/ClientRealtimeEvent$FunctionCallOutput;
+	public static synthetic fun copy$default (Lcom/mojentic/realtime/ClientRealtimeEvent$FunctionCallOutput;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/mojentic/realtime/ClientRealtimeEvent$FunctionCallOutput;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCallId ()Ljava/lang/String;
+	public final fun getOutput ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/realtime/ClientRealtimeEvent$InputAudioBufferAppend : com/mojentic/realtime/ClientRealtimeEvent {
+	public fun <init> (Lcom/mojentic/realtime/AudioFrame;)V
+	public final fun component1 ()Lcom/mojentic/realtime/AudioFrame;
+	public final fun copy (Lcom/mojentic/realtime/AudioFrame;)Lcom/mojentic/realtime/ClientRealtimeEvent$InputAudioBufferAppend;
+	public static synthetic fun copy$default (Lcom/mojentic/realtime/ClientRealtimeEvent$InputAudioBufferAppend;Lcom/mojentic/realtime/AudioFrame;ILjava/lang/Object;)Lcom/mojentic/realtime/ClientRealtimeEvent$InputAudioBufferAppend;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFrame ()Lcom/mojentic/realtime/AudioFrame;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/realtime/ClientRealtimeEvent$InputAudioBufferClear : com/mojentic/realtime/ClientRealtimeEvent {
+	public static final field INSTANCE Lcom/mojentic/realtime/ClientRealtimeEvent$InputAudioBufferClear;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/realtime/ClientRealtimeEvent$InputAudioBufferCommit : com/mojentic/realtime/ClientRealtimeEvent {
+	public static final field INSTANCE Lcom/mojentic/realtime/ClientRealtimeEvent$InputAudioBufferCommit;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/realtime/ClientRealtimeEvent$ResponseCancel : com/mojentic/realtime/ClientRealtimeEvent {
+	public static final field INSTANCE Lcom/mojentic/realtime/ClientRealtimeEvent$ResponseCancel;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/realtime/ClientRealtimeEvent$ResponseCreate : com/mojentic/realtime/ClientRealtimeEvent {
+	public static final field INSTANCE Lcom/mojentic/realtime/ClientRealtimeEvent$ResponseCreate;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/realtime/ClientRealtimeEvent$SessionUpdate : com/mojentic/realtime/ClientRealtimeEvent {
+	public fun <init> (Lcom/mojentic/realtime/RealtimeVoiceConfig;)V
+	public final fun component1 ()Lcom/mojentic/realtime/RealtimeVoiceConfig;
+	public final fun copy (Lcom/mojentic/realtime/RealtimeVoiceConfig;)Lcom/mojentic/realtime/ClientRealtimeEvent$SessionUpdate;
+	public static synthetic fun copy$default (Lcom/mojentic/realtime/ClientRealtimeEvent$SessionUpdate;Lcom/mojentic/realtime/RealtimeVoiceConfig;ILjava/lang/Object;)Lcom/mojentic/realtime/ClientRealtimeEvent$SessionUpdate;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getConfig ()Lcom/mojentic/realtime/RealtimeVoiceConfig;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/realtime/ClientRealtimeEvent$UserText : com/mojentic/realtime/ClientRealtimeEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lcom/mojentic/realtime/ClientRealtimeEvent$UserText;
+	public static synthetic fun copy$default (Lcom/mojentic/realtime/ClientRealtimeEvent$UserText;Ljava/lang/String;ILjava/lang/Object;)Lcom/mojentic/realtime/ClientRealtimeEvent$UserText;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getText ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/realtime/RealtimeAudioFormat : java/lang/Enum {
+	public static final field G711_ALAW Lcom/mojentic/realtime/RealtimeAudioFormat;
+	public static final field G711_ULAW Lcom/mojentic/realtime/RealtimeAudioFormat;
+	public static final field PCM16 Lcom/mojentic/realtime/RealtimeAudioFormat;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public final fun getWireValue ()Ljava/lang/String;
+	public static fun valueOf (Ljava/lang/String;)Lcom/mojentic/realtime/RealtimeAudioFormat;
+	public static fun values ()[Lcom/mojentic/realtime/RealtimeAudioFormat;
+}
+
+public abstract interface class com/mojentic/realtime/RealtimeEvent {
+}
+
+public final class com/mojentic/realtime/RealtimeEvent$AssistantAudioDelta : com/mojentic/realtime/RealtimeEvent {
+	public fun <init> (Ljava/lang/String;Lcom/mojentic/realtime/AudioFrame;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lcom/mojentic/realtime/AudioFrame;
+	public final fun copy (Ljava/lang/String;Lcom/mojentic/realtime/AudioFrame;)Lcom/mojentic/realtime/RealtimeEvent$AssistantAudioDelta;
+	public static synthetic fun copy$default (Lcom/mojentic/realtime/RealtimeEvent$AssistantAudioDelta;Ljava/lang/String;Lcom/mojentic/realtime/AudioFrame;ILjava/lang/Object;)Lcom/mojentic/realtime/RealtimeEvent$AssistantAudioDelta;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFrame ()Lcom/mojentic/realtime/AudioFrame;
+	public final fun getTurnId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/realtime/RealtimeEvent$AssistantText : com/mojentic/realtime/RealtimeEvent {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Lcom/mojentic/realtime/RealtimeEvent$AssistantText;
+	public static synthetic fun copy$default (Lcom/mojentic/realtime/RealtimeEvent$AssistantText;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/mojentic/realtime/RealtimeEvent$AssistantText;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getText ()Ljava/lang/String;
+	public final fun getTurnId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/realtime/RealtimeEvent$AssistantTextDelta : com/mojentic/realtime/RealtimeEvent {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Lcom/mojentic/realtime/RealtimeEvent$AssistantTextDelta;
+	public static synthetic fun copy$default (Lcom/mojentic/realtime/RealtimeEvent$AssistantTextDelta;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/mojentic/realtime/RealtimeEvent$AssistantTextDelta;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDelta ()Ljava/lang/String;
+	public final fun getTurnId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/realtime/RealtimeEvent$AssistantTranscript : com/mojentic/realtime/RealtimeEvent {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Lcom/mojentic/realtime/RealtimeEvent$AssistantTranscript;
+	public static synthetic fun copy$default (Lcom/mojentic/realtime/RealtimeEvent$AssistantTranscript;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/mojentic/realtime/RealtimeEvent$AssistantTranscript;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getText ()Ljava/lang/String;
+	public final fun getTurnId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/realtime/RealtimeEvent$AssistantTranscriptDelta : com/mojentic/realtime/RealtimeEvent {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Lcom/mojentic/realtime/RealtimeEvent$AssistantTranscriptDelta;
+	public static synthetic fun copy$default (Lcom/mojentic/realtime/RealtimeEvent$AssistantTranscriptDelta;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/mojentic/realtime/RealtimeEvent$AssistantTranscriptDelta;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDelta ()Ljava/lang/String;
+	public final fun getTurnId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/realtime/RealtimeEvent$AssistantTurnCompleted : com/mojentic/realtime/RealtimeEvent {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/Integer;
+	public final fun component3 ()Ljava/lang/Integer;
+	public final fun component4 ()Ljava/lang/Integer;
+	public final fun copy (Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;)Lcom/mojentic/realtime/RealtimeEvent$AssistantTurnCompleted;
+	public static synthetic fun copy$default (Lcom/mojentic/realtime/RealtimeEvent$AssistantTurnCompleted;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;ILjava/lang/Object;)Lcom/mojentic/realtime/RealtimeEvent$AssistantTurnCompleted;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getInputTokens ()Ljava/lang/Integer;
+	public final fun getOutputTokens ()Ljava/lang/Integer;
+	public final fun getTotalTokens ()Ljava/lang/Integer;
+	public final fun getTurnId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/realtime/RealtimeEvent$AssistantTurnStarted : com/mojentic/realtime/RealtimeEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lcom/mojentic/realtime/RealtimeEvent$AssistantTurnStarted;
+	public static synthetic fun copy$default (Lcom/mojentic/realtime/RealtimeEvent$AssistantTurnStarted;Ljava/lang/String;ILjava/lang/Object;)Lcom/mojentic/realtime/RealtimeEvent$AssistantTurnStarted;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getTurnId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/realtime/RealtimeEvent$CloseReason : java/lang/Enum {
+	public static final field Client Lcom/mojentic/realtime/RealtimeEvent$CloseReason;
+	public static final field Error Lcom/mojentic/realtime/RealtimeEvent$CloseReason;
+	public static final field Server Lcom/mojentic/realtime/RealtimeEvent$CloseReason;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/mojentic/realtime/RealtimeEvent$CloseReason;
+	public static fun values ()[Lcom/mojentic/realtime/RealtimeEvent$CloseReason;
+}
+
+public final class com/mojentic/realtime/RealtimeEvent$GatewayError : com/mojentic/realtime/RealtimeEvent {
+	public fun <init> (Ljava/lang/String;Z)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Z
+	public final fun copy (Ljava/lang/String;Z)Lcom/mojentic/realtime/RealtimeEvent$GatewayError;
+	public static synthetic fun copy$default (Lcom/mojentic/realtime/RealtimeEvent$GatewayError;Ljava/lang/String;ZILjava/lang/Object;)Lcom/mojentic/realtime/RealtimeEvent$GatewayError;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getMessage ()Ljava/lang/String;
+	public final fun getRecoverable ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/realtime/RealtimeEvent$Interrupted : com/mojentic/realtime/RealtimeEvent {
+	public fun <init> (Ljava/lang/String;Lcom/mojentic/realtime/RealtimeEvent$InterruptionReason;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lcom/mojentic/realtime/RealtimeEvent$InterruptionReason;
+	public final fun copy (Ljava/lang/String;Lcom/mojentic/realtime/RealtimeEvent$InterruptionReason;)Lcom/mojentic/realtime/RealtimeEvent$Interrupted;
+	public static synthetic fun copy$default (Lcom/mojentic/realtime/RealtimeEvent$Interrupted;Ljava/lang/String;Lcom/mojentic/realtime/RealtimeEvent$InterruptionReason;ILjava/lang/Object;)Lcom/mojentic/realtime/RealtimeEvent$Interrupted;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getReason ()Lcom/mojentic/realtime/RealtimeEvent$InterruptionReason;
+	public final fun getTurnId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/realtime/RealtimeEvent$InterruptionReason : java/lang/Enum {
+	public static final field BargeIn Lcom/mojentic/realtime/RealtimeEvent$InterruptionReason;
+	public static final field Error Lcom/mojentic/realtime/RealtimeEvent$InterruptionReason;
+	public static final field Manual Lcom/mojentic/realtime/RealtimeEvent$InterruptionReason;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/mojentic/realtime/RealtimeEvent$InterruptionReason;
+	public static fun values ()[Lcom/mojentic/realtime/RealtimeEvent$InterruptionReason;
+}
+
+public final class com/mojentic/realtime/RealtimeEvent$RateLimited : com/mojentic/realtime/RealtimeEvent {
+	public fun <init> (Ljava/lang/Long;Lkotlinx/serialization/json/JsonObject;)V
+	public final fun component1 ()Ljava/lang/Long;
+	public final fun component2 ()Lkotlinx/serialization/json/JsonObject;
+	public final fun copy (Ljava/lang/Long;Lkotlinx/serialization/json/JsonObject;)Lcom/mojentic/realtime/RealtimeEvent$RateLimited;
+	public static synthetic fun copy$default (Lcom/mojentic/realtime/RealtimeEvent$RateLimited;Ljava/lang/Long;Lkotlinx/serialization/json/JsonObject;ILjava/lang/Object;)Lcom/mojentic/realtime/RealtimeEvent$RateLimited;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDetails ()Lkotlinx/serialization/json/JsonObject;
+	public final fun getResetMs ()Ljava/lang/Long;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/realtime/RealtimeEvent$SessionClosed : com/mojentic/realtime/RealtimeEvent {
+	public fun <init> (Lcom/mojentic/realtime/RealtimeEvent$CloseReason;)V
+	public final fun component1 ()Lcom/mojentic/realtime/RealtimeEvent$CloseReason;
+	public final fun copy (Lcom/mojentic/realtime/RealtimeEvent$CloseReason;)Lcom/mojentic/realtime/RealtimeEvent$SessionClosed;
+	public static synthetic fun copy$default (Lcom/mojentic/realtime/RealtimeEvent$SessionClosed;Lcom/mojentic/realtime/RealtimeEvent$CloseReason;ILjava/lang/Object;)Lcom/mojentic/realtime/RealtimeEvent$SessionClosed;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getReason ()Lcom/mojentic/realtime/RealtimeEvent$CloseReason;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/realtime/RealtimeEvent$SessionOpened : com/mojentic/realtime/RealtimeEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lcom/mojentic/realtime/RealtimeEvent$SessionOpened;
+	public static synthetic fun copy$default (Lcom/mojentic/realtime/RealtimeEvent$SessionOpened;Ljava/lang/String;ILjava/lang/Object;)Lcom/mojentic/realtime/RealtimeEvent$SessionOpened;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getSessionId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/realtime/RealtimeEvent$SessionUpdated : com/mojentic/realtime/RealtimeEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lcom/mojentic/realtime/RealtimeEvent$SessionUpdated;
+	public static synthetic fun copy$default (Lcom/mojentic/realtime/RealtimeEvent$SessionUpdated;Ljava/lang/String;ILjava/lang/Object;)Lcom/mojentic/realtime/RealtimeEvent$SessionUpdated;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getInstructions ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/realtime/RealtimeEvent$ToolBatchSubmitted : com/mojentic/realtime/RealtimeEvent {
+	public fun <init> (Ljava/lang/String;Ljava/util/List;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Ljava/util/List;)Lcom/mojentic/realtime/RealtimeEvent$ToolBatchSubmitted;
+	public static synthetic fun copy$default (Lcom/mojentic/realtime/RealtimeEvent$ToolBatchSubmitted;Ljava/lang/String;Ljava/util/List;ILjava/lang/Object;)Lcom/mojentic/realtime/RealtimeEvent$ToolBatchSubmitted;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCallIds ()Ljava/util/List;
+	public final fun getTurnId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/realtime/RealtimeEvent$ToolCallArgsDelta : com/mojentic/realtime/RealtimeEvent {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Lcom/mojentic/realtime/RealtimeEvent$ToolCallArgsDelta;
+	public static synthetic fun copy$default (Lcom/mojentic/realtime/RealtimeEvent$ToolCallArgsDelta;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/mojentic/realtime/RealtimeEvent$ToolCallArgsDelta;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCallId ()Ljava/lang/String;
+	public final fun getDelta ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/realtime/RealtimeEvent$ToolCallCompleted : com/mojentic/realtime/RealtimeEvent {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/mojentic/realtime/RealtimeEvent$ToolCallCompleted;
+	public static synthetic fun copy$default (Lcom/mojentic/realtime/RealtimeEvent$ToolCallCompleted;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/mojentic/realtime/RealtimeEvent$ToolCallCompleted;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCallId ()Ljava/lang/String;
+	public final fun getName ()Ljava/lang/String;
+	public final fun getResult ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/realtime/RealtimeEvent$ToolCallDispatched : com/mojentic/realtime/RealtimeEvent {
+	public fun <init> (Ljava/lang/String;Lcom/mojentic/llm/LlmToolCall;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lcom/mojentic/llm/LlmToolCall;
+	public final fun copy (Ljava/lang/String;Lcom/mojentic/llm/LlmToolCall;)Lcom/mojentic/realtime/RealtimeEvent$ToolCallDispatched;
+	public static synthetic fun copy$default (Lcom/mojentic/realtime/RealtimeEvent$ToolCallDispatched;Ljava/lang/String;Lcom/mojentic/llm/LlmToolCall;ILjava/lang/Object;)Lcom/mojentic/realtime/RealtimeEvent$ToolCallDispatched;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCall ()Lcom/mojentic/llm/LlmToolCall;
+	public final fun getCallId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/realtime/RealtimeEvent$ToolCallFailed : com/mojentic/realtime/RealtimeEvent {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/Throwable;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)Lcom/mojentic/realtime/RealtimeEvent$ToolCallFailed;
+	public static synthetic fun copy$default (Lcom/mojentic/realtime/RealtimeEvent$ToolCallFailed;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)Lcom/mojentic/realtime/RealtimeEvent$ToolCallFailed;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCallId ()Ljava/lang/String;
+	public final fun getError ()Ljava/lang/Throwable;
+	public final fun getName ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/realtime/RealtimeEvent$ToolCallStarted : com/mojentic/realtime/RealtimeEvent {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/mojentic/realtime/RealtimeEvent$ToolCallStarted;
+	public static synthetic fun copy$default (Lcom/mojentic/realtime/RealtimeEvent$ToolCallStarted;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/mojentic/realtime/RealtimeEvent$ToolCallStarted;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCallId ()Ljava/lang/String;
+	public final fun getName ()Ljava/lang/String;
+	public final fun getTurnId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/realtime/RealtimeEvent$UserSpeechStarted : com/mojentic/realtime/RealtimeEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lcom/mojentic/realtime/RealtimeEvent$UserSpeechStarted;
+	public static synthetic fun copy$default (Lcom/mojentic/realtime/RealtimeEvent$UserSpeechStarted;Ljava/lang/String;ILjava/lang/Object;)Lcom/mojentic/realtime/RealtimeEvent$UserSpeechStarted;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getItemId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/realtime/RealtimeEvent$UserSpeechStopped : com/mojentic/realtime/RealtimeEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lcom/mojentic/realtime/RealtimeEvent$UserSpeechStopped;
+	public static synthetic fun copy$default (Lcom/mojentic/realtime/RealtimeEvent$UserSpeechStopped;Ljava/lang/String;ILjava/lang/Object;)Lcom/mojentic/realtime/RealtimeEvent$UserSpeechStopped;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getItemId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/realtime/RealtimeEvent$UserTranscript : com/mojentic/realtime/RealtimeEvent {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Lcom/mojentic/realtime/RealtimeEvent$UserTranscript;
+	public static synthetic fun copy$default (Lcom/mojentic/realtime/RealtimeEvent$UserTranscript;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/mojentic/realtime/RealtimeEvent$UserTranscript;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getItemId ()Ljava/lang/String;
+	public final fun getText ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/realtime/RealtimeEvent$UserTranscriptDelta : com/mojentic/realtime/RealtimeEvent {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Lcom/mojentic/realtime/RealtimeEvent$UserTranscriptDelta;
+	public static synthetic fun copy$default (Lcom/mojentic/realtime/RealtimeEvent$UserTranscriptDelta;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/mojentic/realtime/RealtimeEvent$UserTranscriptDelta;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDelta ()Ljava/lang/String;
+	public final fun getItemId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class com/mojentic/realtime/RealtimeGateway {
+	public abstract fun open (Ljava/lang/String;Lcom/mojentic/realtime/RealtimeVoiceConfig;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun open$default (Lcom/mojentic/realtime/RealtimeGateway;Ljava/lang/String;Lcom/mojentic/realtime/RealtimeVoiceConfig;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class com/mojentic/realtime/RealtimeGateway$DefaultImpls {
+	public static synthetic fun open$default (Lcom/mojentic/realtime/RealtimeGateway;Ljava/lang/String;Lcom/mojentic/realtime/RealtimeVoiceConfig;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public abstract interface class com/mojentic/realtime/RealtimeGatewaySession {
+	public abstract fun close (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun getRawEvents ()Lkotlinx/coroutines/flow/Flow;
+	public abstract fun send (Lcom/mojentic/realtime/ClientRealtimeEvent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/mojentic/realtime/RealtimeModality : java/lang/Enum {
+	public static final field AUDIO Lcom/mojentic/realtime/RealtimeModality;
+	public static final field TEXT Lcom/mojentic/realtime/RealtimeModality;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public final fun getWireValue ()Ljava/lang/String;
+	public static fun valueOf (Ljava/lang/String;)Lcom/mojentic/realtime/RealtimeModality;
+	public static fun values ()[Lcom/mojentic/realtime/RealtimeModality;
+}
+
+public final class com/mojentic/realtime/RealtimeSession {
+	public final fun awaitTurnCompleted (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun clearAudio (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun close (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun commit (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun getEvents ()Lkotlinx/coroutines/flow/Flow;
+	public final fun getRawEvents ()Lkotlinx/coroutines/flow/Flow;
+	public final fun interrupt (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun sendAudio (Lkotlinx/coroutines/flow/Flow;)Lkotlinx/coroutines/Job;
+	public final fun sendText (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/mojentic/realtime/RealtimeVoiceBroker {
+	public fun <init> (Lcom/mojentic/realtime/RealtimeGateway;Lcom/mojentic/llm/tools/ToolRunner;Lcom/mojentic/tracer/Tracer;)V
+	public synthetic fun <init> (Lcom/mojentic/realtime/RealtimeGateway;Lcom/mojentic/llm/tools/ToolRunner;Lcom/mojentic/tracer/Tracer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun connect (Ljava/lang/String;Lcom/mojentic/realtime/RealtimeVoiceConfig;Ljava/lang/String;Lkotlinx/coroutines/CoroutineScope;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun connect$default (Lcom/mojentic/realtime/RealtimeVoiceBroker;Ljava/lang/String;Lcom/mojentic/realtime/RealtimeVoiceConfig;Ljava/lang/String;Lkotlinx/coroutines/CoroutineScope;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class com/mojentic/realtime/RealtimeVoiceConfig {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;Lcom/mojentic/realtime/RealtimeAudioFormat;Lcom/mojentic/realtime/VadConfig;Ljava/util/List;Lcom/mojentic/realtime/ToolChoice;Ljava/lang/Double;Ljava/lang/Integer;Ljava/lang/String;Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;Lcom/mojentic/realtime/RealtimeAudioFormat;Lcom/mojentic/realtime/VadConfig;Ljava/util/List;Lcom/mojentic/realtime/ToolChoice;Ljava/lang/Double;Ljava/lang/Integer;Ljava/lang/String;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component10 ()Ljava/lang/String;
+	public final fun component11 ()Ljava/util/Map;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/util/Set;
+	public final fun component4 ()Lcom/mojentic/realtime/RealtimeAudioFormat;
+	public final fun component5 ()Lcom/mojentic/realtime/VadConfig;
+	public final fun component6 ()Ljava/util/List;
+	public final fun component7 ()Lcom/mojentic/realtime/ToolChoice;
+	public final fun component8 ()Ljava/lang/Double;
+	public final fun component9 ()Ljava/lang/Integer;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;Lcom/mojentic/realtime/RealtimeAudioFormat;Lcom/mojentic/realtime/VadConfig;Ljava/util/List;Lcom/mojentic/realtime/ToolChoice;Ljava/lang/Double;Ljava/lang/Integer;Ljava/lang/String;Ljava/util/Map;)Lcom/mojentic/realtime/RealtimeVoiceConfig;
+	public static synthetic fun copy$default (Lcom/mojentic/realtime/RealtimeVoiceConfig;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;Lcom/mojentic/realtime/RealtimeAudioFormat;Lcom/mojentic/realtime/VadConfig;Ljava/util/List;Lcom/mojentic/realtime/ToolChoice;Ljava/lang/Double;Ljava/lang/Integer;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Lcom/mojentic/realtime/RealtimeVoiceConfig;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAudioFormat ()Lcom/mojentic/realtime/RealtimeAudioFormat;
+	public final fun getInputAudioTranscriptionModel ()Ljava/lang/String;
+	public final fun getInstructions ()Ljava/lang/String;
+	public final fun getMaxResponseOutputTokens ()Ljava/lang/Integer;
+	public final fun getModalities ()Ljava/util/Set;
+	public final fun getProviderExtras ()Ljava/util/Map;
+	public final fun getTemperature ()Ljava/lang/Double;
+	public final fun getToolChoice ()Lcom/mojentic/realtime/ToolChoice;
+	public final fun getTools ()Ljava/util/List;
+	public final fun getTurnDetection ()Lcom/mojentic/realtime/VadConfig;
+	public final fun getVoice ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class com/mojentic/realtime/ToolChoice {
+}
+
+public final class com/mojentic/realtime/ToolChoice$Auto : com/mojentic/realtime/ToolChoice {
+	public static final field INSTANCE Lcom/mojentic/realtime/ToolChoice$Auto;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/realtime/ToolChoice$Named : com/mojentic/realtime/ToolChoice {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lcom/mojentic/realtime/ToolChoice$Named;
+	public static synthetic fun copy$default (Lcom/mojentic/realtime/ToolChoice$Named;Ljava/lang/String;ILjava/lang/Object;)Lcom/mojentic/realtime/ToolChoice$Named;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getName ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/realtime/ToolChoice$None : com/mojentic/realtime/ToolChoice {
+	public static final field INSTANCE Lcom/mojentic/realtime/ToolChoice$None;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/realtime/ToolChoice$Required : com/mojentic/realtime/ToolChoice {
+	public static final field INSTANCE Lcom/mojentic/realtime/ToolChoice$Required;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class com/mojentic/realtime/VadConfig {
+}
+
+public final class com/mojentic/realtime/VadConfig$Manual : com/mojentic/realtime/VadConfig {
+	public static final field INSTANCE Lcom/mojentic/realtime/VadConfig$Manual;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/realtime/VadConfig$Server : com/mojentic/realtime/VadConfig {
+	public static final field Companion Lcom/mojentic/realtime/VadConfig$Server$Companion;
+	public static final field DEFAULT_PREFIX_PADDING_MS I
+	public static final field DEFAULT_SILENCE_DURATION_MS I
+	public static final field DEFAULT_THRESHOLD D
+	public fun <init> ()V
+	public fun <init> (DII)V
+	public synthetic fun <init> (DIIILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()D
+	public final fun component2 ()I
+	public final fun component3 ()I
+	public final fun copy (DII)Lcom/mojentic/realtime/VadConfig$Server;
+	public static synthetic fun copy$default (Lcom/mojentic/realtime/VadConfig$Server;DIIILjava/lang/Object;)Lcom/mojentic/realtime/VadConfig$Server;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getPrefixPaddingMs ()I
+	public final fun getSilenceDurationMs ()I
+	public final fun getThresholdRms ()D
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/realtime/VadConfig$Server$Companion {
+}
+
+public final class com/mojentic/realtime/internal/Pcm16AudioCodec {
+	public static final field INSTANCE Lcom/mojentic/realtime/internal/Pcm16AudioCodec;
+	public final fun decode (Ljava/lang/String;I)Lcom/mojentic/realtime/AudioFrame;
+	public static synthetic fun decode$default (Lcom/mojentic/realtime/internal/Pcm16AudioCodec;Ljava/lang/String;IILjava/lang/Object;)Lcom/mojentic/realtime/AudioFrame;
+	public final fun encode (Lcom/mojentic/realtime/AudioFrame;)Ljava/lang/String;
+}
+
+public final class com/mojentic/tracer/AgentInteractionEvent : com/mojentic/tracer/TracerEvent {
+	public fun <init> (Lkotlin/time/Instant;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Lkotlin/time/Instant;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lkotlin/time/Instant;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6 ()Ljava/lang/String;
+	public final fun copy (Lkotlin/time/Instant;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/mojentic/tracer/AgentInteractionEvent;
+	public static synthetic fun copy$default (Lcom/mojentic/tracer/AgentInteractionEvent;Lkotlin/time/Instant;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/mojentic/tracer/AgentInteractionEvent;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getCorrelationId ()Ljava/lang/String;
+	public final fun getEventId ()Ljava/lang/String;
+	public final fun getEventType ()Ljava/lang/String;
+	public final fun getFromAgent ()Ljava/lang/String;
+	public fun getTimestamp ()Lkotlin/time/Instant;
+	public final fun getToAgent ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun printableSummary ()Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/tracer/EventStore {
+	public static final field DEFAULT_EXTRA_BUFFER I
+	public fun <init> ()V
+	public fun <init> (I)V
+	public synthetic fun <init> (IILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun clear (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun getEvents ()Lkotlinx/coroutines/flow/SharedFlow;
+	public final fun getEvents (Lkotlin/reflect/KClass;Lkotlin/time/Instant;Lkotlin/time/Instant;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun getEvents$default (Lcom/mojentic/tracer/EventStore;Lkotlin/reflect/KClass;Lkotlin/time/Instant;Lkotlin/time/Instant;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun getLastN (ILkotlin/reflect/KClass;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun getLastN$default (Lcom/mojentic/tracer/EventStore;ILkotlin/reflect/KClass;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun size (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun store (Lcom/mojentic/tracer/TracerEvent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/mojentic/tracer/LlmCallEvent : com/mojentic/tracer/TracerEvent {
+	public fun <init> (Lkotlin/time/Instant;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;DLjava/util/List;)V
+	public synthetic fun <init> (Lkotlin/time/Instant;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;DLjava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lkotlin/time/Instant;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/util/List;
+	public final fun component5 ()D
+	public final fun component6 ()Ljava/util/List;
+	public final fun copy (Lkotlin/time/Instant;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;DLjava/util/List;)Lcom/mojentic/tracer/LlmCallEvent;
+	public static synthetic fun copy$default (Lcom/mojentic/tracer/LlmCallEvent;Lkotlin/time/Instant;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;DLjava/util/List;ILjava/lang/Object;)Lcom/mojentic/tracer/LlmCallEvent;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getCorrelationId ()Ljava/lang/String;
+	public final fun getMessages ()Ljava/util/List;
+	public final fun getModel ()Ljava/lang/String;
+	public final fun getTemperature ()D
+	public fun getTimestamp ()Lkotlin/time/Instant;
+	public final fun getTools ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun printableSummary ()Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/tracer/LlmResponseEvent : com/mojentic/tracer/TracerEvent {
+	public static final field CONTENT_PREVIEW_MAX I
+	public static final field MICROS_PER_MILLI_F D
+	public synthetic fun <init> (Lkotlin/time/Instant;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;JILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lkotlin/time/Instant;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;JLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lkotlin/time/Instant;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/util/List;
+	public final fun component6-UwyO8pc ()J
+	public final fun copy-17CK4j0 (Lkotlin/time/Instant;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;J)Lcom/mojentic/tracer/LlmResponseEvent;
+	public static synthetic fun copy-17CK4j0$default (Lcom/mojentic/tracer/LlmResponseEvent;Lkotlin/time/Instant;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;JILjava/lang/Object;)Lcom/mojentic/tracer/LlmResponseEvent;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCallDuration-UwyO8pc ()J
+	public final fun getContent ()Ljava/lang/String;
+	public fun getCorrelationId ()Ljava/lang/String;
+	public final fun getModel ()Ljava/lang/String;
+	public fun getTimestamp ()Lkotlin/time/Instant;
+	public final fun getToolCalls ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun printableSummary ()Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/tracer/NullTracer : com/mojentic/tracer/Tracer {
+	public static final field INSTANCE Lcom/mojentic/tracer/NullTracer;
+	public fun recordAgentInteraction (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun recordLlmCall (Ljava/lang/String;Ljava/util/List;DLjava/util/List;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun recordLlmResponse-gwCluXo (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;JLjava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun recordToolBatch-Zb7fWow (Ljava/lang/String;Ljava/util/List;IIJLjava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun recordToolCall-mGOUYlo (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JZLjava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/mojentic/tracer/ToolBatchEvent : com/mojentic/tracer/TracerEvent {
+	public synthetic fun <init> (Lkotlin/time/Instant;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;IIJLjava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lkotlin/time/Instant;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;IIJLjava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lkotlin/time/Instant;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/util/List;
+	public final fun component5 ()I
+	public final fun component6 ()I
+	public final fun component7-UwyO8pc ()J
+	public final fun component8 ()Ljava/lang/String;
+	public final fun copy-GajXJrc (Lkotlin/time/Instant;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;IIJLjava/lang/String;)Lcom/mojentic/tracer/ToolBatchEvent;
+	public static synthetic fun copy-GajXJrc$default (Lcom/mojentic/tracer/ToolBatchEvent;Lkotlin/time/Instant;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;IIJLjava/lang/String;ILjava/lang/Object;)Lcom/mojentic/tracer/ToolBatchEvent;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBatchId ()Ljava/lang/String;
+	public final fun getCallDuration-UwyO8pc ()J
+	public final fun getCaller ()Ljava/lang/String;
+	public fun getCorrelationId ()Ljava/lang/String;
+	public final fun getFailureCount ()I
+	public final fun getSuccessCount ()I
+	public fun getTimestamp ()Lkotlin/time/Instant;
+	public final fun getToolNames ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun printableSummary ()Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/tracer/ToolCallEvent : com/mojentic/tracer/TracerEvent {
+	public static final field RESULT_PREVIEW_MAX I
+	public synthetic fun <init> (Lkotlin/time/Instant;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JZLjava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lkotlin/time/Instant;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JZLjava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lkotlin/time/Instant;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6-UwyO8pc ()J
+	public final fun component7 ()Z
+	public final fun component8 ()Ljava/lang/String;
+	public final fun copy-HOFDmpg (Lkotlin/time/Instant;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JZLjava/lang/String;)Lcom/mojentic/tracer/ToolCallEvent;
+	public static synthetic fun copy-HOFDmpg$default (Lcom/mojentic/tracer/ToolCallEvent;Lkotlin/time/Instant;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JZLjava/lang/String;ILjava/lang/Object;)Lcom/mojentic/tracer/ToolCallEvent;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getArguments ()Ljava/lang/String;
+	public final fun getCallDuration-UwyO8pc ()J
+	public final fun getCaller ()Ljava/lang/String;
+	public fun getCorrelationId ()Ljava/lang/String;
+	public final fun getResult ()Ljava/lang/String;
+	public fun getTimestamp ()Lkotlin/time/Instant;
+	public final fun getToolName ()Ljava/lang/String;
+	public fun hashCode ()I
+	public final fun isError ()Z
+	public fun printableSummary ()Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class com/mojentic/tracer/Tracer {
+	public fun recordAgentInteraction (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun recordLlmCall (Ljava/lang/String;Ljava/util/List;DLjava/util/List;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun recordLlmResponse-gwCluXo (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;JLjava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun recordToolBatch-Zb7fWow (Ljava/lang/String;Ljava/util/List;IIJLjava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun recordToolBatch-Zb7fWow$default (Lcom/mojentic/tracer/Tracer;Ljava/lang/String;Ljava/util/List;IIJLjava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public fun recordToolCall-mGOUYlo (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JZLjava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun recordToolCall-mGOUYlo$default (Lcom/mojentic/tracer/Tracer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JZLjava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class com/mojentic/tracer/Tracer$DefaultImpls {
+	public static fun recordAgentInteraction (Lcom/mojentic/tracer/Tracer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static fun recordLlmCall (Lcom/mojentic/tracer/Tracer;Ljava/lang/String;Ljava/util/List;DLjava/util/List;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static fun recordLlmResponse-gwCluXo (Lcom/mojentic/tracer/Tracer;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;JLjava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static fun recordToolBatch-Zb7fWow (Lcom/mojentic/tracer/Tracer;Ljava/lang/String;Ljava/util/List;IIJLjava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun recordToolBatch-Zb7fWow$default (Lcom/mojentic/tracer/Tracer;Ljava/lang/String;Ljava/util/List;IIJLjava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static fun recordToolCall-mGOUYlo (Lcom/mojentic/tracer/Tracer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JZLjava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun recordToolCall-mGOUYlo$default (Lcom/mojentic/tracer/Tracer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JZLjava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public abstract interface class com/mojentic/tracer/TracerEvent {
+	public abstract fun getCorrelationId ()Ljava/lang/String;
+	public abstract fun getTimestamp ()Lkotlin/time/Instant;
+	public abstract fun printableSummary ()Ljava/lang/String;
+}
+
+public final class com/mojentic/tracer/TracerSystem : com/mojentic/tracer/Tracer {
+	public fun <init> ()V
+	public fun <init> (Lcom/mojentic/tracer/EventStore;Z)V
+	public synthetic fun <init> (Lcom/mojentic/tracer/EventStore;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun clear (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun disable ()V
+	public final fun enable ()V
+	public final fun getEnabled ()Z
+	public final fun getEventStore ()Lcom/mojentic/tracer/EventStore;
+	public fun recordAgentInteraction (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun recordLlmCall (Ljava/lang/String;Ljava/util/List;DLjava/util/List;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun recordLlmResponse-gwCluXo (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;JLjava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun recordToolBatch-Zb7fWow (Ljava/lang/String;Ljava/util/List;IIJLjava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun recordToolCall-mGOUYlo (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JZLjava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+

@@ -1,0 +1,20 @@
+public final class com/mojentic/ollama/OllamaGateway : com/mojentic/llm/LlmGateway {
+	public static final field Companion Lcom/mojentic/ollama/OllamaGateway$Companion;
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Lio/ktor/client/engine/HttpClientEngine;Lkotlinx/serialization/json/Json;)V
+	public synthetic fun <init> (Ljava/lang/String;Lio/ktor/client/engine/HttpClientEngine;Lkotlinx/serialization/json/Json;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun availableModels (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun close ()V
+	public fun complete (Ljava/lang/String;Ljava/util/List;Ljava/util/List;Lcom/mojentic/llm/CompletionConfig;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun completeJson (Ljava/lang/String;Ljava/util/List;Lkotlinx/serialization/json/JsonObject;Lcom/mojentic/llm/CompletionConfig;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun stream (Ljava/lang/String;Ljava/util/List;Ljava/util/List;Lcom/mojentic/llm/CompletionConfig;)Lkotlinx/coroutines/flow/Flow;
+}
+
+public final class com/mojentic/ollama/OllamaGateway$Companion {
+	public final fun getDEFAULT_JSON ()Lkotlinx/serialization/json/Json;
+}
+
+public final class com/mojentic/ollama/OllamaGatewayKt {
+	public static final field DEFAULT_OLLAMA_HOST Ljava/lang/String;
+}
+

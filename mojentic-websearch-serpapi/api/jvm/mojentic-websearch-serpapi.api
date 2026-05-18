@@ -1,0 +1,16 @@
+public final class com/mojentic/websearch/serpapi/SerpApiWebSearchGateway : com/mojentic/llm/tools/websearch/WebSearchGateway {
+	public static final field Companion Lcom/mojentic/websearch/serpapi/SerpApiWebSearchGateway$Companion;
+	public fun <init> (Ljava/lang/String;Lio/ktor/client/engine/HttpClientEngine;Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/Json;)V
+	public synthetic fun <init> (Ljava/lang/String;Lio/ktor/client/engine/HttpClientEngine;Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/Json;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun close ()V
+	public fun search (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/mojentic/websearch/serpapi/SerpApiWebSearchGateway$Companion {
+	public final fun getDEFAULT_JSON ()Lkotlinx/serialization/json/Json;
+}
+
+public final class com/mojentic/websearch/serpapi/SerpApiWebSearchGatewayKt {
+	public static final field DEFAULT_SERPAPI_HOST Ljava/lang/String;
+}
+
