@@ -1,6 +1,3 @@
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.kotlin.serialization)
@@ -10,12 +7,7 @@ plugins {
 }
 
 kotlin {
-    @OptIn(ExperimentalKotlinGradlePluginApi::class)
-    compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_17)
-        allWarningsAsErrors.set(true)
-        freeCompilerArgs.add("-Xexpect-actual-classes")
-    }
+    jvmToolchain(17)
 
     jvm()
 

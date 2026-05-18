@@ -48,19 +48,13 @@ realtime voice — all built natively on Kotlin coroutines and `Flow`.
 
 ## Building Locally
 
-The Gradle wrapper jar is intentionally not committed. On a fresh clone, run
-once:
+The Gradle wrapper is committed (`gradle/wrapper/gradle-wrapper.jar` +
+`gradlew` / `gradlew.bat`), so a fresh clone is immediately buildable:
 
 ```bash
-gradle wrapper --gradle-version 8.10.2 --distribution-type bin
-```
-
-After that, the wrapper is self-contained:
-
-```bash
-./gradlew build              # compile + test all targets the host can build
-./gradlew :mojentic-core:jvmTest
-./gradlew ktlintCheck detekt
+./gradlew build                       # compile + test all targets the host can build
+./gradlew :mojentic-core:jvmTest      # JVM smoke test
+./gradlew ktlintCheck detekt          # lint gate
 ```
 
 CI runs the full quality-gate matrix on every push — see
