@@ -51,9 +51,11 @@ kotlin-logging = { module = "io.github.oshai:kotlin-logging", version.ref = "kot
 # Test
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
+slf4j-simple = { module = "org.slf4j:slf4j-simple", version = "2.0.16" }
 
 [plugins]
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint-plugin" }

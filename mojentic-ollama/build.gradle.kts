@@ -12,7 +12,7 @@ kotlin {
     jvm()
 
     android {
-        namespace = "com.mojentic.core"
+        namespace = "com.mojentic.ollama"
         compileSdk = 36
         minSdk = 24
 
@@ -26,11 +26,10 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api(libs.kotlinx.coroutines.core)
-                api(libs.kotlinx.serialization.json)
-                api(libs.kotlinx.datetime)
-                api(libs.kotlin.logging)
-                implementation(libs.okio)
+                api(project(":mojentic-core"))
+                implementation(libs.ktor.client.core)
+                implementation(libs.ktor.client.content.negotiation)
+                implementation(libs.ktor.serialization.kotlinx.json)
             }
         }
         commonTest {
@@ -38,6 +37,12 @@ kotlin {
                 implementation(libs.kotlin.test)
                 implementation(libs.kotlinx.coroutines.test)
                 implementation(libs.turbine)
+                implementation(libs.ktor.client.mock)
+            }
+        }
+        jvmMain {
+            dependencies {
+                implementation(libs.ktor.client.okhttp)
             }
         }
         jvmTest {
@@ -45,11 +50,19 @@ kotlin {
                 implementation(libs.slf4j.simple)
             }
         }
-        // Android host-test set (created by `withHostTest {}`) runs commonTest on the
-        // host JVM and needs an SLF4J binding for kotlin-logging.
         getByName("androidHostTest") {
             dependencies {
                 implementation(libs.slf4j.simple)
+            }
+        }
+        androidMain {
+            dependencies {
+                implementation(libs.ktor.client.okhttp)
+            }
+        }
+        iosMain {
+            dependencies {
+                implementation(libs.ktor.client.darwin)
             }
         }
     }

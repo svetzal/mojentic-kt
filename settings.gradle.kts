@@ -23,3 +23,11 @@ dependencyResolutionManagement {
 rootProject.name = "mojentic-kt"
 
 include(":mojentic-core")
+include(":mojentic-ollama")
+
+// Phase 1 examples (JVM-only Gradle subprojects)
+include(":examples:simple-llm")
+include(":examples:list-models")
+include(":examples:simple-structured")
+include(":examples:simple-tool")
+include(":examples:streaming")
