@@ -10,7 +10,38 @@ patch versions move independently.
 
 ## [Unreleased]
 
-## [0.4.0] - Phase 4 (in progress — slices A + B)
+## [0.4.0] - Phase 4 ✅ Shipped (2026-05-18)
+
+### Added — slice C: ReActAgent + remaining examples (2026-05-18)
+
+- **`ReActAgent`** in `mojentic-core/commonMain/agents` — single-class
+  reasoning-and-acting loop with a custom system prompt. Each iteration is
+  one round-trip through the broker (which already does recursive tool
+  dispatch), looking for a `FINAL ANSWER:` marker to stop. `steps()` exposes
+  the per-iteration `ReActStep` trace (`iteration`, `response`, `toolCalls`,
+  `final`) for observability. The Python reference's multi-agent ReAct
+  example becomes a single Kotlin class because the broker's recursive tool
+  execution is the idiomatic equivalent of the Python dispatcher fan-out.
+- **Seven new JVM-only example subprojects** rounding out the Phase 4
+  example surface:
+  - `examples/react` — drives `ReActAgent` against the date toolkit.
+  - `examples/async-llm` — `AsyncDispatcher` fan-out: two `BaseAsyncLlmAgent`s
+    answer in parallel and an `AsyncAggregatorAgent` joins them via a shared
+    `correlationId`.
+  - `examples/recursive-agent` — concurrent `SimpleRecursiveAgent.solve`
+    calls under `coroutineScope`, plus a printout of the per-iteration
+    `SolverEvent` history.
+  - `examples/solver-chat-session` — wraps an `IterativeProblemSolver` as an
+    `LlmTool` and hands it to a top-level `ChatSession`.
+  - `examples/working-memory` — `BaseAsyncLlmAgentWithMemory` backed by a
+    seeded `SharedWorkingMemory`, demonstrating `mergeMemory` between turns.
+  - `examples/coding-file-tool` — coordinator agent delegating to two
+    `ToolWrapper`-bridged specialists: a temporal agent (date tools) and a
+    sandboxed knowledge agent (eight file tools).
+  - `examples/broker-as-tool` — composer agent delegating to summariser and
+    translator sub-agents via `ToolWrapper`.
+- Quality gate green: ktlint + Detekt clean; build + allTests pass on JVM,
+  Android-host, and iOS-simulator.
 
 ### Added — slice A: agent foundations + ToolWrapper (2026-05-18)
 
