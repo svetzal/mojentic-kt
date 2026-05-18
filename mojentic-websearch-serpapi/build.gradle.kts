@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
+
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.kotlin.serialization)
@@ -5,6 +7,43 @@ plugins {
     alias(libs.plugins.ktlint)
     alias(libs.plugins.detekt)
     alias(libs.plugins.dokka)
+    alias(libs.plugins.maven.publish)
+}
+
+mavenPublishing {
+    publishToMavenCentral(com.vanniktech.maven.publish.SonatypeHost.CENTRAL_PORTAL, automaticRelease = false)
+    signAllPublications()
+    coordinates(project.group.toString(), project.name, project.version.toString())
+    pom {
+        name.set("Mojentic SerpApi Web Search Tool")
+        description.set("SerpApi-backed web search tool for the Mojentic Kotlin Multiplatform agentic framework.")
+        url.set("https://github.com/svetzal/mojentic-kt")
+        inceptionYear.set("2026")
+        licenses {
+            license {
+                name.set("MIT License")
+                url.set("https://opensource.org/licenses/MIT")
+                distribution.set("repo")
+            }
+        }
+        developers {
+            developer {
+                id.set("svetzal")
+                name.set("Stacey Vetzal")
+                email.set("stacey@vetzal.com")
+                url.set("https://github.com/svetzal")
+            }
+        }
+        scm {
+            url.set("https://github.com/svetzal/mojentic-kt")
+            connection.set("scm:git:git://github.com/svetzal/mojentic-kt.git")
+            developerConnection.set("scm:git:ssh://git@github.com/svetzal/mojentic-kt.git")
+        }
+        issueManagement {
+            system.set("GitHub Issues")
+            url.set("https://github.com/svetzal/mojentic-kt/issues")
+        }
+    }
 }
 
 kotlin {
@@ -20,9 +59,13 @@ kotlin {
         withHostTest {}
     }
 
-    iosX64()
-    iosArm64()
-    iosSimulatorArm64()
+    val xcf = XCFramework("MojenticWebSearchSerpApi")
+    listOf(iosX64(), iosArm64(), iosSimulatorArm64()).forEach { target ->
+        target.binaries.framework {
+            baseName = "MojenticWebSearchSerpApi"
+            xcf.add(this)
+        }
+    }
 
     sourceSets {
         commonMain {

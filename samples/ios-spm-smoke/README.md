@@ -22,8 +22,6 @@ From `mojentic-kt/`:
 ./gradlew :mojentic-core:assembleMojenticCoreXCFramework
 ```
 
-(The exact task name depends on the framework configuration in `mojentic-core/build.gradle.kts`. If you have not yet added an `XCFramework` declaration, see "Adding the XCFramework task" below.)
-
 Output lands at:
 
 ```
@@ -118,21 +116,20 @@ xcodebuild -scheme MojenticSmoke -destination 'platform=iOS Simulator,name=iPhon
 
 If this succeeds, the iOS-target binaries inside the XCFramework are correctly linked.
 
-## Adding the XCFramework task (one-time, when bringing this up)
+## Available XCFramework tasks
 
-In `mojentic-core/build.gradle.kts`, inside the `kotlin { ... }` block, alongside the `iosX64()` / `iosArm64()` / `iosSimulatorArm64()` target declarations, add:
+All six library modules declare an `XCFramework` binary alongside their iOS targets. The following tasks are available:
 
-```kotlin
-val xcf = XCFramework("MojenticCore")
-listOf(iosX64(), iosArm64(), iosSimulatorArm64()).forEach { target ->
-    target.binaries.framework {
-        baseName = "MojenticCore"
-        xcf.add(this)
-    }
-}
-```
+| Module | Task |
+|---|---|
+| `mojentic-core` | `assembleMojenticCoreXCFramework` |
+| `mojentic-ollama` | `assembleMojenticOllamaXCFramework` |
+| `mojentic-openai` | `assembleMojenticOpenAiXCFramework` |
+| `mojentic-anthropic` | `assembleMojenticAnthropicXCFramework` |
+| `mojentic-realtime-openai` | `assembleMojenticRealtimeOpenAiXCFramework` |
+| `mojentic-websearch-serpapi` | `assembleMojenticWebSearchSerpApiXCFramework` |
 
-Then `./gradlew :mojentic-core:assembleMojenticCoreXCFramework` will be available. The same pattern applies to `mojentic-openai`, `mojentic-anthropic`, etc.
+Each builds release + debug variants for `iosX64`, `iosArm64`, and `iosSimulatorArm64` into `<module>/build/XCFrameworks/{release,debug}/`.
 
 ## Why this is a recipe, not a Gradle subproject
 

@@ -1,0 +1,62 @@
+name: Security (OWASP dependency-check)
+
+on:
+  schedule:
+    # Mondays at 06:00 UTC — daily would chew through the NVD download
+    # quota; weekly catches new CVEs without thrashing the cache.
+    - cron: "0 6 * * 1"
+  push:
+    branches: ["main"]
+    paths:
+      - "gradle/libs.versions.toml"
+      - "**/build.gradle.kts"
+      - "dependency-check-suppressions.xml"
+      - ".github/workflows/security.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dependency-check:
+    name: OWASP dependencyCheckAggregate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Cache NVD database
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/dependency-check-data
+          # Bust weekly so the CVE database actually refreshes.
+          key: nvd-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            nvd-${{ runner.os }}-
+
+      - name: Run dependencyCheckAggregate
+        env:
+          # NVD API key — request one at https://nvd.nist.gov/developers/request-an-api-key.
+          # Without it, downloads are heavily rate-limited and the build can hang for hours.
+          # The build script reads this directly from System.getenv("NVD_API_KEY").
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+        run: ./gradlew dependencyCheckAggregate --no-daemon --stacktrace
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-report
+          path: build/reports/dependency-check-report.*

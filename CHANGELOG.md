@@ -10,6 +10,81 @@ patch versions move independently.
 
 ## [Unreleased]
 
+## [0.7.1] - Phase 7 Followups ✅ Shipped (2026-05-18)
+
+Picks up the four infrastructure followups deferred from 0.7.0. The library
+surface is unchanged; this is build wiring, CI, and signing/publishing setup
+so that a `v1.x.y` tag can ship to Maven Central, refresh Dokka on GitHub
+Pages, and run an OWASP scan on the dependency tree — all unattended.
+
+### Added
+
+- **XCFramework binary declarations** on all six library modules
+  (`mojentic-core`, `mojentic-ollama`, `mojentic-openai`, `mojentic-anthropic`,
+  `mojentic-realtime-openai`, `mojentic-websearch-serpapi`). Each registers
+  `XCFramework("Mojentic<Name>")` over the three iOS targets, with `baseName`
+  matching the framework name. Tasks:
+  `./gradlew :<module>:assembleMojentic<Name>XCFramework` produce release +
+  debug XCFrameworks under `<module>/build/XCFrameworks/{release,debug}/`.
+- **OWASP dependency-check** plugin applied at the root (`org.owasp.dependencycheck`
+  12.1.3). `dependencyCheckAggregate` walks the full project graph; CVSS ≥ 7.0
+  (High/Critical) fails the build, lower-severity findings are reported.
+  Suppressions live in `dependency-check-suppressions.xml` (currently empty —
+  no accepted findings). NVD API key read from `NVD_API_KEY` env var to avoid
+  the un-keyed rate limit that can stall builds for hours. Every `examples/`
+  subproject is skipped — they're demonstration code, not part of the
+  published surface.
+- **Maven Central publishing** via `com.vanniktech.maven.publish` 0.30.0
+  applied per library module. Each module's `build.gradle.kts` declares its
+  own POM metadata (name, description, MIT license, developer info, SCM URLs,
+  issue management URL). Coordinates: `com.mojentic:<module>:<version>`.
+  Targets the Sonatype Central Portal (`SonatypeHost.CENTRAL_PORTAL`), with
+  `automaticRelease = false` so the Sonatype UI is still the final gate.
+  In-memory GPG signing via `signAllPublications()` reads credentials from
+  the standard Gradle properties (`mavenCentralUsername`/`Password`,
+  `signingInMemoryKey`/`KeyId`/`KeyPassword`) — supplied by CI secrets, never
+  checked in. Local sanity check: `./gradlew :mojentic-core:generatePomFileForJvmPublication`
+  produces a complete POM populated with all metadata.
+- **GitHub Actions workflows:**
+  - `.github/workflows/docs.yml` — on `v*` tag (or manual dispatch), runs
+    `./gradlew dokkaGenerate` and deploys `build/dokka/html/` to GitHub Pages
+    via the official `actions/deploy-pages` flow. `pages` + `id-token` write
+    permissions scoped to this job only.
+  - `.github/workflows/release.yml` — on `v*` tag, runs the full quality
+    gate on `macos-latest` (so iOS targets compile in-process), then
+    `./gradlew publishAndReleaseToMavenCentral`. Maps secrets to the
+    `ORG_GRADLE_PROJECT_<name>` env-var pattern Gradle's `gradle.properties`
+    layer reads automatically.
+  - `.github/workflows/security.yml` — schedules weekly OWASP scans
+    (Mondays 06:00 UTC) and runs on dependency-related path changes. NVD
+    database cached across runs to amortise the ~600MB download. Report
+    uploaded as a workflow artefact on every run.
+
+### Required CI secrets
+
+For the release pipeline to run end-to-end, the following must exist in
+`Settings → Secrets and variables → Actions`:
+
+| Secret | Purpose |
+|---|---|
+| `MAVEN_CENTRAL_USERNAME` | Sonatype Central Portal username (User Token) |
+| `MAVEN_CENTRAL_PASSWORD` | Sonatype Central Portal password (User Token) |
+| `SIGNING_KEY` | GPG armoured private key, single-line with `\n` escapes |
+| `SIGNING_KEY_ID` | Short key ID (last 8 hex chars of the fingerprint) |
+| `SIGNING_KEY_PASSWORD` | Passphrase for the GPG key |
+| `NVD_API_KEY` | NVD API key from https://nvd.nist.gov/developers/request-an-api-key |
+
+One-time repo-admin actions required before the workflows run unattended:
+
+1. Enable GitHub Pages on the repository (Source: GitHub Actions).
+2. Add the six secrets above.
+3. Tag and push `v1.4.0` (or current synchronized minor).
+
+### Quality gate
+
+`./gradlew ktlintCheck detekt build allTests apiCheck` green: BUILD SUCCESSFUL
+across 545 actionable tasks on JVM + Android-host + iOS-simulator.
+
 ## [0.7.0] - Phase 7 ✅ Shipped (2026-05-18)
 
 Documentation polish and 1.x stabilization. Dokka v2 multi-module HTML
