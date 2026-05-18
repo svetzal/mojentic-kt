@@ -27,6 +27,7 @@ include(":mojentic-ollama")
 include(":mojentic-openai")
 include(":mojentic-websearch-serpapi")
 include(":mojentic-realtime-openai")
+include(":mojentic-anthropic")
 
 // Phase 1 examples (JVM-only Gradle subprojects)
 include(":examples:simple-llm")
@@ -63,3 +64,6 @@ include(":examples:broker-as-tool")
 
 // Phase 5 examples (JVM-only Gradle subprojects)
 include(":examples:realtime-text")
+
+// Phase 6 examples (JVM-only Gradle subprojects)
+include(":examples:anthropic-simple")

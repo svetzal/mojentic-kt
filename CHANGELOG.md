@@ -10,6 +10,57 @@ patch versions move independently.
 
 ## [Unreleased]
 
+## [0.6.0] - Phase 6 ✅ Shipped (2026-05-18)
+
+Anthropic gateway — new `mojentic-anthropic` module brings Claude support to
+the Kotlin port. Mirrors the Python reference (`mojentic.llm.gateways.anthropic`)
+and applies the same Ktor-Client + `LlmGateway`-interface shape as
+`mojentic-openai`. The gateway maps Anthropic's content-block protocol onto
+Mojentic's neutral types: system messages flow through the top-level `system`
+field; user/assistant/tool messages translate to `text`/`image`/`tool_use`/
+`tool_result` blocks; `completeJson` forces a single synthetic `respond_in_json`
+tool to drive structured output; SSE streaming surfaces `text_delta` /
+`thinking_delta` chunks and accumulates `input_json_delta` tool arguments
+until the matching `content_block_stop`.
+
+### Added
+
+- **`mojentic-anthropic`** Gradle module with `AnthropicGateway` implementing
+  the full `LlmGateway` surface: `complete()`, `completeJson()`, `stream()`,
+  `availableModels()`.
+- **Message adaptation** (`AdaptedMessages.kt`): extracts system messages into
+  the top-level `system` field (Anthropic does not accept them in the
+  `messages` array); maps `LlmMessage`s with image parts to `image` content
+  blocks carrying base64 payloads; emits `tool_use` blocks for assistant
+  `toolCalls`; emits `tool_result` blocks for `MessageRole.Tool` messages with
+  the matching `tool_use_id`.
+- **Structured output via forced tool**: `completeJson` wraps the caller's
+  schema in a synthetic `respond_in_json` tool with
+  `tool_choice = { type: "tool", name: "respond_in_json" }`, and returns the
+  parsed tool input object. Throws `LlmGatewayException` if the model does
+  not call the forced tool.
+- **SSE streaming** (`AnthropicStreamAccumulator`): handles `message_start`,
+  `content_block_start`, `content_block_delta`
+  (`text_delta` / `thinking_delta` / `input_json_delta`), `content_block_stop`,
+  `message_delta`, `message_stop`, `ping`, and `error` events. Tool-call
+  arguments are accumulated across `input_json_delta` chunks and emitted as
+  a single `GatewayStreamEvent.ToolCalls` when the stream completes.
+- **Headers**: sends `x-api-key`, `anthropic-version` (default `2023-06-01`).
+  `host` and `anthropicVersion` are constructor parameters for proxy /
+  Bedrock-compatible deployments.
+- **`reasoningEffort` parity warning**: matches the Python reference — the
+  Anthropic API does not yet accept a `reasoning_effort` knob, so the gateway
+  logs a warning and strips it from the wire payload rather than forwarding
+  an unsupported field.
+- **Example**: `examples/anthropic-simple` — JVM-only smoke runner that sends
+  one prompt and prints the reply. Requires `ANTHROPIC_API_KEY`.
+- **Tests**: 12 gateway tests + 3 streaming tests using Ktor `MockEngine`,
+  covering text completions, system header routing, tool calls, thinking
+  blocks, forced-tool structured output, multimodal images, tool-result
+  round-trip, model listing, error mapping, `reasoning_effort` filtering,
+  and `max_tokens` default fallback. Quality gate: ktlint + Detekt clean,
+  `./gradlew build allTests` green on JVM + Android-host + iOS-simulator.
+
 ## [0.5.0] - Phase 5 ✅ Shipped (2026-05-18)
 
 Realtime voice — first cross-port realtime stack. `mojentic-realtime-openai`
