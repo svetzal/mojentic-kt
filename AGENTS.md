@@ -14,17 +14,21 @@ for the cross-port feature matrix.
 
 ## Toolchain
 
-- **Kotlin 2.0+** — required for K2 compiler stability, standard-library
-  `kotlin.uuid.Uuid`, and the current KMP target shape.
-- **JDK 17** — Kotlin compiler toolchain (`jvmToolchain(17)`).
-- **Gradle 8.10+** — managed via the wrapper.
-- **Android Gradle Plugin** — applied to the `mojentic-core` module so the
-  `androidTarget()` declaration produces a consumable AAR. We do **not** use
-  the `org.jetbrains.kotlin.android` plugin; JVM-only consumers must remain
-  unaffected.
-- **Targets**: `jvm()`, `androidTarget()` (minSdk 24), `iosX64()`,
-  `iosArm64()`, `iosSimulatorArm64()`. macOS / Linux / JS / wasmJs are
-  post-MVP and opportunistic.
+- **Kotlin 2.3+** (currently pinned at 2.3.21) — required for K2 compiler
+  stability, standard-library `kotlin.uuid.Uuid`, and the current KMP target
+  shape. Kotlin 2.4 RC is out and we will move once it goes stable.
+- **JDK 17** — Kotlin compiler toolchain (`jvmToolchain(17)`). JDK 17 stays
+  the bytecode target so library consumers on JDK 17 LTS keep working.
+- **Gradle 9.5+** — managed via the wrapper.
+- **Android Gradle Plugin 9.2+** — applied via the AGP-9-only
+  `com.android.kotlin.multiplatform.library` plugin (the legacy
+  `com.android.library` plugin is incompatible with the Kotlin Multiplatform
+  plugin from AGP 9.0 onwards). Android config lives inside the `kotlin {
+  android { ... } }` block — there is no separate `android { ... }`
+  extension block at module scope.
+- **Targets**: `jvm()`, `android { ... }` inside the kotlin extension
+  (minSdk 24, compileSdk 36), `iosX64()`, `iosArm64()`, `iosSimulatorArm64()`.
+  macOS / Linux / JS / wasmJs are post-MVP and opportunistic.
 
 ## Mandatory Quality Gate
 

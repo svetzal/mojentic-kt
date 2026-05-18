@@ -1,7 +1,7 @@
 # Mojentic
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Kotlin 2.0+](https://img.shields.io/badge/Kotlin-2.0%2B-purple)](https://kotlinlang.org)
+[![Kotlin 2.3+](https://img.shields.io/badge/Kotlin-2.3%2B-purple)](https://kotlinlang.org)
 [![Platforms](https://img.shields.io/badge/platforms-JVM%20%7C%20Android%20%7C%20iOS-blue)](settings.gradle.kts)
 
 A modern LLM integration framework for Kotlin Multiplatform (KMP) targeting
@@ -39,12 +39,12 @@ realtime voice — all built natively on Kotlin coroutines and `Flow`.
 
 ## Requirements
 
-- **Kotlin 2.0+** (K2 compiler, multiplatform target shape, standard-library
-  `Uuid`)
+- **Kotlin 2.3+** (K2 compiler stable, standard-library `Uuid`, current KMP
+  target shape)
 - **JDK 17+** for the build
-- **Android**: minimum API 24 (Android 7.0)
+- **Android**: AGP 9.2+, `compileSdk` 36, minimum API 24 (Android 7.0)
 - **iOS**: minimum deployment target iOS 14
-- **Gradle**: 8.10+ (managed via the wrapper)
+- **Gradle**: 9.5+ (managed via the wrapper)
 
 ## Building Locally
 

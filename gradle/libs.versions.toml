@@ -1,23 +1,27 @@
 [versions]
-kotlin = "2.0.21"
-kotlinx-coroutines = "1.9.0"
-kotlinx-serialization = "1.7.3"
-kotlinx-datetime = "0.6.1"
-ktor = "3.0.1"
-okio = "3.9.1"
-kotlin-logging = "7.0.3"
+# Language & build
+kotlin = "2.3.21"
+agp = "9.2.0"
 
-# Plugins / tooling
-agp = "8.7.2"
-ktlint-plugin = "12.1.1"
-detekt = "1.23.7"
-kover = "0.8.3"
-dokka = "1.9.20"
-binary-compat-validator = "0.16.3"
-dependency-check = "10.0.4"
+# Core KMP libraries
+kotlinx-coroutines = "1.10.2"
+kotlinx-serialization = "1.8.1"
+kotlinx-datetime = "0.7.1"
+kotlinx-io = "0.7.0"
+ktor = "3.4.2"
+okio = "3.11.0"
+kotlin-logging = "7.0.7"
+
+# Quality / tooling plugins
+ktlint-plugin = "13.0.0"
+detekt = "1.23.8"
+kover = "0.9.1"
+dokka = "2.0.0"
+binary-compat-validator = "0.18.1"
+dependency-check = "12.1.3"
 
 # Test
-turbine = "1.2.0"
+turbine = "1.2.1"
 
 [libraries]
 # Coroutines
@@ -51,7 +55,7 @@ turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 [plugins]
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-android-library = { id = "com.android.library", version.ref = "agp" }
+android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint-plugin" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }

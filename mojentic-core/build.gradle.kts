@@ -1,7 +1,7 @@
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.android.library)
+    alias(libs.plugins.android.kotlin.multiplatform.library)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.detekt)
 }
@@ -11,8 +11,12 @@ kotlin {
 
     jvm()
 
-    androidTarget {
-        publishLibraryVariants("release")
+    android {
+        namespace = "com.mojentic.core"
+        compileSdk = 36
+        minSdk = 24
+
+        withHostTest {}
     }
 
     iosX64()
@@ -36,18 +40,6 @@ kotlin {
                 implementation(libs.turbine)
             }
         }
-    }
-}
-
-android {
-    namespace = "com.mojentic.core"
-    compileSdk = 34
-    defaultConfig {
-        minSdk = 24
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
     }
 }
 
