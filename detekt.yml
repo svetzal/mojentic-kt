@@ -1,0 +1,43 @@
+# Detekt configuration for mojentic-kt.
+# Inherits Detekt's default rules; this file only documents project-specific overrides.
+# See https://detekt.dev/docs/rules/ for the full rule catalog.
+
+build:
+  maxIssues: 0
+
+complexity:
+  LongParameterList:
+    active: true
+    functionThreshold: 8
+    constructorThreshold: 8
+    ignoreDefaultParameters: true
+    ignoreDataClasses: true
+  TooManyFunctions:
+    active: true
+    thresholdInClasses: 30
+    thresholdInInterfaces: 20
+
+style:
+  MagicNumber:
+    active: true
+    ignoreNumbers: ['-1', '0', '1', '2', '100', '1000']
+    ignoreEnums: true
+    ignoreRanges: true
+    ignoreAnnotation: true
+  ReturnCount:
+    active: true
+    max: 4
+  UnusedPrivateMember:
+    active: true
+  WildcardImport:
+    active: true
+
+naming:
+  FunctionNaming:
+    functionPattern: '[a-z][a-zA-Z0-9]*'
+    excludes: ['**/test/**', '**/Test*.kt', '**/*Test.kt', '**/commonTest/**', '**/jvmTest/**', '**/iosTest/**']
+
+empty-blocks:
+  EmptyFunctionBlock:
+    active: true
+    ignoreOverridden: true

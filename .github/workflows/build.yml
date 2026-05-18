@@ -1,0 +1,105 @@
+name: Validate, Test, and Publish
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  id-token: write
+  pages: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-jvm-android:
+    name: Build & Test (JVM + Android)
+    runs-on: ubuntu-latest
+    if: ${{ github.actor != 'github-actions[bot]' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Ensure Gradle wrapper exists
+        run: |
+          if [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then
+            gradle wrapper --gradle-version 8.10.2 --distribution-type bin
+          fi
+
+      - name: ktlint
+        run: ./gradlew ktlintCheck --no-daemon --stacktrace
+
+      - name: Detekt
+        run: ./gradlew detekt --no-daemon --stacktrace
+
+      - name: Build (JVM + Android)
+        run: ./gradlew :mojentic-core:jvmJar :mojentic-core:assembleRelease --no-daemon --stacktrace
+
+      - name: Test (JVM)
+        run: ./gradlew :mojentic-core:jvmTest --no-daemon --stacktrace
+
+      - name: Test (Android local unit tests)
+        run: ./gradlew :mojentic-core:testReleaseUnitTest --no-daemon --stacktrace
+
+      - name: Upload reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jvm-android-reports
+          path: |
+            **/build/reports/
+            **/build/test-results/
+
+  build-ios:
+    name: Build & Test (iOS)
+    runs-on: macos-latest
+    if: ${{ github.actor != 'github-actions[bot]' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Ensure Gradle wrapper exists
+        run: |
+          if [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then
+            gradle wrapper --gradle-version 8.10.2 --distribution-type bin
+          fi
+
+      - name: Build iOS simulator (arm64)
+        run: ./gradlew :mojentic-core:linkDebugFrameworkIosSimulatorArm64 --no-daemon --stacktrace
+
+      - name: Test iOS simulator (arm64)
+        run: ./gradlew :mojentic-core:iosSimulatorArm64Test --no-daemon --stacktrace
+
+      - name: Upload reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-reports
+          path: |
+            **/build/reports/
+            **/build/test-results/
