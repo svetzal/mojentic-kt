@@ -12,7 +12,7 @@ kotlin {
     jvm()
 
     android {
-        namespace = "com.mojentic.core"
+        namespace = "com.mojentic.websearch.serpapi"
         compileSdk = 36
         minSdk = 24
 
@@ -26,19 +26,22 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api(libs.kotlinx.coroutines.core)
-                api(libs.kotlinx.serialization.json)
-                api(libs.kotlinx.datetime)
-                api(libs.kotlin.logging)
-                implementation(libs.okio)
+                api(project(":mojentic-core"))
+                implementation(libs.ktor.client.core)
+                implementation(libs.ktor.client.content.negotiation)
+                implementation(libs.ktor.serialization.kotlinx.json)
             }
         }
         commonTest {
             dependencies {
                 implementation(libs.kotlin.test)
                 implementation(libs.kotlinx.coroutines.test)
-                implementation(libs.turbine)
-                implementation(libs.okio.fakefilesystem)
+                implementation(libs.ktor.client.mock)
+            }
+        }
+        jvmMain {
+            dependencies {
+                implementation(libs.ktor.client.okhttp)
             }
         }
         jvmTest {
@@ -46,11 +49,19 @@ kotlin {
                 implementation(libs.slf4j.simple)
             }
         }
-        // Android host-test set (created by `withHostTest {}`) runs commonTest on the
-        // host JVM and needs an SLF4J binding for kotlin-logging.
         getByName("androidHostTest") {
             dependencies {
                 implementation(libs.slf4j.simple)
+            }
+        }
+        androidMain {
+            dependencies {
+                implementation(libs.ktor.client.okhttp)
+            }
+        }
+        iosMain {
+            dependencies {
+                implementation(libs.ktor.client.darwin)
             }
         }
     }
@@ -62,10 +73,6 @@ detekt {
     allRules = false
 }
 
-// The KMP detekt plugin (1.23.x) creates per-target detekt tasks (detektJvmMain,
-// detektIosArm64Main, …) but the umbrella `detekt` task doesn't depend on them
-// out of the box — it reports NO-SOURCE. Wire them up so `./gradlew detekt`
-// actually scans every source set.
 tasks.named("detekt").configure {
     dependsOn(
         tasks.matching { task ->

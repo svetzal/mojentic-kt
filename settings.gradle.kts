@@ -25,6 +25,7 @@ rootProject.name = "mojentic-kt"
 include(":mojentic-core")
 include(":mojentic-ollama")
 include(":mojentic-openai")
+include(":mojentic-websearch-serpapi")
 
 // Phase 1 examples (JVM-only Gradle subprojects)
 include(":examples:simple-llm")
@@ -45,3 +46,5 @@ include(":examples:tracer-demo")
 include(":examples:ask-user")
 include(":examples:tell-user")
 include(":examples:ephemeral-task-manager")
+include(":examples:file-tool")
+include(":examples:web-search")

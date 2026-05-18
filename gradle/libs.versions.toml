@@ -9,7 +9,7 @@ kotlinx-serialization = "1.8.1"
 kotlinx-datetime = "0.7.1"
 kotlinx-io = "0.7.0"
 ktor = "3.4.2"
-okio = "3.11.0"
+okio = "3.16.4"
 kotlin-logging = "7.0.7"
 
 # Quality / tooling plugins
@@ -47,6 +47,7 @@ ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "kto
 
 # I/O
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
+okio-fakefilesystem = { module = "com.squareup.okio:okio-fakefilesystem", version.ref = "okio" }
 
 # Logging
 kotlin-logging = { module = "io.github.oshai:kotlin-logging", version.ref = "kotlin-logging" }

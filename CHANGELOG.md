@@ -10,7 +10,43 @@ patch versions move independently.
 
 ## [Unreleased]
 
-## [0.3.0] - Phase 3 (in progress — slices A + B)
+## [0.3.0] - Phase 3 (in progress — slices A + B + C)
+
+### Added — slice C: file tools + web search (2026-05-18)
+
+- **`FilesystemGateway`** interface in
+  `mojentic-core/commonMain/llm/tools/files` — sandboxed multiplatform
+  file-system abstraction. Backed by **`OkioFilesystemGateway`**, a thin
+  wrapper around `okio.FileSystem` that resolves every path against a
+  base directory and raises `SandboxEscapeException` on `..` / absolute
+  escapes. Works across JVM, Android, and iOS targets thanks to okio's
+  multiplatform `FileSystem.SYSTEM`.
+- **Eight file tools** in the same package, all wired to the gateway:
+  `ListFilesTool`, `ReadFileTool`, `WriteFileTool`, `ListAllFilesTool`,
+  `FindFilesByGlobTool`, `FindFilesContainingTool`,
+  `FindLinesMatchingTool`, `CreateDirectoryTool`. The `fileToolsFor(fs)`
+  factory returns all eight ready to hand to the broker. Glob patterns
+  support `*`, `**`, `?`, and `[abc]` via the internal `globToRegex`
+  helper.
+- **`WebSearchGateway`** interface in
+  `mojentic-core/commonMain/llm/tools/websearch` — vendor-agnostic
+  search abstraction returning `WebSearchResult(title, link, snippet)`.
+- **`OrganicWebSearchTool`** in the same package — `organic_web_search`
+  LLM tool that delegates to the gateway and emits a JSON array of
+  results.
+- **`mojentic-websearch-serpapi`** module — Ktor-Client backed
+  `SerpApiWebSearchGateway` implementation. Reads `api_key`, hits
+  `serpapi.com/search.json`, parses the `organic_results` payload, and
+  surfaces failures via the new `WebSearchGatewayException` (sealed
+  sibling of `LlmGatewayException`).
+- **Two examples**:
+  - `examples/file-tool` — seeds a temp sandbox and lets the LLM
+    explore it through the eight file tools.
+  - `examples/web-search` — wires `OrganicWebSearchTool` into a broker
+    so the LLM can answer with fresh web results.
+- **okio bumped to 3.16.4** to pick up the `kotlin.time.Clock`
+  migration (`okio-fakefilesystem` 3.11.0 was binary-incompatible with
+  kotlinx-datetime 0.7.1's removed `kotlinx.datetime.Clock`).
 
 ### Added — slice B: user / task tools (2026-05-18)
 

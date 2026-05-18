@@ -27,3 +27,9 @@ public class MaxToolIterationsExceededException(message: String) : MojenticExcep
  * it on the failed outcome.
  */
 public class ToolExecutionException(message: String, cause: Throwable? = null) : MojenticException(message, cause)
+
+/**
+ * Raised when a web-search gateway call fails for any reason — transport,
+ * deserialisation, vendor rejection, or an unexpected response shape.
+ */
+public class WebSearchGatewayException(message: String, cause: Throwable? = null) : MojenticException(message, cause)
