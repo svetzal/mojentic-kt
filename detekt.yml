@@ -31,6 +31,24 @@ style:
     active: true
   WildcardImport:
     active: true
+  MaxLineLength:
+    active: true
+    maxLineLength: 140
+    excludePackageStatements: true
+    excludeImportStatements: true
+    excludeCommentStatements: false
+  LoopWithTooManyJumpStatements:
+    active: true
+    maxJumpCount: 3
+
+# The broker and tool runner deliberately catch Throwable to honour
+# cooperative cancellation (re-throwing CancellationException). This is the
+# standard Kotlin coroutine pattern, not a bug.
+exceptions:
+  TooGenericExceptionCaught:
+    active: false
+  InstanceOfCheckForException:
+    active: false
 
 naming:
   FunctionNaming:

@@ -12,7 +12,7 @@ kotlin {
     jvm()
 
     android {
-        namespace = "com.mojentic.ollama"
+        namespace = "com.mojentic.openai"
         compileSdk = 36
         minSdk = 24
 
@@ -43,6 +43,7 @@ kotlin {
         jvmMain {
             dependencies {
                 implementation(libs.ktor.client.okhttp)
+                implementation(libs.jtokkit)
             }
         }
         jvmTest {

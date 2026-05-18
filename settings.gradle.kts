@@ -24,6 +24,7 @@ rootProject.name = "mojentic-kt"
 
 include(":mojentic-core")
 include(":mojentic-ollama")
+include(":mojentic-openai")
 
 // Phase 1 examples (JVM-only Gradle subprojects)
 include(":examples:simple-llm")
@@ -31,3 +32,10 @@ include(":examples:list-models")
 include(":examples:simple-structured")
 include(":examples:simple-tool")
 include(":examples:streaming")
+
+// Phase 2 examples (JVM-only Gradle subprojects)
+include(":examples:broker-examples")
+include(":examples:chat-session")
+include(":examples:chat-session-with-tool")
+include(":examples:image-analysis")
+include(":examples:embeddings")

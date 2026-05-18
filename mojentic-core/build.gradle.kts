@@ -60,3 +60,18 @@ detekt {
     buildUponDefaultConfig = true
     allRules = false
 }
+
+// The KMP detekt plugin (1.23.x) creates per-target detekt tasks (detektJvmMain,
+// detektIosArm64Main, …) but the umbrella `detekt` task doesn't depend on them
+// out of the box — it reports NO-SOURCE. Wire them up so `./gradlew detekt`
+// actually scans every source set.
+tasks.named("detekt").configure {
+    dependsOn(
+        tasks.matching { task ->
+            task.name.startsWith("detekt") &&
+                task.name != "detekt" &&
+                !task.name.startsWith("detektBaseline") &&
+                !task.name.startsWith("detektGenerateConfig")
+        },
+    )
+}

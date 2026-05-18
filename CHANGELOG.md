@@ -10,6 +10,61 @@ patch versions move independently.
 
 ## [Unreleased]
 
+## [0.2.0] - Phase 2
+
+### Added
+
+- **`ChatSession`** in `mojentic-core/commonMain`:
+  - Owns the message history behind a `Mutex` so the session is safe to
+    share across coroutines.
+  - `suspend send(message): LlmGatewayResponse` and
+    `fun stream(message): Flow<StreamEvent>` mirror the broker surfaces;
+    history is updated atomically on success and rolled back on failure.
+  - Optional system prompt and default tool list; `messages()` snapshot
+    and `reset()` preserve-system helpers.
+- **`mojentic-openai` module** with `OpenAIGateway`:
+  - Ktor-Client-based gateway against the OpenAI chat-completions API
+    (OkHttp engine on JVM/Android, Darwin engine on iOS).
+  - `complete`, `completeJson` (uses `response_format: json_schema`),
+    streaming via SSE with parallel-tool-call accumulation through a
+    dedicated `StreamingToolCallAccumulator`, `availableModels`.
+  - Multimodal `LlmMessage` content serialised as the OpenAI `content`
+    array shape (`{type: text}` + `{type: image_url, image_url: {url: ...}}`).
+  - `reasoning_effort` plumbed through for the `o*` model family; the
+    gateway automatically swaps `max_tokens` for `max_completion_tokens`
+    and omits `temperature` on reasoning models.
+- **`OpenAIModelRegistry`** — static metadata about chat models (context
+  window, supports-tools, supports-vision, supports-reasoning-effort).
+- **`OpenAIEmbeddingsGateway`** — thin wrapper around `POST /v1/embeddings`
+  implementing the new `EmbeddingsGateway` interface.
+- **`TokenizerGateway`** interface in `mojentic-core/commonMain`. JVM-only
+  `JtokkitTokenizerGateway` in `mojentic-openai/jvmMain` backed by
+  jtokkit; Kotlin/Native consumers can plug in their own implementation.
+- **`EmbeddingsGateway`** interface in `mojentic-core/commonMain`.
+- **Phase 2 examples** under `examples/`: `broker-examples`,
+  `chat-session`, `chat-session-with-tool`, `image-analysis`,
+  `embeddings`. JVM-only Gradle subprojects runnable via
+  `./gradlew :examples:<name>:run`.
+- **Detekt across all KMP source sets** — the umbrella `detekt` task now
+  depends on the per-target `detektJvmMain` / `detektIosArm64Main` / …
+  tasks the plugin generates, so `./gradlew detekt` actually scans every
+  source set instead of reporting `NO-SOURCE`. Closes a Phase 1 deferred
+  item.
+
+### Changed
+
+- Bumped version coordinate from `0.1.0-SNAPSHOT` to `0.2.0-SNAPSHOT`.
+- `detekt.yml`: lifted `MaxLineLength` to 140; disabled
+  `TooGenericExceptionCaught` and `InstanceOfCheckForException` (the
+  broker / tool runner intentionally catches `Throwable` to honour
+  cooperative cancellation by re-throwing `CancellationException`);
+  raised `LoopWithTooManyJumpStatements.maxJumpCount` to 3.
+
+### Tooling
+
+- Added jtokkit (`com.knuddels:jtokkit:1.1.0`) as a JVM-only dependency of
+  `mojentic-openai`.
+
 ## [0.1.0] - Phase 1
 
 ### Added
