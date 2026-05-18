@@ -10,9 +10,40 @@ patch versions move independently.
 
 ## [Unreleased]
 
-## [0.3.0] - Phase 3 (in progress — slice A: Tracer + ParallelToolRunner)
+## [0.3.0] - Phase 3 (in progress — slices A + B)
 
-### Added
+### Added — slice B: user / task tools (2026-05-18)
+
+- **`UserInteractionGateway`** interface in `mojentic-core/commonMain` —
+  thin abstraction over the user-facing I/O channel; gateway
+  implementations carry no logic. JVM-only
+  `ConsoleUserInteractionGateway` in `mojentic-core/jvmMain` backed by
+  stdin / stdout. Native / iOS consumers inject their own.
+- **`AskUserTool`** in `mojentic-core/commonMain` — `ask_user` LLM tool;
+  delegates I/O to the injected `UserInteractionGateway` and returns
+  the user's textual answer wrapped as `{ "user_response": "..." }`.
+- **`TellUserTool`** in `mojentic-core/commonMain` — `tell_user` LLM
+  tool; emits a one-way message via the gateway and returns
+  `{ "status": "delivered" }`.
+- **`EphemeralTaskList`** in
+  `mojentic-core/commonMain/llm/tools/tasks` — in-memory task list
+  with a small state machine (`Pending` → `InProgress` → `Completed`).
+  Mutex-protected for safe coroutine sharing.
+- **Seven task tools** in the same package: `AppendTaskTool`,
+  `PrependTaskTool`, `InsertTaskAfterTool`, `StartTaskTool`,
+  `CompleteTaskTool`, `ListTasksTool`, `ClearTasksTool`. The
+  `taskToolsFor(list)` factory returns all seven wired to one list.
+- **Three examples**:
+  - `examples/ask-user` — LLM uses `ask_user` to ask the user a
+    clarifying question during planning.
+  - `examples/tell-user` — LLM emits intermediate updates while
+    answering.
+  - `examples/ephemeral-task-manager` — LLM plans a multi-step task
+    using the seven task tools, prints the final task list.
+- Quality gate green: ktlint + Detekt clean; **261 tests** on JVM,
+  Android-host, and iOS-simulator (up from 198).
+
+### Added — slice A: Tracer + ParallelToolRunner (2026-05-18)
 
 - **Full `TracerSystem`** in `mojentic-core/commonMain`:
   - `TracerEvent` sealed interface with `LlmCallEvent`, `LlmResponseEvent`,

@@ -42,3 +42,6 @@ include(":examples:embeddings")
 
 // Phase 3 examples (JVM-only Gradle subprojects)
 include(":examples:tracer-demo")
+include(":examples:ask-user")
+include(":examples:tell-user")
+include(":examples:ephemeral-task-manager")
