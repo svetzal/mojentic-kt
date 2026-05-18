@@ -10,6 +10,58 @@ patch versions move independently.
 
 ## [Unreleased]
 
+## [0.4.0] - Phase 4 (in progress — slices A + B)
+
+### Added — slice A: agent foundations + ToolWrapper (2026-05-18)
+
+- **`Event` / `TerminateEvent`** in `mojentic-core/commonMain/agents` —
+  open base classes carrying an optional `source: KClass<*>` hint and a
+  mutable `correlationId` so the dispatcher can fan a fresh id through a
+  chain.
+- **`Agent` interface** with a single `suspend fun receiveEvent(event):
+  List<Event>` surface. The Kotlin port collapses the Python reference's
+  sync/async pair (`BaseAgent` / `BaseAsyncAgent`) — bodies that don't
+  need to suspend simply don't.
+- **`Router`** maps `KClass<out Event>` → ordered list of agents.
+- **`AsyncDispatcher`** — coroutine-driven event loop. `dispatch(event)`
+  queues, `start(scope)` launches the loop on a caller-owned scope,
+  `stop()` joins the loop, `waitForEmptyQueue(timeoutMs)` lets tests
+  block until in-flight work drains, and any `TerminateEvent` produced
+  by an agent stops the loop. Routes through `Tracer.recordAgentInteraction`.
+- **`BaseAsyncLlmAgent`** — LLM-backed agent reusing `LlmBroker` +
+  `LlmTool` from earlier phases. Exposes a mutable tool list (`addTool`)
+  and a `generateResponse(content): LlmGatewayResponse` shortcut.
+- **`ToolWrapper`** — wraps a `BaseAsyncLlmAgent` as an `LlmTool`.
+  Mirrors the Python reference's agent-as-tool pattern; the inner agent
+  receives the calling LLM's `input` argument as a user message and
+  returns its text response.
+
+### Added — slice B: shared memory + aggregator + iterative solvers (2026-05-18)
+
+- **`SharedWorkingMemory`** in `mojentic-core/commonMain/context` —
+  `Mutex`-protected `Map<String, JsonElement>` with snapshot-style reads
+  and merge / replace mutators. Multiplatform-safe.
+- **`BaseAsyncLlmAgentWithMemory`** — extends `BaseAsyncLlmAgent` to
+  inject the current memory snapshot into the prompt before each turn.
+- **`AsyncAggregatorAgent`** — buffers events by `correlationId` until
+  every required `KClass<out Event>` has been observed, then delivers
+  the collected list to `processEvents`. `waitForEvents(correlationId,
+  timeoutMs)` suspends external callers using `CompletableDeferred`.
+- **`IterativeProblemSolver`** — chat-session loop calling the LLM up to
+  `maxIterations` times, stopping on `DONE` / `FAIL`, then asks for a
+  final summary turn.
+- **`SimpleRecursiveAgent`** — same loop with `withTimeoutOrNull` for an
+  overall wall-clock deadline; emits per-iteration `SolverEvent`
+  snapshots (`GoalSubmitted`, `IterationCompleted`, `GoalAchieved`,
+  `GoalFailed`, `TimedOut`) accessible via `history()`.
+- **Two examples**:
+  - `examples/agent-dispatcher` — wires `Router` + `AsyncDispatcher` +
+    two `BaseAsyncLlmAgent`s with `ToolWrapper` bridging them.
+  - `examples/iterative-solver` — drives `IterativeProblemSolver` with
+    the Phase 1 date tools to answer a multi-step planning question.
+- Quality gate green: ktlint + Detekt clean; tests pass on JVM,
+  Android-host, and iOS-simulator.
+
 ## [0.3.0] - Phase 3 (in progress — slices A + B + C)
 
 ### Added — slice C: file tools + web search (2026-05-18)

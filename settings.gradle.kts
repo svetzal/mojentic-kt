@@ -48,3 +48,7 @@ include(":examples:tell-user")
 include(":examples:ephemeral-task-manager")
 include(":examples:file-tool")
 include(":examples:web-search")
+
+// Phase 4 examples (JVM-only Gradle subprojects)
+include(":examples:agent-dispatcher")
+include(":examples:iterative-solver")
