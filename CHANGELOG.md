@@ -10,6 +10,106 @@ patch versions move independently.
 
 ## [Unreleased]
 
+## [0.5.0] - Phase 5 ✅ Shipped (2026-05-18)
+
+Realtime voice — first cross-port realtime stack. `mojentic-realtime-openai`
+adds a duplex WebSocket gateway against OpenAI Realtime; `mojentic-core` adds
+the vendor-neutral types (`RealtimeVoiceBroker`, `RealtimeSession`,
+`RealtimeEvent` sealed union, `AudioFrame`, `VadConfig`, `RealtimeVoiceConfig`)
+that the broker layer normalises raw provider events into. Parallel tool
+calls during voice turns reuse the Phase 3 `ParallelToolRunner`. Barge-in
+cancels the in-flight response coroutine and the pending tool batch.
+
+### Added — slice C: audio frames, VAD modes, barge-in (2026-05-18)
+
+- **`RealtimeSession.sendAudio(Flow<AudioFrame>)`** streams PCM16 frames
+  into the session's input buffer as `input_audio_buffer.append` events.
+- **`RealtimeSession.commit()`** explicitly closes the input audio buffer
+  and requests a response — meaningful under `VadConfig.Manual`
+  (push-to-talk); harmless redundant signal under server VAD.
+- **`RealtimeSession.clearAudio()`** drops pending audio without requesting
+  a response.
+- **Barge-in**: when `UserSpeechStarted` lands mid-assistant-turn, the
+  session cancels the active tool-dispatch job, sends
+  `ClientRealtimeEvent.ResponseCancel`, and emits a
+  `RealtimeEvent.Interrupted(reason = BargeIn)`. The cancellation flows
+  through the same coroutine `Job.cancel()` machinery used everywhere
+  else — no separate cancellation primitive.
+- **Tool dispatch moved to its own `Job`** owned by the session so barge-in
+  can abort it cleanly; the dispatch logic itself (parallel runner, submit
+  outputs, request follow-up response) is unchanged from slice B.
+- **`AssistantAudioDelta` end-to-end**: the normaliser decodes
+  `response.audio.delta` base64 PCM16 payloads into `AudioFrame`s via the
+  shared `Pcm16AudioCodec`, so consumers never touch base64.
+- **Example**: `examples/realtime-text` — JVM-only smoke runner that
+  connects to OpenAI Realtime in text-only modality and prints streaming
+  deltas (requires `OPENAI_API_KEY`).
+- **Tests**: six new `RealtimeAudioAndVadTest` cases covering audio
+  streaming, manual commit, buffer clear, barge-in trigger, no-op
+  speech-started before turn, and audio-delta decoding.
+- Quality gate: ktlint + Detekt clean, `./gradlew build allTests` green on
+  JVM + Android-host + iOS-simulator.
+
+### Added — slice B: RealtimeVoiceBroker + RealtimeSession (text mode, parallel tools) (2026-05-18)
+
+- **`RealtimeVoiceBroker`** — coordinator above the `RealtimeGateway`,
+  composing a `ToolRunner` (defaults to `ParallelToolRunner` because voice
+  turns can legitimately emit several tool calls concurrently) and a
+  `Tracer`. Opens sessions on a caller-supplied `CoroutineScope`.
+- **`RealtimeSession`** — stateful per-connection handle. Exposes
+  `events: Flow<RealtimeEvent>` (vendor-neutral, replay-buffered), a power-user
+  `rawEvents: Flow<JsonObject>` escape hatch, `sendText`, `interrupt`,
+  `close`, and `awaitTurnCompleted`. Demultiplexes raw provider events
+  through `RealtimeEventNormalizer` into the union and dispatches tool
+  calls via the broker's runner after each `response.done`. Function
+  outputs are submitted followed by `response.create` for the follow-up.
+- **`RealtimeEventNormalizer`** (internal) — translates OpenAI wire events
+  into the vendor-neutral union; reassembles streamed function-call
+  arguments before dispatch.
+- **Pcm16 codec moved to `mojentic-core/realtime/internal`** so the broker
+  can decode audio deltas without depending on the OpenAI module.
+- **Tests**: eight `RealtimeSessionTest` cases using a `FakeRealtimeGateway`
+  that replays scripted server events through a Channel-backed flow,
+  covering text deltas, transcript completion, parallel tool dispatch,
+  error events, interruption, and session close.
+
+### Added — slice A: core realtime types + OpenAI gateway skeleton (2026-05-18)
+
+- **Core realtime types** in `mojentic-core/commonMain/realtime/`:
+  - `RealtimeVoiceConfig` — cross-port subset (instructions, voice,
+    modalities, audio format, VAD, tools, tool-choice, temperature, token
+    cap, transcription model, provider-extras escape hatch).
+  - `VadConfig` sealed interface with `Server(threshold, prefixPaddingMs,
+    silenceDurationMs)` and `Manual` variants.
+  - `AudioFrame(samples: ShortArray, sampleRateHz: Int)` — vendor-neutral
+    PCM16 frame; default 24 kHz mono matches OpenAI Realtime's default.
+  - `RealtimeEvent` sealed interface — full event union: session lifecycle,
+    user turn (speech + transcript deltas + final), assistant turn (text
+    delta + final, transcript delta + final, audio delta, completion with
+    token usage), tool calls (parallel-aware: started, args delta,
+    dispatched, completed, failed, batch submitted), control (interrupted,
+    rate-limited, gateway error).
+  - `ClientRealtimeEvent` sealed interface — typed surface for everything
+    the client sends (session update, audio buffer append/commit/clear,
+    user text, function-call output, response create/cancel).
+  - `RealtimeGateway` + `RealtimeGatewaySession` interfaces — vendor-neutral
+    transport contract.
+  - `RealtimeGatewayException` — new sibling of `LlmGatewayException` in
+    the `MojenticException` sealed hierarchy.
+- **New `mojentic-realtime-openai` module**:
+  - `OpenAiRealtimeGateway` over Ktor Client WebSockets (OkHttp engine on
+    JVM/Android, Darwin engine on iOS). Sends initial `session.update` on
+    open; raw server events flow through a Channel-backed `Flow<JsonObject>`
+    so no events are dropped between connect and first subscriber.
+  - `OpenAiEventCodec` (internal) — only place in the stack that speaks the
+    OpenAI wire vocabulary; translates `ClientRealtimeEvent` ↔ OpenAI JSON.
+- **Tests**: 11 `OpenAiEventCodecTest` cases covering user-text encoding,
+  function-call-output items, response control events, session config with
+  tools and manual VAD, named-tool-choice encoding, audio frame roundtrip
+  through base64, payload length validation, and provider-extras merging.
+- Quality gate: ktlint + Detekt clean across JVM + Android-host +
+  iOS-simulator.
+
 ## [0.4.0] - Phase 4 ✅ Shipped (2026-05-18)
 
 ### Added — slice C: ReActAgent + remaining examples (2026-05-18)

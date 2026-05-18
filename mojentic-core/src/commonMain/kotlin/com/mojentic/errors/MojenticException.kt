@@ -33,3 +33,9 @@ public class ToolExecutionException(message: String, cause: Throwable? = null) :
  * deserialisation, vendor rejection, or an unexpected response shape.
  */
 public class WebSearchGatewayException(message: String, cause: Throwable? = null) : MojenticException(message, cause)
+
+/**
+ * Raised when a realtime voice gateway call fails — transport (WebSocket)
+ * failure, protocol violation, deserialisation error, or provider rejection.
+ */
+public class RealtimeGatewayException(message: String, cause: Throwable? = null) : MojenticException(message, cause)
