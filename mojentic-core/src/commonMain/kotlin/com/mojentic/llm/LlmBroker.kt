@@ -175,7 +175,7 @@ public class LlmBroker(
         val (known, unknown) = calls.partition { call -> tools.any { it.matches(call.name) } }
         unknown.forEach { logger.warn { "Tool not found for call ${it.name}" } }
         if (known.isEmpty()) return emptyList()
-        val outcomes = toolRunner.runBatch(known, tools)
+        val outcomes = toolRunner.runBatch(known, tools, correlationId)
         outcomes.forEach { outcome ->
             tracer.recordToolCall(
                 toolName = outcome.call.name,

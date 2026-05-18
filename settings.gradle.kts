@@ -39,3 +39,6 @@ include(":examples:chat-session")
 include(":examples:chat-session-with-tool")
 include(":examples:image-analysis")
 include(":examples:embeddings")
+
+// Phase 3 examples (JVM-only Gradle subprojects)
+include(":examples:tracer-demo")

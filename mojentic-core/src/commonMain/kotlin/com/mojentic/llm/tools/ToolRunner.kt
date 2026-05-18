@@ -13,7 +13,12 @@ import kotlin.time.TimeSource
  * @property error Failure cause, when execution did not succeed.
  * @property duration Wall-clock duration of the tool call.
  */
-public data class ToolOutcome(val call: LlmToolCall, val result: String? = null, val error: Throwable? = null, val duration: Duration) {
+public data class ToolOutcome(
+    val call: LlmToolCall,
+    val result: String? = null,
+    val error: Throwable? = null,
+    val duration: Duration,
+) {
     public val isOk: Boolean
         get() = error == null
 }
@@ -22,7 +27,8 @@ public data class ToolOutcome(val call: LlmToolCall, val result: String? = null,
  * Strategy for executing a batch of tool calls returned by the LLM.
  *
  * Implementations are `suspend` so concurrency strategy is decided at the
- * implementation layer. [SerialToolRunner] is the broker default.
+ * implementation layer. [SerialToolRunner] is the broker default;
+ * [ParallelToolRunner] is opt-in.
  */
 public interface ToolRunner {
     /**
@@ -30,8 +36,15 @@ public interface ToolRunner {
      *
      * Calls whose `name` matches no tool in [tools] are skipped silently
      * (warned via the caller's logger upstream).
+     *
+     * [correlationId] threads through to any tracer events the runner
+     * emits (e.g. [ParallelToolRunner]'s batch event).
      */
-    public suspend fun runBatch(calls: List<LlmToolCall>, tools: List<LlmTool>): List<ToolOutcome>
+    public suspend fun runBatch(
+        calls: List<LlmToolCall>,
+        tools: List<LlmTool>,
+        correlationId: String? = null,
+    ): List<ToolOutcome>
 }
 
 /**
@@ -41,7 +54,11 @@ public interface ToolRunner {
  * [com.mojentic.llm.LlmBroker].
  */
 public class SerialToolRunner : ToolRunner {
-    override suspend fun runBatch(calls: List<LlmToolCall>, tools: List<LlmTool>): List<ToolOutcome> {
+    override suspend fun runBatch(
+        calls: List<LlmToolCall>,
+        tools: List<LlmTool>,
+        correlationId: String?,
+    ): List<ToolOutcome> {
         val outcomes = mutableListOf<ToolOutcome>()
         for (call in calls) {
             val tool = tools.firstOrNull { it.matches(call.name) } ?: continue
@@ -56,7 +73,6 @@ public class SerialToolRunner : ToolRunner {
             val result = tool.execute(call.arguments)
             ToolOutcome(call = call, result = result, duration = mark.elapsedNow())
         } catch (cancel: TimeoutCancellationException) {
-            // Propagate timeout cancellation — caller decides what to do.
             throw cancel
         } catch (failure: Throwable) {
             if (failure is kotlinx.coroutines.CancellationException) throw failure

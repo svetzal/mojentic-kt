@@ -5,19 +5,22 @@ import com.mojentic.llm.LlmToolCall
 import kotlin.time.Duration
 
 /**
- * Phase 1 tracer interface.
+ * Observability hook surface called by [com.mojentic.llm.LlmBroker] and the
+ * tool runners.
  *
- * The full Tracer / EventStore system lands in Phase 3 (see KOTLIN.md). For now
- * this interface defines the broker integration points so the broker can call
- * tracer hooks unconditionally without branching on null. Phase 1 callers use
- * [NullTracer] (the default) which is a true no-op.
+ * Every method has a no-op default so implementations only override what
+ * they care about. [NullTracer] inherits all defaults; [TracerSystem]
+ * forwards every call to its [EventStore].
  *
- * Correlation IDs are opaque strings so the public surface does not depend on
- * still-experimental `kotlin.uuid.Uuid`. The broker generates UUID-shaped strings
- * internally when callers do not supply their own.
+ * Methods are `suspend` because [TracerSystem] performs a `Mutex`-protected
+ * append; the broker calls every recorder from a suspend context so this
+ * imposes no extra burden.
+ *
+ * Correlation IDs are opaque strings (UUID-shaped by convention) so the
+ * public surface does not depend on still-experimental `kotlin.uuid.Uuid`.
  */
 public interface Tracer {
-    public fun recordLlmCall(
+    public suspend fun recordLlmCall(
         model: String,
         messages: List<LlmMessage>,
         temperature: Double,
@@ -26,7 +29,7 @@ public interface Tracer {
     ) {
     }
 
-    public fun recordLlmResponse(
+    public suspend fun recordLlmResponse(
         model: String,
         content: String?,
         toolCalls: List<LlmToolCall>?,
@@ -35,12 +38,41 @@ public interface Tracer {
     ) {
     }
 
-    public fun recordToolCall(
+    public suspend fun recordToolCall(
         toolName: String,
         arguments: String,
         result: String,
         callDuration: Duration,
         isError: Boolean,
+        correlationId: String?,
+        caller: String? = null,
+    ) {
+    }
+
+    /**
+     * Emitted once per parallel tool batch in addition to the per-call
+     * [recordToolCall] events. Serial runners do not emit batch events.
+     */
+    public suspend fun recordToolBatch(
+        batchId: String,
+        toolNames: List<String>,
+        successCount: Int,
+        failureCount: Int,
+        callDuration: Duration,
+        correlationId: String?,
+        caller: String? = null,
+    ) {
+    }
+
+    /**
+     * Emitted by `Dispatcher` / `Router` when the Phase 4 agent system
+     * routes an event between agents.
+     */
+    public suspend fun recordAgentInteraction(
+        fromAgent: String,
+        toAgent: String,
+        eventType: String,
+        eventId: String?,
         correlationId: String?,
     ) {
     }

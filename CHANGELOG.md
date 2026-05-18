@@ -10,6 +10,48 @@ patch versions move independently.
 
 ## [Unreleased]
 
+## [0.3.0] - Phase 3 (in progress — slice A: Tracer + ParallelToolRunner)
+
+### Added
+
+- **Full `TracerSystem`** in `mojentic-core/commonMain`:
+  - `TracerEvent` sealed interface with `LlmCallEvent`, `LlmResponseEvent`,
+    `ToolCallEvent`, `ToolBatchEvent`, `AgentInteractionEvent` variants,
+    each carrying a `kotlin.time.Instant` timestamp and a correlation ID
+    plus a `printableSummary()` formatter for examples and demos.
+  - `EventStore` — `Mutex`-protected append-only buffer plus a hot
+    `SharedFlow<TracerEvent>` for live consumers, with type / time-window /
+    custom-predicate filters and a `getLastN` helper.
+  - `TracerSystem : Tracer` forwarding every recorder call to the
+    underlying store; `enable()` / `disable()` toggle recording without
+    touching wiring.
+- **`ParallelToolRunner`** in `mojentic-core/commonMain/llm/tools`:
+  - Opt-in alternative to `SerialToolRunner` — fans tool calls out onto
+    child coroutines via `coroutineScope { ... awaitAll() }` and waits.
+  - Emits a single `ToolBatchEvent` per batch (batchId, tool names,
+    success / failure counts, wall-clock duration) so observers can
+    quantify parallelism gains. Per-call `ToolCallEvent`s still land
+    individually.
+  - Cancellation propagates cooperatively through `coroutineScope`.
+- **`Tracer` interface extensions**:
+  - `recordToolBatch(...)` — emitted by `ParallelToolRunner`; serial
+    runners do not emit batch events.
+  - `recordAgentInteraction(...)` — placeholder for Phase 4 dispatcher
+    integration. Declared now so consumers can register interest.
+  - All `Tracer` methods are now `suspend` so the underlying `EventStore`
+    can take its `Mutex` cleanly; the broker already calls every recorder
+    from a suspend context.
+- **`ToolRunner.runBatch` correlationId parameter** — threads through to
+  `ParallelToolRunner`'s batch event so it correlates with the
+  originating LLM call. Backward compatible via a default-null argument.
+- **`tracer-demo` example** — wires `TracerSystem` + `ParallelToolRunner`
+  + `CurrentDateTimeTool` into `LlmBroker` and prints every recorded
+  event after the run.
+
+### Changed
+
+- Bumped version coordinate from `0.2.0-SNAPSHOT` to `0.3.0-SNAPSHOT`.
+
 ## [0.2.0] - Phase 2
 
 ### Added
