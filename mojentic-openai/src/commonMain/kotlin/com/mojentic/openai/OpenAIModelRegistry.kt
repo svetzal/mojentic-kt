@@ -40,6 +40,16 @@ public object OpenAIModelRegistry {
         entry("o1-mini", contextWindow = 128_000, tools = false, vision = false, reasoning = true),
         entry("o3", contextWindow = 200_000, tools = true, vision = true, reasoning = true),
         entry("o3-mini", contextWindow = 200_000, tools = true, vision = false, reasoning = true),
+        entry("gpt-5.4", contextWindow = 1_050_000, tools = true, vision = true, reasoning = true),
+        entry("gpt-5.4-2026-03-05", contextWindow = 1_050_000, tools = true, vision = true, reasoning = true),
+        entry("gpt-5.4-mini", contextWindow = 400_000, tools = true, vision = true, reasoning = true),
+        entry("gpt-5.4-mini-2026-03-17", contextWindow = 400_000, tools = true, vision = true, reasoning = true),
+        entry("gpt-5.4-nano", contextWindow = 400_000, tools = true, vision = true, reasoning = true),
+        entry("gpt-5.4-nano-2026-03-17", contextWindow = 400_000, tools = true, vision = true, reasoning = true),
+        entry("gpt-5.5", contextWindow = 1_050_000, tools = true, vision = true, reasoning = true),
+        entry("gpt-5.5-2026-04-23", contextWindow = 1_050_000, tools = true, vision = true, reasoning = true),
+        entry("gpt-5.5-pro", contextWindow = 1_050_000, tools = true, vision = true, reasoning = true),
+        entry("gpt-5.5-pro-2026-04-23", contextWindow = 1_050_000, tools = true, vision = true, reasoning = true),
     ).associateBy { it.id }
 
     public fun info(model: String): OpenAIModelInfo? = entries[model]

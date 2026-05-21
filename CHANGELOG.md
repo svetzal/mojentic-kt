@@ -10,6 +10,16 @@ patch versions move independently.
 
 ## [Unreleased]
 
+### Added
+
+- **GPT-5.4 and GPT-5.5 model families** registered in `OpenAIModelRegistry`.
+  Ten new entries — `gpt-5.4`, `gpt-5.4-mini`, `gpt-5.4-nano` (plus dated
+  snapshots), `gpt-5.5`, and `gpt-5.5-pro` (plus dated snapshots) — all
+  classified as reasoning models (`supportsReasoningEffort = true`) with tool
+  and vision support. Flagship and `gpt-5.5-pro` models carry a 1,050,000-token
+  context window; the `mini`/`nano` variants carry 400,000. Previously these
+  newer models missed the lookup table and fell through to default flags.
+
 ## [0.7.1] - Phase 7 Followups ✅ Shipped (2026-05-18)
 
 Picks up the four infrastructure followups deferred from 0.7.0. The library
