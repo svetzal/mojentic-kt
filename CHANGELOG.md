@@ -12,13 +12,43 @@ patch versions move independently.
 
 ### Added
 
-- **GPT-5.4 and GPT-5.5 model families** registered in `OpenAIModelRegistry`.
-  Ten new entries — `gpt-5.4`, `gpt-5.4-mini`, `gpt-5.4-nano` (plus dated
-  snapshots), `gpt-5.5`, and `gpt-5.5-pro` (plus dated snapshots) — all
-  classified as reasoning models (`supportsReasoningEffort = true`) with tool
-  and vision support. Flagship and `gpt-5.5-pro` models carry a 1,050,000-token
-  context window; the `mini`/`nano` variants carry 400,000. Previously these
-  newer models missed the lookup table and fell through to default flags.
+- **`OpenAIModelRegistry` brought to structural and catalog parity with the
+  other Mojentic ports** (`mojentic-ts`, `mojentic-py`, `mojentic-ex`,
+  `mojentic-ru`). The registry was previously a thin five-field lookup whose
+  catalog stopped at the o3 series.
+  - New `ModelType` enum (`REASONING`, `CHAT`, `EMBEDDING`, `MODERATION`)
+    classifies every model.
+  - `OpenAIModelInfo` now carries `modelType`, `maxOutputTokens`,
+    `supportsStreaming`, `supportedTemperatures`, and the three per-API support
+    flags (`supportsChatApi`, `supportsCompletionsApi`, `supportsResponsesApi`),
+    in addition to `contextWindow`, `supportsTools`, and `supportsVision`. New
+    convenience members: `tokenLimitParam`, `supportsTemperature(Double)`, and
+    `supportsReasoningEffort` (now derived from `modelType`).
+  - **Catalog backfilled** to match `mojentic-ts`: the previously-missing
+    `gpt-5` / `gpt-5.1` / `gpt-5.2` base families (including `gpt-5-mini`,
+    `gpt-5-nano`, `gpt-5-pro`, `gpt-5-codex`, `gpt-5-chat-latest`,
+    `gpt-5-search-api`, dated snapshots and `chat-latest` variants), the full
+    `o1` / `o3` / `o4` reasoning line (including `deep-research` and `pro`
+    variants), the GPT-4 / GPT-4.1 / GPT-4o chat models (including audio and
+    search previews), GPT-3.5, embedding models, and legacy/codex models
+    (`babbage-002`, `davinci-002`, `gpt-5.1-codex-mini`, `codex-mini-latest`).
+    The `gpt-5.4` / `gpt-5.5` entries added earlier are preserved and made
+    consistent with the rest of the catalog.
+  - **Substring pattern-matching fallback** (`capabilitiesFor`) infers a
+    `ModelType` for unknown model names and returns conservative defaults,
+    warning instead of throwing — mirroring the other ports'
+    `getModelCapabilities` behaviour.
+  - New helpers `capabilitiesFor`, `isReasoningModel`, and `registeredModels`.
+
+### Changed
+
+- **`OpenAIModelInfo` gained fields** (`modelType`, `maxOutputTokens`,
+  `supportsStreaming`, `supportedTemperatures`, and the per-API flags). This is
+  a source-incompatible change for any caller constructing `OpenAIModelInfo`
+  directly; `supportsReasoningEffort` is now a derived property rather than a
+  constructor parameter. The existing helper functions
+  (`info`, `supportsTools`, `supportsVision`, `supportsReasoningEffort`) keep
+  their signatures.
 
 ## [0.7.1] - Phase 7 Followups ✅ Shipped (2026-05-18)
 

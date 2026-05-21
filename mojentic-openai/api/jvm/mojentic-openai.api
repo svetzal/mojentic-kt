@@ -9,6 +9,16 @@ public final class com/mojentic/openai/JtokkitTokenizerGateway : com/mojentic/ll
 public final class com/mojentic/openai/JtokkitTokenizerGateway$Companion {
 }
 
+public final class com/mojentic/openai/ModelType : java/lang/Enum {
+	public static final field CHAT Lcom/mojentic/openai/ModelType;
+	public static final field EMBEDDING Lcom/mojentic/openai/ModelType;
+	public static final field MODERATION Lcom/mojentic/openai/ModelType;
+	public static final field REASONING Lcom/mojentic/openai/ModelType;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/mojentic/openai/ModelType;
+	public static fun values ()[Lcom/mojentic/openai/ModelType;
+}
+
 public final class com/mojentic/openai/OpenAIEmbeddingsGateway : com/mojentic/llm/EmbeddingsGateway {
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Lio/ktor/client/engine/HttpClientEngine;Lkotlinx/serialization/json/Json;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lio/ktor/client/engine/HttpClientEngine;Lkotlinx/serialization/json/Json;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -37,27 +47,45 @@ public final class com/mojentic/openai/OpenAIGatewayKt {
 }
 
 public final class com/mojentic/openai/OpenAIModelInfo {
-	public fun <init> (Ljava/lang/String;IZZZ)V
+	public fun <init> (Ljava/lang/String;Lcom/mojentic/openai/ModelType;Ljava/lang/Integer;Ljava/lang/Integer;ZZZLjava/util/List;ZZZ)V
 	public final fun component1 ()Ljava/lang/String;
-	public final fun component2 ()I
-	public final fun component3 ()Z
-	public final fun component4 ()Z
+	public final fun component10 ()Z
+	public final fun component11 ()Z
+	public final fun component2 ()Lcom/mojentic/openai/ModelType;
+	public final fun component3 ()Ljava/lang/Integer;
+	public final fun component4 ()Ljava/lang/Integer;
 	public final fun component5 ()Z
-	public final fun copy (Ljava/lang/String;IZZZ)Lcom/mojentic/openai/OpenAIModelInfo;
-	public static synthetic fun copy$default (Lcom/mojentic/openai/OpenAIModelInfo;Ljava/lang/String;IZZZILjava/lang/Object;)Lcom/mojentic/openai/OpenAIModelInfo;
+	public final fun component6 ()Z
+	public final fun component7 ()Z
+	public final fun component8 ()Ljava/util/List;
+	public final fun component9 ()Z
+	public final fun copy (Ljava/lang/String;Lcom/mojentic/openai/ModelType;Ljava/lang/Integer;Ljava/lang/Integer;ZZZLjava/util/List;ZZZ)Lcom/mojentic/openai/OpenAIModelInfo;
+	public static synthetic fun copy$default (Lcom/mojentic/openai/OpenAIModelInfo;Ljava/lang/String;Lcom/mojentic/openai/ModelType;Ljava/lang/Integer;Ljava/lang/Integer;ZZZLjava/util/List;ZZZILjava/lang/Object;)Lcom/mojentic/openai/OpenAIModelInfo;
 	public fun equals (Ljava/lang/Object;)Z
-	public final fun getContextWindow ()I
+	public final fun getContextWindow ()Ljava/lang/Integer;
 	public final fun getId ()Ljava/lang/String;
+	public final fun getMaxOutputTokens ()Ljava/lang/Integer;
+	public final fun getModelType ()Lcom/mojentic/openai/ModelType;
+	public final fun getSupportedTemperatures ()Ljava/util/List;
+	public final fun getSupportsChatApi ()Z
+	public final fun getSupportsCompletionsApi ()Z
 	public final fun getSupportsReasoningEffort ()Z
+	public final fun getSupportsResponsesApi ()Z
+	public final fun getSupportsStreaming ()Z
 	public final fun getSupportsTools ()Z
 	public final fun getSupportsVision ()Z
+	public final fun getTokenLimitParam ()Ljava/lang/String;
 	public fun hashCode ()I
+	public final fun supportsTemperature (D)Z
 	public fun toString ()Ljava/lang/String;
 }
 
 public final class com/mojentic/openai/OpenAIModelRegistry {
 	public static final field INSTANCE Lcom/mojentic/openai/OpenAIModelRegistry;
+	public final fun capabilitiesFor (Ljava/lang/String;)Lcom/mojentic/openai/OpenAIModelInfo;
 	public final fun info (Ljava/lang/String;)Lcom/mojentic/openai/OpenAIModelInfo;
+	public final fun isReasoningModel (Ljava/lang/String;)Z
+	public final fun registeredModels ()Ljava/util/List;
 	public final fun supportsReasoningEffort (Ljava/lang/String;)Z
 	public final fun supportsTools (Ljava/lang/String;)Z
 	public final fun supportsVision (Ljava/lang/String;)Z
