@@ -18,6 +18,12 @@ internal data class OpenAIChatRequest(
     @SerialName("tool_choice") val toolChoice: String? = null,
     @SerialName("response_format") val responseFormat: OpenAIResponseFormat? = null,
     @SerialName("reasoning_effort") val reasoningEffort: String? = null,
+    @SerialName("stream_options") val streamOptions: OpenAIStreamOptions? = null,
+)
+
+@Serializable
+internal data class OpenAIStreamOptions(
+    @SerialName("include_usage") val includeUsage: Boolean,
 )
 
 @Serializable

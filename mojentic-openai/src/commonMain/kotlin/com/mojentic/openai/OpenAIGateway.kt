@@ -2,10 +2,13 @@ package com.mojentic.openai
 
 import com.mojentic.errors.LlmGatewayException
 import com.mojentic.llm.CompletionConfig
+import com.mojentic.llm.CompletionStreamEvent
 import com.mojentic.llm.GatewayStreamEvent
 import com.mojentic.llm.LlmGateway
 import com.mojentic.llm.LlmGatewayResponse
 import com.mojentic.llm.LlmMessage
+import com.mojentic.llm.StreamErrorReason
+import com.mojentic.llm.StreamEventsGateway
 import com.mojentic.llm.tools.LlmTool
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
@@ -15,6 +18,7 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
+import io.ktor.client.request.preparePost
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsChannel
@@ -23,9 +27,14 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.utils.io.readLine
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.buffer
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -51,7 +60,8 @@ public class OpenAIGateway(
     private val host: String = DEFAULT_OPENAI_HOST,
     engine: HttpClientEngine? = null,
     private val json: Json = DEFAULT_JSON,
-) : LlmGateway {
+) : LlmGateway,
+    StreamEventsGateway {
     private val httpClient: HttpClient = buildHttpClient(engine)
 
     /**
@@ -160,6 +170,52 @@ public class OpenAIGateway(
         val finalised = accumulator.toLlmToolCalls()
         if (finalised.isNotEmpty()) emit(GatewayStreamEvent.ToolCalls(finalised))
     }
+
+    /**
+     * Streams one turn as [CompletionStreamEvent]s for [com.mojentic.llm.LlmBroker.generateStreamEvents].
+     *
+     * Sends one request with `stream_options.include_usage` set and no tools.
+     * Success needs `finish_reason: "stop"` and the `[DONE]` marker. Cancelling
+     * the collector cancels the request.
+     *
+     * Uses `channelFlow` because Ktor runs the streaming response block on
+     * another dispatcher on Native targets; a rendezvous buffer keeps reads in
+     * step with consumption.
+     */
+    override fun streamEvents(
+        model: String,
+        messages: List<LlmMessage>,
+        config: CompletionConfig,
+    ): Flow<CompletionStreamEvent> = channelFlow {
+        val request = buildChatRequest(
+            model = model,
+            messages = messages,
+            tools = null,
+            config = config,
+            stream = true,
+            responseFormat = config.responseFormat?.toOpenAIResponseFormat(),
+        ).copy(streamOptions = OpenAIStreamOptions(includeUsage = true))
+        val statement = httpClient.preparePost("$host/chat/completions") {
+            header(HttpHeaders.Authorization, "Bearer $apiKey")
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(OpenAIChatRequest.serializer(), request))
+        }
+        statement.execute { response ->
+            if (!response.status.isSuccess()) {
+                val detail = response.bodyAsText()
+                send(CompletionStreamEvent.Error(StreamErrorReason.ProviderError(detail, response.status.value)))
+                return@execute
+            }
+            val parser = OpenAIStreamEventParser(json)
+            val channel = response.bodyAsChannel()
+            while (!parser.isTerminal) {
+                val line = channel.readLine() ?: break
+                parser.accept(line).forEach { send(it) }
+            }
+            if (!parser.isTerminal) send(parser.endOfStream())
+        }
+    }.buffer(Channel.RENDEZVOUS)
+        .catch { failure -> emit(CompletionStreamEvent.Error(StreamErrorReason.RequestFailed(failure))) }
 
     private suspend fun handleSseLine(
         line: String,

@@ -1,4 +1,4 @@
-public final class com/mojentic/ollama/OllamaGateway : com/mojentic/llm/LlmGateway {
+public final class com/mojentic/ollama/OllamaGateway : com/mojentic/llm/LlmGateway, com/mojentic/llm/StreamEventsGateway {
 	public static final field Companion Lcom/mojentic/ollama/OllamaGateway$Companion;
 	public fun <init> ()V
 	public fun <init> (Ljava/lang/String;Lio/ktor/client/engine/HttpClientEngine;Lkotlinx/serialization/json/Json;)V
@@ -9,6 +9,7 @@ public final class com/mojentic/ollama/OllamaGateway : com/mojentic/llm/LlmGatew
 	public fun completeJson (Ljava/lang/String;Ljava/util/List;Lkotlinx/serialization/json/JsonObject;Lcom/mojentic/llm/CompletionConfig;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun completeJsonResponse (Ljava/lang/String;Ljava/util/List;Lkotlinx/serialization/json/JsonObject;Lcom/mojentic/llm/CompletionConfig;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun stream (Ljava/lang/String;Ljava/util/List;Ljava/util/List;Lcom/mojentic/llm/CompletionConfig;)Lkotlinx/coroutines/flow/Flow;
+	public fun streamEvents (Ljava/lang/String;Ljava/util/List;Lcom/mojentic/llm/CompletionConfig;)Lkotlinx/coroutines/flow/Flow;
 }
 
 public final class com/mojentic/ollama/OllamaGateway$Companion {

@@ -27,7 +27,7 @@ public final class com/mojentic/openai/OpenAIEmbeddingsGateway : com/mojentic/ll
 	public fun embedBatch (Ljava/lang/String;Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class com/mojentic/openai/OpenAIGateway : com/mojentic/llm/LlmGateway {
+public final class com/mojentic/openai/OpenAIGateway : com/mojentic/llm/LlmGateway, com/mojentic/llm/StreamEventsGateway {
 	public static final field Companion Lcom/mojentic/openai/OpenAIGateway$Companion;
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Lio/ktor/client/engine/HttpClientEngine;Lkotlinx/serialization/json/Json;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lio/ktor/client/engine/HttpClientEngine;Lkotlinx/serialization/json/Json;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -37,6 +37,7 @@ public final class com/mojentic/openai/OpenAIGateway : com/mojentic/llm/LlmGatew
 	public fun completeJson (Ljava/lang/String;Ljava/util/List;Lkotlinx/serialization/json/JsonObject;Lcom/mojentic/llm/CompletionConfig;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun completeJsonResponse (Ljava/lang/String;Ljava/util/List;Lkotlinx/serialization/json/JsonObject;Lcom/mojentic/llm/CompletionConfig;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun stream (Ljava/lang/String;Ljava/util/List;Ljava/util/List;Lcom/mojentic/llm/CompletionConfig;)Lkotlinx/coroutines/flow/Flow;
+	public fun streamEvents (Ljava/lang/String;Ljava/util/List;Lcom/mojentic/llm/CompletionConfig;)Lkotlinx/coroutines/flow/Flow;
 }
 
 public final class com/mojentic/openai/OpenAIGateway$Companion {

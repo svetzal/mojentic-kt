@@ -308,6 +308,61 @@ public final class com/mojentic/llm/CompletionConfig {
 public final class com/mojentic/llm/CompletionConfig$Companion {
 }
 
+public final class com/mojentic/llm/CompletionEvidence {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;)V
+	public synthetic fun <init> (Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lkotlinx/serialization/json/JsonObject;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Lkotlinx/serialization/json/JsonObject;
+	public final fun copy (Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;)Lcom/mojentic/llm/CompletionEvidence;
+	public static synthetic fun copy$default (Lcom/mojentic/llm/CompletionEvidence;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;ILjava/lang/Object;)Lcom/mojentic/llm/CompletionEvidence;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFinishReason ()Ljava/lang/String;
+	public final fun getMetadata ()Lkotlinx/serialization/json/JsonObject;
+	public final fun getProviderModel ()Ljava/lang/String;
+	public final fun getUsage ()Lkotlinx/serialization/json/JsonObject;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class com/mojentic/llm/CompletionStreamEvent {
+}
+
+public final class com/mojentic/llm/CompletionStreamEvent$Completed : com/mojentic/llm/CompletionStreamEvent {
+	public fun <init> (Lcom/mojentic/llm/CompletionEvidence;)V
+	public final fun component1 ()Lcom/mojentic/llm/CompletionEvidence;
+	public final fun copy (Lcom/mojentic/llm/CompletionEvidence;)Lcom/mojentic/llm/CompletionStreamEvent$Completed;
+	public static synthetic fun copy$default (Lcom/mojentic/llm/CompletionStreamEvent$Completed;Lcom/mojentic/llm/CompletionEvidence;ILjava/lang/Object;)Lcom/mojentic/llm/CompletionStreamEvent$Completed;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEvidence ()Lcom/mojentic/llm/CompletionEvidence;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/llm/CompletionStreamEvent$Content : com/mojentic/llm/CompletionStreamEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lcom/mojentic/llm/CompletionStreamEvent$Content;
+	public static synthetic fun copy$default (Lcom/mojentic/llm/CompletionStreamEvent$Content;Ljava/lang/String;ILjava/lang/Object;)Lcom/mojentic/llm/CompletionStreamEvent$Content;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getText ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/llm/CompletionStreamEvent$Error : com/mojentic/llm/CompletionStreamEvent {
+	public fun <init> (Lcom/mojentic/llm/StreamErrorReason;)V
+	public final fun component1 ()Lcom/mojentic/llm/StreamErrorReason;
+	public final fun copy (Lcom/mojentic/llm/StreamErrorReason;)Lcom/mojentic/llm/CompletionStreamEvent$Error;
+	public static synthetic fun copy$default (Lcom/mojentic/llm/CompletionStreamEvent$Error;Lcom/mojentic/llm/StreamErrorReason;ILjava/lang/Object;)Lcom/mojentic/llm/CompletionStreamEvent$Error;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getReason ()Lcom/mojentic/llm/StreamErrorReason;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public abstract interface class com/mojentic/llm/EmbeddingsGateway {
 	public abstract fun embed (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun embedBatch (Ljava/lang/String;Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -398,6 +453,8 @@ public final class com/mojentic/llm/LlmBroker {
 	public final fun completeJsonElement (Ljava/lang/String;Ljava/util/List;Lkotlinx/serialization/json/JsonObject;Lcom/mojentic/llm/CompletionConfig;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun generateResponse (Ljava/lang/String;Ljava/util/List;Ljava/util/List;Lcom/mojentic/llm/CompletionConfig;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun generateResponse$default (Lcom/mojentic/llm/LlmBroker;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Lcom/mojentic/llm/CompletionConfig;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun generateStreamEvents (Ljava/lang/String;Ljava/util/List;Lcom/mojentic/llm/CompletionConfig;Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun generateStreamEvents$default (Lcom/mojentic/llm/LlmBroker;Ljava/lang/String;Ljava/util/List;Lcom/mojentic/llm/CompletionConfig;Ljava/lang/String;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
 	public final fun getJson ()Lkotlinx/serialization/json/Json;
 	public final fun stream (Ljava/lang/String;Ljava/util/List;Ljava/util/List;Lcom/mojentic/llm/CompletionConfig;Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
 	public static synthetic fun stream$default (Lcom/mojentic/llm/LlmBroker;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Lcom/mojentic/llm/CompletionConfig;Ljava/lang/String;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
@@ -584,6 +641,81 @@ public final class com/mojentic/llm/ResponseFormat$Text : com/mojentic/llm/Respo
 	public fun toString ()Ljava/lang/String;
 }
 
+public abstract interface class com/mojentic/llm/StreamErrorReason {
+}
+
+public final class com/mojentic/llm/StreamErrorReason$IncompleteCompletion : com/mojentic/llm/StreamErrorReason {
+	public fun <init> (Lcom/mojentic/llm/CompletionEvidence;)V
+	public final fun component1 ()Lcom/mojentic/llm/CompletionEvidence;
+	public final fun copy (Lcom/mojentic/llm/CompletionEvidence;)Lcom/mojentic/llm/StreamErrorReason$IncompleteCompletion;
+	public static synthetic fun copy$default (Lcom/mojentic/llm/StreamErrorReason$IncompleteCompletion;Lcom/mojentic/llm/CompletionEvidence;ILjava/lang/Object;)Lcom/mojentic/llm/StreamErrorReason$IncompleteCompletion;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEvidence ()Lcom/mojentic/llm/CompletionEvidence;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/llm/StreamErrorReason$IncompleteStream : com/mojentic/llm/StreamErrorReason {
+	public fun <init> (Lcom/mojentic/llm/CompletionEvidence;)V
+	public final fun component1 ()Lcom/mojentic/llm/CompletionEvidence;
+	public final fun copy (Lcom/mojentic/llm/CompletionEvidence;)Lcom/mojentic/llm/StreamErrorReason$IncompleteStream;
+	public static synthetic fun copy$default (Lcom/mojentic/llm/StreamErrorReason$IncompleteStream;Lcom/mojentic/llm/CompletionEvidence;ILjava/lang/Object;)Lcom/mojentic/llm/StreamErrorReason$IncompleteStream;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEvidence ()Lcom/mojentic/llm/CompletionEvidence;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/llm/StreamErrorReason$InvalidStreamEvent : com/mojentic/llm/StreamErrorReason {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lcom/mojentic/llm/StreamErrorReason$InvalidStreamEvent;
+	public static synthetic fun copy$default (Lcom/mojentic/llm/StreamErrorReason$InvalidStreamEvent;Ljava/lang/String;ILjava/lang/Object;)Lcom/mojentic/llm/StreamErrorReason$InvalidStreamEvent;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getPayload ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/llm/StreamErrorReason$ProviderError : com/mojentic/llm/StreamErrorReason {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Integer;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/Integer;
+	public final fun copy (Ljava/lang/String;Ljava/lang/Integer;)Lcom/mojentic/llm/StreamErrorReason$ProviderError;
+	public static synthetic fun copy$default (Lcom/mojentic/llm/StreamErrorReason$ProviderError;Ljava/lang/String;Ljava/lang/Integer;ILjava/lang/Object;)Lcom/mojentic/llm/StreamErrorReason$ProviderError;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDetail ()Ljava/lang/String;
+	public final fun getStatus ()Ljava/lang/Integer;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/llm/StreamErrorReason$RequestFailed : com/mojentic/llm/StreamErrorReason {
+	public fun <init> (Ljava/lang/Throwable;)V
+	public final fun component1 ()Ljava/lang/Throwable;
+	public final fun copy (Ljava/lang/Throwable;)Lcom/mojentic/llm/StreamErrorReason$RequestFailed;
+	public static synthetic fun copy$default (Lcom/mojentic/llm/StreamErrorReason$RequestFailed;Ljava/lang/Throwable;ILjava/lang/Object;)Lcom/mojentic/llm/StreamErrorReason$RequestFailed;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCause ()Ljava/lang/Throwable;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/llm/StreamErrorReason$StreamEventsUnsupported : com/mojentic/llm/StreamErrorReason {
+	public static final field INSTANCE Lcom/mojentic/llm/StreamErrorReason$StreamEventsUnsupported;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/llm/StreamErrorReason$UnexpectedToolCalls : com/mojentic/llm/StreamErrorReason {
+	public static final field INSTANCE Lcom/mojentic/llm/StreamErrorReason$UnexpectedToolCalls;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public abstract interface class com/mojentic/llm/StreamEvent {
 }
 
@@ -633,6 +765,15 @@ public final class com/mojentic/llm/StreamEvent$ToolResult : com/mojentic/llm/St
 	public fun hashCode ()I
 	public final fun isError ()Z
 	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class com/mojentic/llm/StreamEventsGateway {
+	public abstract fun streamEvents (Ljava/lang/String;Ljava/util/List;Lcom/mojentic/llm/CompletionConfig;)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun streamEvents$default (Lcom/mojentic/llm/StreamEventsGateway;Ljava/lang/String;Ljava/util/List;Lcom/mojentic/llm/CompletionConfig;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+}
+
+public final class com/mojentic/llm/StreamEventsGateway$DefaultImpls {
+	public static synthetic fun streamEvents$default (Lcom/mojentic/llm/StreamEventsGateway;Ljava/lang/String;Ljava/util/List;Lcom/mojentic/llm/CompletionConfig;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
 }
 
 public final class com/mojentic/llm/TextContent : com/mojentic/llm/MessageContent {

@@ -11,8 +11,11 @@ import com.mojentic.tracer.NullTracer
 import com.mojentic.tracer.Tracer
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.takeWhile
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
@@ -197,6 +200,72 @@ public class LlmBroker(
         )
     }
 
+    /**
+     * Stream one turn as [CompletionStreamEvent]s with terminal completion evidence.
+     *
+     * Emits [CompletionStreamEvent.Content] events in order, then exactly one
+     * terminal event: [CompletionStreamEvent.Completed] when the provider
+     * reported a normal stop and ended the stream, or [CompletionStreamEvent.Error]
+     * otherwise. Truncated or unfinished output is an error, never a result;
+     * content received before an error is evidence only.
+     *
+     * The turn sends one request with no tools, forces
+     * [CompletionConfig.maxToolIterations] to zero, and never retries. Stopping
+     * collection early cancels the request. A gateway that does not implement
+     * [StreamEventsGateway] yields a single
+     * [StreamErrorReason.StreamEventsUnsupported] error, with no request and no trace.
+     *
+     * The call is traced when the request starts. The response, with the
+     * content received and the terminal evidence, is traced when the terminal
+     * event arrives. A consumer that stops early leaves a traced call and no
+     * traced response.
+     *
+     * @param model Provider-side model identifier.
+     * @param messages Conversation history.
+     * @param config Completion knobs, including [CompletionConfig.responseFormat].
+     * @param correlationId Correlation ID for tracer events; generated when null.
+     */
+    public fun generateStreamEvents(
+        model: String,
+        messages: List<LlmMessage>,
+        config: CompletionConfig = CompletionConfig(),
+        correlationId: String? = null,
+    ): Flow<CompletionStreamEvent> {
+        val source = gateway as? StreamEventsGateway
+            ?: return flowOf(CompletionStreamEvent.Error(StreamErrorReason.StreamEventsUnsupported))
+        return flow {
+            val cid = correlationId ?: newCorrelationId()
+            tracer.recordLlmCall(model, messages, config.temperature, tools = null, correlationId = cid)
+            val mark = TimeSource.Monotonic.markNow()
+            val content = StringBuilder()
+            var terminal: CompletionStreamEvent? = null
+            source.streamEvents(model, messages, config.copy(maxToolIterations = 0))
+                .catch { failure -> emit(CompletionStreamEvent.Error(StreamErrorReason.RequestFailed(failure))) }
+                .takeWhile { event -> (event is CompletionStreamEvent.Content).also { if (!it) terminal = event } }
+                .collect { event ->
+                    if (event is CompletionStreamEvent.Content) {
+                        content.append(event.text)
+                        emit(event)
+                    }
+                }
+            val outcome = terminal
+                ?: CompletionStreamEvent.Error(StreamErrorReason.IncompleteStream(evidence = null))
+            val evidence = outcome.evidence
+            tracer.recordLlmResponse(
+                model = model,
+                content = content.toString(),
+                toolCalls = null,
+                callDuration = mark.elapsedNow(),
+                correlationId = cid,
+                usage = evidence?.usage,
+                providerModel = evidence?.providerModel,
+                finishReason = evidence?.finishReason,
+                metadata = evidence?.metadata,
+            )
+            emit(outcome)
+        }
+    }
+
     private suspend fun dispatchTools(calls: List<LlmToolCall>, tools: List<LlmTool>, correlationId: String): List<ToolOutcome> {
         val outcomes = toolRunner.runBatch(calls, tools, correlationId)
         outcomes.forEach { outcome ->
@@ -248,3 +317,14 @@ public class LlmBroker(
         private val MAP_SERIALIZER = MapSerializer(String.serializer(), String.serializer())
     }
 }
+
+private val CompletionStreamEvent.evidence: CompletionEvidence?
+    get() = when (this) {
+        is CompletionStreamEvent.Completed -> evidence
+        is CompletionStreamEvent.Error -> when (val cause = reason) {
+            is StreamErrorReason.IncompleteCompletion -> cause.evidence
+            is StreamErrorReason.IncompleteStream -> cause.evidence
+            else -> null
+        }
+        is CompletionStreamEvent.Content -> null
+    }

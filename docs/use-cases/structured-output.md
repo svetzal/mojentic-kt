@@ -121,8 +121,8 @@ broker.stream(model, messages, config = config).collect { /* ... */ }
 | `ResponseFormat.Json()` | `{"type":"json_object"}` | `format: "json"` |
 | `ResponseFormat.Json(schema)` | `{"type":"json_schema","json_schema":{"name":"response","schema":...}}` | `format: <schema>` |
 
-The OpenAI and Ollama gateways forward the format in `complete` and `stream`
-requests. The request records what you asked for.
+The OpenAI and Ollama gateways forward the format in `complete`, `stream`,
+and `generateStreamEvents` requests. The request records what you asked for.
 It is not proof that the provider enforced the format, so validate the
 returned content yourself. The Anthropic gateway ignores this field.
 

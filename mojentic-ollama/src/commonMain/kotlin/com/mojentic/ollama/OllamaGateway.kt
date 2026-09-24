@@ -2,10 +2,13 @@ package com.mojentic.ollama
 
 import com.mojentic.errors.LlmGatewayException
 import com.mojentic.llm.CompletionConfig
+import com.mojentic.llm.CompletionStreamEvent
 import com.mojentic.llm.GatewayStreamEvent
 import com.mojentic.llm.LlmGateway
 import com.mojentic.llm.LlmGatewayResponse
 import com.mojentic.llm.LlmMessage
+import com.mojentic.llm.StreamErrorReason
+import com.mojentic.llm.StreamEventsGateway
 import com.mojentic.llm.tools.LlmTool
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
@@ -14,6 +17,7 @@ import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.client.request.post
+import io.ktor.client.request.preparePost
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsChannel
@@ -21,9 +25,14 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.utils.io.readLine
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.buffer
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -46,7 +55,8 @@ public class OllamaGateway(
     private val host: String = DEFAULT_OLLAMA_HOST,
     engine: HttpClientEngine? = null,
     private val json: Json = DEFAULT_JSON,
-) : LlmGateway {
+) : LlmGateway,
+    StreamEventsGateway {
     private val httpClient: HttpClient = buildHttpClient(engine)
 
     /**
@@ -162,6 +172,48 @@ public class OllamaGateway(
             }
         }
     }
+
+    /**
+     * Streams one turn as [CompletionStreamEvent]s for [com.mojentic.llm.LlmBroker.generateStreamEvents].
+     *
+     * Sends one request with no tools. Success needs a final frame with
+     * `done: true` and `done_reason: "stop"`; Ollama servers too old to send
+     * `done_reason` always end in an incomplete completion. Cancelling the
+     * collector cancels the request.
+     */
+    override fun streamEvents(
+        model: String,
+        messages: List<LlmMessage>,
+        config: CompletionConfig,
+    ): Flow<CompletionStreamEvent> = channelFlow {
+        val request = OllamaChatRequest(
+            model = model,
+            messages = messages.toOllamaMessages(),
+            options = optionsFor(config),
+            stream = true,
+            format = config.responseFormat?.toOllamaFormat(),
+            think = if (config.reasoningEffort != null) true else null,
+        )
+        val statement = httpClient.preparePost("$host/api/chat") {
+            contentType(ContentType.Application.Json)
+            setBody(json.encodeToString(OllamaChatRequest.serializer(), request))
+        }
+        statement.execute { response ->
+            if (!response.status.isSuccess()) {
+                val detail = response.bodyAsText()
+                send(CompletionStreamEvent.Error(StreamErrorReason.ProviderError(detail, response.status.value)))
+                return@execute
+            }
+            val parser = OllamaStreamEventParser(json)
+            val channel = response.bodyAsChannel()
+            while (!parser.isTerminal) {
+                val line = channel.readLine() ?: break
+                parser.accept(line).forEach { send(it) }
+            }
+            if (!parser.isTerminal) send(parser.endOfStream())
+        }
+    }.buffer(Channel.RENDEZVOUS)
+        .catch { failure -> emit(CompletionStreamEvent.Error(StreamErrorReason.RequestFailed(failure))) }
 
     override suspend fun availableModels(): List<String> {
         val response: HttpResponse = httpClient.get("$host/api/tags")

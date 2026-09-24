@@ -12,6 +12,17 @@ patch versions move independently.
 
 ### Added
 
+- **`LlmBroker.generateStreamEvents`** streams one turn as a
+  `Flow<CompletionStreamEvent>`: `Content` events, then exactly one terminal
+  `Completed(CompletionEvidence)` or `Error(StreamErrorReason)`. OpenAI
+  succeeds only on `finish_reason: "stop"` plus `[DONE]`; Ollama only on
+  `done: true` with `done_reason: "stop"`. Truncation, a missing terminal
+  marker, provider errors, native tool calls, malformed frames and transport
+  failures are typed errors. One request, no tools, zero tool iterations, no
+  retry; stopping collection cancels the request. The OpenAI and Ollama
+  gateways implement the new `StreamEventsGateway` capability; other gateways,
+  including Anthropic, yield `StreamEventsUnsupported` without a request. The
+  call and the terminal response, with evidence, are traced.
 - **Provider evidence in response traces.** `LlmGatewayResponse` has
   `usage`, `providerModel`, `finishReason`, and `metadata`, filled with what
   the provider reported (OpenAI and Anthropic `usage` objects as sent; Ollama

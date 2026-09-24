@@ -34,7 +34,8 @@ cancellation propagates to child calls.
 | `metadata` | Other provider metadata, for example Ollama durations | `null` |
 
 The broker copies these fields unchanged into the `LlmResponseEvent` it
-records for `complete`, `generateResponse`, and `completeJson`. The event's
+records for `complete`, `generateResponse`, `completeJson`, and
+`generateStreamEvents` (see [Stream Events](stream-events.md)). The event's
 `model` field stays the configured request model. The legacy `stream` API
 records no evidence.
 
