@@ -106,6 +106,12 @@ patch versions move independently.
 
 ### Fixed
 
+- **`stream()` now streams.** The OpenAI, Ollama and Anthropic gateways read
+  the whole response body before emitting the first chunk, because they used
+  a non-prepared Ktor request, which saves the body. They now use a prepared
+  streaming statement, so each chunk reaches the collector as it arrives and
+  cancelling the collector cancels the request. A timing test per gateway
+  guards this.
 - The dependency audit now also skips the non-published `:examples` container
   project. Gradle 9 still refuses the aggregate task's cross-project
   resolution under parallel execution, so the security workflow and the

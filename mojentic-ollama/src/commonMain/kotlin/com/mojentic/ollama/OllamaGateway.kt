@@ -33,7 +33,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 
@@ -137,7 +136,7 @@ public class OllamaGateway(
         messages: List<LlmMessage>,
         tools: List<LlmTool>?,
         config: CompletionConfig,
-    ): Flow<GatewayStreamEvent> = flow {
+    ): Flow<GatewayStreamEvent> = channelFlow {
         val request = OllamaChatRequest(
             model = model,
             messages = messages.toOllamaMessages(),
@@ -147,31 +146,33 @@ public class OllamaGateway(
             format = config.responseFormat?.toOllamaFormat(),
             think = if (config.reasoningEffort != null) true else null,
         )
-        val httpResponse: HttpResponse = httpClient.post("$host/api/chat") {
+        val statement = httpClient.preparePost("$host/api/chat") {
             contentType(ContentType.Application.Json)
             setBody(json.encodeToString(OllamaChatRequest.serializer(), request))
         }
-        ensureSuccess(httpResponse)
-        val channel = httpResponse.bodyAsChannel()
-        while (true) {
-            val line = channel.readLine() ?: break
-            if (line.isBlank()) continue
-            val chunk = runCatching { json.decodeFromString(OllamaChatResponse.serializer(), line) }
-                .getOrElse {
-                    logger.warn { "Skipping malformed Ollama stream chunk: $line" }
-                    continue
+        statement.execute { httpResponse ->
+            ensureSuccess(httpResponse)
+            val channel = httpResponse.bodyAsChannel()
+            while (true) {
+                val line = channel.readLine() ?: break
+                if (line.isBlank()) continue
+                val chunk = runCatching { json.decodeFromString(OllamaChatResponse.serializer(), line) }
+                    .getOrElse {
+                        logger.warn { "Skipping malformed Ollama stream chunk: $line" }
+                        continue
+                    }
+                chunk.message.content?.takeIf { it.isNotEmpty() }?.let {
+                    send(GatewayStreamEvent.Content(it))
                 }
-            chunk.message.content?.takeIf { it.isNotEmpty() }?.let {
-                emit(GatewayStreamEvent.Content(it))
-            }
-            chunk.message.thinking?.takeIf { it.isNotEmpty() }?.let {
-                emit(GatewayStreamEvent.Thinking(it))
-            }
-            chunk.message.toolCalls?.takeIf { it.isNotEmpty() }?.let { calls ->
-                emit(GatewayStreamEvent.ToolCalls(calls.map { it.toLlmToolCall() }))
+                chunk.message.thinking?.takeIf { it.isNotEmpty() }?.let {
+                    send(GatewayStreamEvent.Thinking(it))
+                }
+                chunk.message.toolCalls?.takeIf { it.isNotEmpty() }?.let { calls ->
+                    send(GatewayStreamEvent.ToolCalls(calls.map { it.toLlmToolCall() }))
+                }
             }
         }
-    }
+    }.buffer(Channel.RENDEZVOUS)
 
     /**
      * Streams one turn as [CompletionStreamEvent]s for [com.mojentic.llm.LlmBroker.generateStreamEvents].

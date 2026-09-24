@@ -25,6 +25,7 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
+import io.ktor.client.request.preparePost
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsChannel
@@ -34,7 +35,10 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.utils.io.readLine
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.buffer
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
@@ -142,7 +146,7 @@ public class AnthropicGateway(
         messages: List<LlmMessage>,
         tools: List<LlmTool>?,
         config: CompletionConfig,
-    ): Flow<GatewayStreamEvent> = kotlinx.coroutines.flow.flow {
+    ): Flow<GatewayStreamEvent> = channelFlow {
         val request = buildMessagesRequest(
             model = model,
             messages = messages,
@@ -151,22 +155,24 @@ public class AnthropicGateway(
             config = config,
             stream = true,
         )
-        val httpResponse: HttpResponse = httpClient.post("$host/v1/messages") {
+        val statement = httpClient.preparePost("$host/v1/messages") {
             applyMessagesHeaders()
             contentType(ContentType.Application.Json)
             setBody(json.encodeToString(AnthropicMessagesRequest.serializer(), request))
         }
-        ensureSuccess(httpResponse)
-        val accumulator = AnthropicStreamAccumulator(json)
-        val channel = httpResponse.bodyAsChannel()
-        var stopped = false
-        while (!stopped) {
-            val line = channel.readLine() ?: break
-            stopped = handleSseLine(line, accumulator) { event -> emit(event) }
+        statement.execute { httpResponse ->
+            ensureSuccess(httpResponse)
+            val accumulator = AnthropicStreamAccumulator(json)
+            val channel = httpResponse.bodyAsChannel()
+            var stopped = false
+            while (!stopped) {
+                val line = channel.readLine() ?: break
+                stopped = handleSseLine(line, accumulator) { event -> send(event) }
+            }
+            val finalised = accumulator.toolCalls()
+            if (finalised.isNotEmpty()) send(GatewayStreamEvent.ToolCalls(finalised))
         }
-        val finalised = accumulator.toolCalls()
-        if (finalised.isNotEmpty()) emit(GatewayStreamEvent.ToolCalls(finalised))
-    }
+    }.buffer(Channel.RENDEZVOUS)
 
     private suspend fun handleSseLine(
         line: String,

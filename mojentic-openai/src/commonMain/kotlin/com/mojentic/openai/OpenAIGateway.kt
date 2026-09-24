@@ -35,7 +35,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 
@@ -145,7 +144,7 @@ public class OpenAIGateway(
         messages: List<LlmMessage>,
         tools: List<LlmTool>?,
         config: CompletionConfig,
-    ): Flow<GatewayStreamEvent> = flow {
+    ): Flow<GatewayStreamEvent> = channelFlow {
         val request = buildChatRequest(
             model = model,
             messages = messages,
@@ -154,22 +153,24 @@ public class OpenAIGateway(
             stream = true,
             responseFormat = config.responseFormat?.toOpenAIResponseFormat(),
         )
-        val httpResponse: HttpResponse = httpClient.post("$host/chat/completions") {
+        val statement = httpClient.preparePost("$host/chat/completions") {
             header(HttpHeaders.Authorization, "Bearer $apiKey")
             contentType(ContentType.Application.Json)
             setBody(json.encodeToString(OpenAIChatRequest.serializer(), request))
         }
-        ensureSuccess(httpResponse)
-        val accumulator = StreamingToolCallAccumulator(json)
-        val channel = httpResponse.bodyAsChannel()
-        var stopped = false
-        while (!stopped) {
-            val line = channel.readLine() ?: break
-            stopped = handleSseLine(line, accumulator) { event -> emit(event) }
+        statement.execute { httpResponse ->
+            ensureSuccess(httpResponse)
+            val accumulator = StreamingToolCallAccumulator(json)
+            val channel = httpResponse.bodyAsChannel()
+            var stopped = false
+            while (!stopped) {
+                val line = channel.readLine() ?: break
+                stopped = handleSseLine(line, accumulator) { event -> send(event) }
+            }
+            val finalised = accumulator.toLlmToolCalls()
+            if (finalised.isNotEmpty()) send(GatewayStreamEvent.ToolCalls(finalised))
         }
-        val finalised = accumulator.toLlmToolCalls()
-        if (finalised.isNotEmpty()) emit(GatewayStreamEvent.ToolCalls(finalised))
-    }
+    }.buffer(Channel.RENDEZVOUS)
 
     /**
      * Streams one turn as [CompletionStreamEvent]s for [com.mojentic.llm.LlmBroker.generateStreamEvents].
