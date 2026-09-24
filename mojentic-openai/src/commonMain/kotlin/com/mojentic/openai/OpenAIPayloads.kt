@@ -85,6 +85,7 @@ internal data class OpenAIChatResponse(
     val id: String? = null,
     val model: String? = null,
     val choices: List<OpenAIChoice> = emptyList(),
+    val usage: JsonObject? = null,
 )
 
 @Serializable

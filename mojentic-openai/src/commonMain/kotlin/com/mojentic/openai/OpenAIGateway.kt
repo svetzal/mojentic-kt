@@ -83,6 +83,9 @@ public class OpenAIGateway(
             content = message.content,
             toolCalls = message.toolCalls.orEmpty().map { it.toLlmToolCall(json) },
             thinking = message.reasoningContent,
+            usage = response.usage,
+            providerModel = response.model,
+            finishReason = choice.finishReason,
         )
     }
 
@@ -91,7 +94,14 @@ public class OpenAIGateway(
         messages: List<LlmMessage>,
         schema: JsonObject,
         config: CompletionConfig,
-    ): JsonObject {
+    ): JsonObject = completeJsonResponse(model, messages, schema, config).structuredJson as JsonObject
+
+    override suspend fun completeJsonResponse(
+        model: String,
+        messages: List<LlmMessage>,
+        schema: JsonObject,
+        config: CompletionConfig,
+    ): LlmGatewayResponse {
         val request = buildChatRequest(
             model = model,
             messages = messages,
@@ -104,12 +114,20 @@ public class OpenAIGateway(
             ),
         )
         val response = postChat(request)
-        val raw = response.choices.firstOrNull()?.message?.content
+        val choice = response.choices.firstOrNull()
+        val raw = choice?.message?.content
             ?: throw LlmGatewayException("OpenAI returned no content for structured-output request")
         val parsed = runCatching { json.parseToJsonElement(raw) }
             .getOrElse { throw LlmGatewayException("OpenAI structured response was not valid JSON: $raw", it) }
-        return parsed as? JsonObject
+        val structured = parsed as? JsonObject
             ?: throw LlmGatewayException("OpenAI structured response was not a JSON object: $raw")
+        return LlmGatewayResponse(
+            content = raw,
+            structuredJson = structured,
+            usage = response.usage,
+            providerModel = response.model,
+            finishReason = choice.finishReason,
+        )
     }
 
     override fun stream(

@@ -91,10 +91,19 @@ public data class LlmMessage(
  * @property toolCalls Tool calls requested by the LLM. Empty when no tools were called.
  * @property thinking Reasoning trace surfaced by the provider, when available.
  * @property structuredJson Structured JSON object, when a structured-output request was made.
+ * @property usage Token usage exactly as the provider reported it, or null when it reported none.
+ *           Never estimated.
+ * @property providerModel Model name the provider reported, which can differ from the requested model.
+ * @property finishReason Provider finish reason (for example `stop`, `length`, `tool_calls`).
+ * @property metadata Other provider-reported response metadata (for example Ollama durations).
  */
 public data class LlmGatewayResponse(
     val content: String? = null,
     val toolCalls: List<LlmToolCall> = emptyList(),
     val thinking: String? = null,
     val structuredJson: JsonElement? = null,
+    val usage: JsonObject? = null,
+    val providerModel: String? = null,
+    val finishReason: String? = null,
+    val metadata: JsonObject? = null,
 )

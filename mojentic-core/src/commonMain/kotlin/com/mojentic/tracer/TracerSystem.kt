@@ -2,6 +2,7 @@ package com.mojentic.tracer
 
 import com.mojentic.llm.LlmMessage
 import com.mojentic.llm.LlmToolCall
+import kotlinx.serialization.json.JsonObject
 import kotlin.time.Clock
 import kotlin.time.Duration
 
@@ -51,6 +52,10 @@ public class TracerSystem(
         toolCalls: List<LlmToolCall>?,
         callDuration: Duration,
         correlationId: String?,
+        usage: JsonObject?,
+        providerModel: String?,
+        finishReason: String?,
+        metadata: JsonObject?,
     ) {
         if (!_enabled) return
         eventStore.store(
@@ -61,6 +66,10 @@ public class TracerSystem(
                 content = content,
                 toolCalls = toolCalls,
                 callDuration = callDuration,
+                usage = usage,
+                providerModel = providerModel,
+                finishReason = finishReason,
+                metadata = metadata,
             ),
         )
     }

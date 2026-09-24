@@ -77,6 +77,10 @@ public class OllamaGateway(
             content = response.message.content,
             thinking = response.message.thinking,
             toolCalls = response.message.toolCalls.orEmpty().map { it.toLlmToolCall() },
+            usage = response.reportedUsage,
+            providerModel = response.model,
+            finishReason = response.doneReason,
+            metadata = response.reportedMetadata,
         )
     }
 
@@ -85,7 +89,14 @@ public class OllamaGateway(
         messages: List<LlmMessage>,
         schema: JsonObject,
         config: CompletionConfig,
-    ): JsonObject {
+    ): JsonObject = completeJsonResponse(model, messages, schema, config).structuredJson as JsonObject
+
+    override suspend fun completeJsonResponse(
+        model: String,
+        messages: List<LlmMessage>,
+        schema: JsonObject,
+        config: CompletionConfig,
+    ): LlmGatewayResponse {
         val request = OllamaChatRequest(
             model = model,
             messages = messages.toOllamaMessages(),
@@ -99,8 +110,16 @@ public class OllamaGateway(
             ?: throw LlmGatewayException("Ollama returned no content for structured-output request")
         val parsed = runCatching { json.parseToJsonElement(raw) }
             .getOrElse { throw LlmGatewayException("Ollama structured response was not valid JSON: $raw", it) }
-        return parsed as? JsonObject
+        val structured = parsed as? JsonObject
             ?: throw LlmGatewayException("Ollama structured response was not a JSON object: $raw")
+        return LlmGatewayResponse(
+            content = raw,
+            structuredJson = structured,
+            usage = response.reportedUsage,
+            providerModel = response.model,
+            finishReason = response.doneReason,
+            metadata = response.reportedMetadata,
+        )
     }
 
     override fun stream(

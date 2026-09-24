@@ -2,6 +2,7 @@ package com.mojentic.tracer
 
 import com.mojentic.llm.LlmMessage
 import com.mojentic.llm.LlmToolCall
+import kotlinx.serialization.json.JsonObject
 import kotlin.time.Duration
 
 /**
@@ -29,12 +30,21 @@ public interface Tracer {
     ) {
     }
 
+    /**
+     * Records an LLM response. [model] is the configured request model. The
+     * evidence parameters carry what the provider reported, unchanged: [usage]
+     * is never estimated and stays null when the provider reported none.
+     */
     public suspend fun recordLlmResponse(
         model: String,
         content: String?,
         toolCalls: List<LlmToolCall>?,
         callDuration: Duration,
         correlationId: String?,
+        usage: JsonObject? = null,
+        providerModel: String? = null,
+        finishReason: String? = null,
+        metadata: JsonObject? = null,
     ) {
     }
 

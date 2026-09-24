@@ -1,5 +1,6 @@
 package com.mojentic.llm
 
+import com.mojentic.errors.LlmGatewayException
 import com.mojentic.errors.MaxToolIterationsExceededException
 import com.mojentic.internal.JsonSchemaGenerator
 import com.mojentic.llm.tools.LlmTool
@@ -17,6 +18,7 @@ import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
+import kotlin.time.Duration
 import kotlin.time.TimeSource
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -84,13 +86,7 @@ public class LlmBroker(
         tracer.recordLlmCall(model, messages, config.temperature, toolNames(tools), cid)
         val mark = TimeSource.Monotonic.markNow()
         val response = gateway.complete(model, messages, tools.takeIf { it.isNotEmpty() }, config)
-        tracer.recordLlmResponse(
-            model = model,
-            content = response.content,
-            toolCalls = response.toolCalls.takeIf { it.isNotEmpty() },
-            callDuration = mark.elapsedNow(),
-            correlationId = cid,
-        )
+        recordResponse(model, response, response.content, mark.elapsedNow(), cid)
 
         return response
     }
@@ -118,15 +114,31 @@ public class LlmBroker(
         val cid = correlationId ?: newCorrelationId()
         tracer.recordLlmCall(model, messages, config.temperature, tools = null, correlationId = cid)
         val mark = TimeSource.Monotonic.markNow()
-        val result = gateway.completeJson(model, messages, schema, config)
+        val response = gateway.completeJsonResponse(model, messages, schema, config)
+        val result = response.structuredJson as? JsonObject
+            ?: throw LlmGatewayException("Structured-output response carried no JSON object")
+        recordResponse(model, response, result.toString(), mark.elapsedNow(), cid)
+        return result
+    }
+
+    private suspend fun recordResponse(
+        model: String,
+        response: LlmGatewayResponse,
+        content: String?,
+        callDuration: Duration,
+        correlationId: String,
+    ) {
         tracer.recordLlmResponse(
             model = model,
-            content = result.toString(),
-            toolCalls = null,
-            callDuration = mark.elapsedNow(),
-            correlationId = cid,
+            content = content,
+            toolCalls = response.toolCalls.takeIf { it.isNotEmpty() },
+            callDuration = callDuration,
+            correlationId = correlationId,
+            usage = response.usage,
+            providerModel = response.providerModel,
+            finishReason = response.finishReason,
+            metadata = response.metadata,
         )
-        return result
     }
 
     public fun stream(

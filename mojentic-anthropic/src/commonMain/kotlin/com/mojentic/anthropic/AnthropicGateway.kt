@@ -260,6 +260,9 @@ public class AnthropicGateway(
             content = textPieces.joinToString(separator = "").takeIf { it.isNotEmpty() },
             toolCalls = toolCalls,
             thinking = thinking,
+            usage = usage,
+            providerModel = model,
+            finishReason = stopReason,
         )
     }
 

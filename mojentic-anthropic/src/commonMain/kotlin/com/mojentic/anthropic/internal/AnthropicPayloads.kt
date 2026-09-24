@@ -77,7 +77,7 @@ internal data class AnthropicMessagesResponse(
     val role: String? = null,
     val content: List<AnthropicResponseContent> = emptyList(),
     @SerialName("stop_reason") val stopReason: String? = null,
-    val usage: AnthropicUsage? = null,
+    val usage: JsonObject? = null,
 )
 
 @Serializable

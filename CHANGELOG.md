@@ -12,6 +12,14 @@ patch versions move independently.
 
 ### Added
 
+- **Provider evidence in response traces.** `LlmGatewayResponse` has
+  `usage`, `providerModel`, `finishReason`, and `metadata`, filled with what
+  the provider reported (OpenAI and Anthropic `usage` objects as sent; Ollama
+  `prompt_eval_count` / `eval_count` as usage and its durations as metadata).
+  `LlmResponseEvent` records the same four fields for `complete`,
+  `generateResponse`, and `completeJson`. Usage is never estimated; it stays
+  `null` when unreported. New `LlmGateway.completeJsonResponse` returns
+  structured output with evidence; its default wraps `completeJson`.
 - **`CompletionConfig.responseFormat`** takes an optional `ResponseFormat`
   (`Text`, or `Json(schema)` with an optional schema). The OpenAI and Ollama
   gateways forward it in streaming and non-streaming requests: OpenAI as
@@ -55,6 +63,9 @@ patch versions move independently.
 
 ### Changed
 
+- **`Tracer.recordLlmResponse` takes four more optional parameters**
+  (`usage`, `providerModel`, `finishReason`, `metadata`). A custom `Tracer`
+  that overrides it must add them to its override.
 - **`CompletionConfig.maxToolIterations` is nullable.** `null` means
   unlimited tool rounds; the default stays 10. Callers that read the property
   must handle `null`, and compiled JVM consumers must rebuild against the new

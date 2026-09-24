@@ -47,6 +47,20 @@ public interface LlmGateway {
     ): JsonObject
 
     /**
+     * Structured-output completion that also returns provider evidence.
+     *
+     * The parsed object is in [LlmGatewayResponse.structuredJson]; usage,
+     * provider model, finish reason and metadata are filled where the provider
+     * reports them. The default wraps [completeJson] and reports no evidence.
+     */
+    public suspend fun completeJsonResponse(
+        model: String,
+        messages: List<LlmMessage>,
+        schema: JsonObject,
+        config: CompletionConfig = CompletionConfig(),
+    ): LlmGatewayResponse = LlmGatewayResponse(structuredJson = completeJson(model, messages, schema, config))
+
+    /**
      * Streaming completion. Returns a cold `Flow` that emits one
      * [GatewayStreamEvent] per chunk. Cancellation tears down the HTTP request.
      */

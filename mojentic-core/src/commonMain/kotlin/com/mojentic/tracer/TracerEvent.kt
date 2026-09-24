@@ -2,6 +2,7 @@ package com.mojentic.tracer
 
 import com.mojentic.llm.LlmMessage
 import com.mojentic.llm.LlmToolCall
+import kotlinx.serialization.json.JsonObject
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Instant
@@ -52,6 +53,13 @@ public data class LlmCallEvent(
 
 /**
  * Records the response received from an LLM call.
+ *
+ * @property model The configured request model.
+ * @property usage Token usage exactly as the provider reported it; null when it reported none.
+ *           Never estimated from text length or a tokenizer.
+ * @property providerModel Model name the provider reported, when it reported one.
+ * @property finishReason Provider finish reason, when it reported one.
+ * @property metadata Other provider-reported metadata, when present.
  */
 public data class LlmResponseEvent(
     override val timestamp: Instant = Clock.System.now(),
@@ -60,6 +68,10 @@ public data class LlmResponseEvent(
     val content: String?,
     val toolCalls: List<LlmToolCall>?,
     val callDuration: Duration,
+    val usage: JsonObject? = null,
+    val providerModel: String? = null,
+    val finishReason: String? = null,
+    val metadata: JsonObject? = null,
 ) : TracerEvent {
     override fun printableSummary(): String = buildString {
         append("[$timestamp] LlmResponseEvent (correlationId: $correlationId)")
@@ -76,6 +88,9 @@ public data class LlmResponseEvent(
             val count = toolCalls.size
             append("\n   Tool Calls: $count call${if (count == 1) "" else "s"}")
         }
+        providerModel?.let { append("\n   Provider Model: $it") }
+        finishReason?.let { append("\n   Finish Reason: $it") }
+        usage?.let { append("\n   Usage: $it") }
         append("\n   Duration: ${callDuration.inWholeMicroseconds / MICROS_PER_MILLI_F} ms")
     }
 
