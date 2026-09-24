@@ -73,7 +73,7 @@ public class OpenAIGateway(
             tools = tools,
             config = config,
             stream = false,
-            responseFormat = null,
+            responseFormat = config.responseFormat?.toOpenAIResponseFormat(),
         )
         val response = postChat(request)
         val choice = response.choices.firstOrNull()
@@ -124,7 +124,7 @@ public class OpenAIGateway(
             tools = tools,
             config = config,
             stream = true,
-            responseFormat = null,
+            responseFormat = config.responseFormat?.toOpenAIResponseFormat(),
         )
         val httpResponse: HttpResponse = httpClient.post("$host/chat/completions") {
             header(HttpHeaders.Authorization, "Bearer $apiKey")

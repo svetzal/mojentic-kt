@@ -104,6 +104,28 @@ You're back in normal Kotlin land with type safety.
 
 Behavior is unified at the broker level: the same `generateObject` call works against all three. The differences are below the seam.
 
+## Structured output in streaming requests
+
+To request a format in an ordinary or streaming request, set
+`CompletionConfig.responseFormat`:
+
+```kotlin
+val config = CompletionConfig(responseFormat = ResponseFormat.Json(schema))
+broker.stream(model, messages, config = config).collect { /* ... */ }
+```
+
+| Value | OpenAI request | Ollama request |
+|---|---|---|
+| `null` (default) | No `response_format` | No `format` |
+| `ResponseFormat.Text` | `{"type":"text"}` | No `format` |
+| `ResponseFormat.Json()` | `{"type":"json_object"}` | `format: "json"` |
+| `ResponseFormat.Json(schema)` | `{"type":"json_schema","json_schema":{"name":"response","schema":...}}` | `format: <schema>` |
+
+The OpenAI and Ollama gateways forward the format in `complete` and `stream`
+requests. The request records what you asked for.
+It is not proof that the provider enforced the format, so validate the
+returned content yourself. The Anthropic gateway ignores this field.
+
 ## Nested and collection types
 
 ```kotlin

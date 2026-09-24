@@ -69,6 +69,7 @@ public class OllamaGateway(
             options = optionsFor(config),
             stream = false,
             tools = tools?.toOllamaTools(),
+            format = config.responseFormat?.toOllamaFormat(),
             think = if (config.reasoningEffort != null) true else null,
         )
         val response = postChat(request)
@@ -114,6 +115,7 @@ public class OllamaGateway(
             options = optionsFor(config),
             stream = true,
             tools = tools?.toOllamaTools(),
+            format = config.responseFormat?.toOllamaFormat(),
             think = if (config.reasoningEffort != null) true else null,
         )
         val httpResponse: HttpResponse = httpClient.post("$host/api/chat") {

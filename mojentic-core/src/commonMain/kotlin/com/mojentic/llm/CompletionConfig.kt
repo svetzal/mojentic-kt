@@ -12,6 +12,8 @@ package com.mojentic.llm
  * @property numPredict Tokens to predict, `-1` for no limit. Ollama-specific knob.
  * @property reasoningEffort Optional reasoning effort for thinking-capable models.
  * @property maxToolIterations Optional ceiling on broker tool-recursion depth; null is unlimited.
+ * @property responseFormat Optional output format forwarded by gateways in streaming and
+ *           non-streaming requests. Null keeps the provider default. See [ResponseFormat].
  */
 public data class CompletionConfig(
     val temperature: Double = DEFAULT_TEMPERATURE,
@@ -20,6 +22,7 @@ public data class CompletionConfig(
     val numPredict: Int = DEFAULT_NUM_PREDICT,
     val reasoningEffort: ReasoningEffort? = null,
     val maxToolIterations: Int? = DEFAULT_MAX_TOOL_ITERATIONS,
+    val responseFormat: ResponseFormat? = null,
 ) {
     public companion object {
         public const val DEFAULT_TEMPERATURE: Double = 1.0

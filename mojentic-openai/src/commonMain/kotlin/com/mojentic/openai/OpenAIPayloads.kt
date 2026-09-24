@@ -1,5 +1,6 @@
 package com.mojentic.openai
 
+import com.mojentic.llm.ResponseFormat
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
@@ -24,6 +25,17 @@ internal data class OpenAIResponseFormat(
     val type: String,
     @SerialName("json_schema") val jsonSchema: OpenAIJsonSchema? = null,
 )
+
+internal fun ResponseFormat.toOpenAIResponseFormat(): OpenAIResponseFormat = when (this) {
+    ResponseFormat.Text -> OpenAIResponseFormat(type = "text")
+    is ResponseFormat.Json -> when (val schema = schema) {
+        null -> OpenAIResponseFormat(type = "json_object")
+        else -> OpenAIResponseFormat(
+            type = "json_schema",
+            jsonSchema = OpenAIJsonSchema(name = "response", schema = schema),
+        )
+    }
+}
 
 @Serializable
 internal data class OpenAIJsonSchema(

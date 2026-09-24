@@ -1,9 +1,11 @@
 package com.mojentic.ollama
 
+import com.mojentic.llm.ResponseFormat
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 
 @Serializable
 internal data class OllamaChatRequest(
@@ -15,6 +17,12 @@ internal data class OllamaChatRequest(
     val format: JsonElement? = null,
     val think: Boolean? = null,
 )
+
+/** Ollama's `format` field: omitted for text, `"json"` for JSON mode, or the schema itself. */
+internal fun ResponseFormat.toOllamaFormat(): JsonElement? = when (this) {
+    ResponseFormat.Text -> null
+    is ResponseFormat.Json -> schema ?: JsonPrimitive("json")
+}
 
 @Serializable
 internal data class OllamaOptions(

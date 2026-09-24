@@ -282,22 +282,24 @@ public final class com/mojentic/llm/CompletionConfig {
 	public static final field DEFAULT_NUM_PREDICT I
 	public static final field DEFAULT_TEMPERATURE D
 	public fun <init> ()V
-	public fun <init> (DIIILcom/mojentic/llm/ReasoningEffort;Ljava/lang/Integer;)V
-	public synthetic fun <init> (DIIILcom/mojentic/llm/ReasoningEffort;Ljava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (DIIILcom/mojentic/llm/ReasoningEffort;Ljava/lang/Integer;Lcom/mojentic/llm/ResponseFormat;)V
+	public synthetic fun <init> (DIIILcom/mojentic/llm/ReasoningEffort;Ljava/lang/Integer;Lcom/mojentic/llm/ResponseFormat;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()D
 	public final fun component2 ()I
 	public final fun component3 ()I
 	public final fun component4 ()I
 	public final fun component5 ()Lcom/mojentic/llm/ReasoningEffort;
 	public final fun component6 ()Ljava/lang/Integer;
-	public final fun copy (DIIILcom/mojentic/llm/ReasoningEffort;Ljava/lang/Integer;)Lcom/mojentic/llm/CompletionConfig;
-	public static synthetic fun copy$default (Lcom/mojentic/llm/CompletionConfig;DIIILcom/mojentic/llm/ReasoningEffort;Ljava/lang/Integer;ILjava/lang/Object;)Lcom/mojentic/llm/CompletionConfig;
+	public final fun component7 ()Lcom/mojentic/llm/ResponseFormat;
+	public final fun copy (DIIILcom/mojentic/llm/ReasoningEffort;Ljava/lang/Integer;Lcom/mojentic/llm/ResponseFormat;)Lcom/mojentic/llm/CompletionConfig;
+	public static synthetic fun copy$default (Lcom/mojentic/llm/CompletionConfig;DIIILcom/mojentic/llm/ReasoningEffort;Ljava/lang/Integer;Lcom/mojentic/llm/ResponseFormat;ILjava/lang/Object;)Lcom/mojentic/llm/CompletionConfig;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getMaxTokens ()I
 	public final fun getMaxToolIterations ()Ljava/lang/Integer;
 	public final fun getNumCtx ()I
 	public final fun getNumPredict ()I
 	public final fun getReasoningEffort ()Lcom/mojentic/llm/ReasoningEffort;
+	public final fun getResponseFormat ()Lcom/mojentic/llm/ResponseFormat;
 	public final fun getTemperature ()D
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
@@ -545,6 +547,29 @@ public final class com/mojentic/llm/ReasoningEffort : java/lang/Enum {
 	public final fun getWireValue ()Ljava/lang/String;
 	public static fun valueOf (Ljava/lang/String;)Lcom/mojentic/llm/ReasoningEffort;
 	public static fun values ()[Lcom/mojentic/llm/ReasoningEffort;
+}
+
+public abstract interface class com/mojentic/llm/ResponseFormat {
+}
+
+public final class com/mojentic/llm/ResponseFormat$Json : com/mojentic/llm/ResponseFormat {
+	public fun <init> ()V
+	public fun <init> (Lkotlinx/serialization/json/JsonObject;)V
+	public synthetic fun <init> (Lkotlinx/serialization/json/JsonObject;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lkotlinx/serialization/json/JsonObject;
+	public final fun copy (Lkotlinx/serialization/json/JsonObject;)Lcom/mojentic/llm/ResponseFormat$Json;
+	public static synthetic fun copy$default (Lcom/mojentic/llm/ResponseFormat$Json;Lkotlinx/serialization/json/JsonObject;ILjava/lang/Object;)Lcom/mojentic/llm/ResponseFormat$Json;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getSchema ()Lkotlinx/serialization/json/JsonObject;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/llm/ResponseFormat$Text : com/mojentic/llm/ResponseFormat {
+	public static final field INSTANCE Lcom/mojentic/llm/ResponseFormat$Text;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public abstract interface class com/mojentic/llm/StreamEvent {

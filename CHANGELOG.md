@@ -12,6 +12,13 @@ patch versions move independently.
 
 ### Added
 
+- **`CompletionConfig.responseFormat`** takes an optional `ResponseFormat`
+  (`Text`, or `Json(schema)` with an optional schema). The OpenAI and Ollama
+  gateways forward it in streaming and non-streaming requests: OpenAI as
+  `response_format` (`text`, `json_object`, or `json_schema` named
+  `response`), Ollama as `format` (`"json"` or the schema). `null` leaves the
+  request unchanged. The request records what was asked for; callers still
+  validate the content.
 - **`LlmBroker.generateResponse`** returns one native gateway response without
   dispatching tools, extending history, or making a follow-up request. The
   caller owns the context. `complete` and `stream` now use it for each round.
