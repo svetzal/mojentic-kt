@@ -1,7 +1,7 @@
 [versions]
 # Language & build
-kotlin = "2.3.21"
-agp = "9.2.0"
+kotlin = "2.4.20"
+agp = "9.3.3"
 
 # Core KMP libraries
 kotlinx-coroutines = "1.10.2"
@@ -16,7 +16,7 @@ kotlin-logging = "7.0.7"
 ktlint-plugin = "13.0.0"
 detekt = "1.23.8"
 kover = "0.9.1"
-dokka = "2.0.0"
+dokka = "2.2.0"
 binary-compat-validator = "0.18.1"
 dependency-check = "12.2.2"
 maven-publish = "0.30.0"

@@ -101,3 +101,45 @@ dependencies {
     dokka(project(":mojentic-realtime-openai"))
     dokka(project(":mojentic-websearch-serpapi"))
 }
+
+// Build-tool classpath security floors. These configurations never reach a
+// published artifact: they resolve Dokka's HTML generator and Kotlin's
+// Swift-export tooling. Each floor lifts a transitive dependency past a
+// known CVE until the owning plugin ships the newer version itself.
+val buildToolSecurityFloors: Map<String, String> = mapOf(
+    // CVE-2026-54512, CVE-2026-54513: fixed in 2.18.8 (Dokka 2.2.0 brings 2.15.3).
+    "com.fasterxml.jackson" to "2.18.11",
+    // CVE-2026-84939: fixed in 2.3.35 (Dokka 2.2.0 brings 2.3.32).
+    "org.freemarker" to "2.3.35",
+    // CVE-2026-39883 names OpenTelemetry-Go 1.15.0 to 1.42.0; the Java API
+    // 1.41.0 matches the same CPE. Kotlin's Swift-export tooling brings 1.41.0.
+    "io.opentelemetry" to "1.66.0",
+)
+
+allprojects {
+    configurations
+        .matching { it.name.startsWith("dokka") || it.name.startsWith("swiftExport") }
+        .configureEach {
+            resolutionStrategy.eachDependency {
+                val floor = buildToolSecurityFloors.entries
+                    .firstOrNull { (group, _) -> requested.group.startsWith(group) }
+                    ?.value
+                val version = requested.version
+                if (floor != null && version != null && isOlder(version, floor)) {
+                    useVersion(floor)
+                    because("security floor for a build-tool classpath")
+                }
+            }
+        }
+}
+
+fun isOlder(version: String, floor: String): Boolean {
+    val parts = { v: String -> v.split('.', '-').map { it.toIntOrNull() ?: 0 } }
+    val a = parts(version)
+    val b = parts(floor)
+    for (i in 0 until maxOf(a.size, b.size)) {
+        val diff = a.getOrElse(i) { 0 } - b.getOrElse(i) { 0 }
+        if (diff != 0) return diff < 0
+    }
+    return false
+}

@@ -14,13 +14,13 @@ for the cross-port feature matrix.
 
 ## Toolchain
 
-- **Kotlin 2.3+** (currently pinned at 2.3.21) — required for K2 compiler
-  stability, standard-library `kotlin.uuid.Uuid`, and the current KMP target
-  shape. Kotlin 2.4 RC is out and we will move once it goes stable.
+- **Kotlin 2.4.20+** — required for K2 compiler stability, standard-library
+  `kotlin.uuid.Uuid`, the current KMP target shape, and the fix for
+  CVE-2026-53914 (unsafe deserialization in build cache metadata).
 - **JDK 17** — Kotlin compiler toolchain (`jvmToolchain(17)`). JDK 17 stays
   the bytecode target so library consumers on JDK 17 LTS keep working.
 - **Gradle 9.5+** — managed via the wrapper.
-- **Android Gradle Plugin 9.2+** — applied via the AGP-9-only
+- **Android Gradle Plugin 9.3+** — applied via the AGP-9-only
   `com.android.kotlin.multiplatform.library` plugin (the legacy
   `com.android.library` plugin is incompatible with the Kotlin Multiplatform
   plugin from AGP 9.0 onwards). Android config lives inside the `kotlin {

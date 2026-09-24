@@ -74,6 +74,13 @@ patch versions move independently.
 
 ### Changed
 
+- **Kotlin 2.4.20, Dokka 2.2.0, Android Gradle Plugin 9.3.3.** Kotlin 2.4.20
+  fixes CVE-2026-53914, so published artifacts now depend on
+  `kotlin-stdlib` 2.4.20. Dokka 2.2.0 no longer leaks its generator
+  dependencies into sibling modules' JVM runtime classpaths inside the build.
+  Build-tool classpaths get security floors for jackson (2.18.11), FreeMarker
+  (2.3.35) and OpenTelemetry (1.66.0). The dependency audit still reports
+  findings in build-time tooling; see the audit report.
 - **`Tracer.recordLlmResponse` takes four more optional parameters**
   (`usage`, `providerModel`, `finishReason`, `metadata`). A custom `Tracer`
   that overrides it must add them to its override.
