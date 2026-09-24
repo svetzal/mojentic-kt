@@ -12,11 +12,11 @@ The Kotlin port ships three agent patterns out of the box, each suited to a diff
 | **Recursive solver** | `SimpleRecursiveAgent` | Goal can be split into sub-goals; each sub-goal is solved by another instance of the same agent. |
 | **ReAct** | `ReActAgent` | Goal requires interleaved reasoning and tool use ("think", "act", "observe", repeat). |
 
-All three sit on top of the `Agent` / `Event` / `Router` / `AsyncDispatcher` core, so they compose with the async pubsub bus when you need multi-agent coordination.
+All three run on a `ChatSession` over an `LlmBroker`. The separate `Agent` / `Event` / `Router` / `AsyncDispatcher` core handles multi-agent coordination over an async event bus.
 
 ## When to apply each pattern
 
-- **Single-shot transformation?** Don't reach for an agent — use `LlmBroker.generate` or `generateObject` directly.
+- **Single-shot transformation?** Don't reach for an agent — use `LlmBroker.complete` or `completeJson` directly.
 - **The model needs to use tools and chat?** A `ChatSession` with tools is enough — see [Building Chatbots](building-chatbots.md).
 - **The goal needs decomposition + reflection?** `IterativeProblemSolver` is the simplest agent that does this.
 - **The goal is recursive (research a topic → research each subtopic)?** `SimpleRecursiveAgent`.
@@ -27,32 +27,30 @@ Start with the simplest pattern that fits and only escalate when you've actually
 ## Getting started — iterative solver
 
 ```kotlin
-import com.mojentic.agent.IterativeProblemSolver
+import com.mojentic.agents.IterativeProblemSolver
 import com.mojentic.llm.LlmBroker
 import com.mojentic.llm.tools.CurrentDateTimeTool
-import com.mojentic.openai.OpenAiGateway
+import com.mojentic.openai.OpenAIGateway
 
 suspend fun main() {
-    val broker = LlmBroker(
-        model = "gpt-4o-mini",
-        gateway = OpenAiGateway(apiKey = System.getenv("OPENAI_API_KEY")),
-    )
+    val broker = LlmBroker(OpenAIGateway(apiKey = System.getenv("OPENAI_API_KEY")))
 
     val solver = IterativeProblemSolver(
         broker = broker,
-        tools = listOf(CurrentDateTimeTool()),
+        model = "gpt-4o-mini",
+        availableTools = listOf(CurrentDateTimeTool()),
         maxIterations = 8,
     )
 
-    val result = solver.solve(
-        goal = "What day of the week was 31 January 2026? Reply with just the day name.",
+    val answer: String = solver.solve(
+        "What day of the week was 31 January 2026? Reply with just the day name.",
     )
 
-    println(result.finalAnswer)
+    println(answer)
 }
 ```
 
-The solver loops: propose a step → execute (which may include tool calls) → evaluate progress → repeat. It terminates when the model declares the goal achieved or when `maxIterations` is hit.
+The solver loops: each turn asks the model to make progress with the available tools and reply `DONE` or `FAIL`. It stops on either signal or when `maxIterations` is hit, then asks for a final summary, which `solve` returns.
 
 ## Tool authoring
 
@@ -60,70 +58,108 @@ Every agent pattern accepts a `List<LlmTool>`. Implement the interface directly 
 
 ```kotlin
 import com.mojentic.llm.tools.LlmTool
-import com.mojentic.llm.tools.LlmToolParameter
+import com.mojentic.llm.tools.ToolDescriptor
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.add
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonArray
+import kotlinx.serialization.json.putJsonObject
 
-class WeatherTool : LlmTool {
-    override val name = "current_weather"
-    override val description = "Returns the current temperature in Celsius for a city."
-    override val parameters = listOf(
-        LlmToolParameter(name = "city", type = "string", required = true),
+class WeatherTool(private val weather: WeatherGateway) : LlmTool {
+    override val descriptor = ToolDescriptor(
+        name = "current_weather",
+        description = "Returns the current temperature in Celsius for a city.",
+        parameters = buildJsonObject {
+            put("type", "object")
+            putJsonObject("properties") {
+                putJsonObject("city") { put("type", "string") }
+            }
+            putJsonArray("required") { add("city") }
+        },
     )
 
-    override suspend fun call(arguments: JsonObject): String {
-        val city = arguments["city"]!!.toString().trim('"')
-        return WeatherApi.fetch(city).let { "$it°C" }
+    override suspend fun execute(arguments: JsonObject): String {
+        val city = arguments["city"]?.jsonPrimitive?.content
+            ?: return """{"error":"city is required"}"""
+        return """{"celsius":${weather.currentCelsius(city)}}"""
     }
 }
 ```
 
-Pass it to any agent or chat session: `IterativeProblemSolver(broker, tools = listOf(WeatherTool()))`.
+`LlmTool` derives `name` and `description` from the descriptor. `WeatherGateway` stands for your own interface to the weather service. Pass the tool to any agent or chat session: `IterativeProblemSolver(broker, model, availableTools = listOf(WeatherTool(weather)))`.
 
-When the model wants to call multiple tools in a single turn, the agent dispatches them concurrently via `ParallelToolRunner` — `WeatherTool` for Berlin and `WeatherTool` for Tokyo run in parallel, not sequentially.
+Tool calls run one at a time by default. Build the broker with a `ParallelToolRunner` to run the calls of one turn concurrently: `LlmBroker(gateway, toolRunner = ParallelToolRunner())`. Then `WeatherTool` for Berlin and `WeatherTool` for Tokyo run in parallel, not sequentially.
 
 ## Shared working memory across agents
 
 For multi-agent setups, `SharedWorkingMemory` gives all participating agents a common scratch space:
 
 ```kotlin
-import com.mojentic.agent.SharedWorkingMemory
-import com.mojentic.agent.BaseAsyncLlmAgentWithMemory
+import com.mojentic.agents.BaseAsyncLlmAgentWithMemory
+import com.mojentic.context.SharedWorkingMemory
 
 val memory = SharedWorkingMemory()
-val researcher = BaseAsyncLlmAgentWithMemory(broker = broker, memory = memory, role = "researcher")
-val writer = BaseAsyncLlmAgentWithMemory(broker = broker, memory = memory, role = "writer")
+val researcher = BaseAsyncLlmAgentWithMemory(
+    broker = broker,
+    model = "gpt-4o-mini",
+    memory = memory,
+    behaviour = "You are a researcher.",
+    instructions = "Record the facts you find.",
+)
+val writer = BaseAsyncLlmAgentWithMemory(
+    broker = broker,
+    model = "gpt-4o-mini",
+    memory = memory,
+    behaviour = "You are a writer.",
+    instructions = "Write from the recorded facts.",
+)
 ```
 
-Each agent's notes are visible to the others — useful for "first agent researches, second agent writes" pipelines without bolting on an external store.
+Each agent sees the current memory contents before every turn. An agent adds to it explicitly with `mergeMemory(...)`. This is useful for "first agent researches, second agent writes" pipelines without bolting on an external store.
 
 ## Async dispatcher (pubsub)
 
 ```kotlin
-import com.mojentic.agent.AsyncDispatcher
-import com.mojentic.agent.Event
+import com.mojentic.agents.AsyncDispatcher
+import com.mojentic.agents.Event
+import com.mojentic.agents.Router
+import kotlinx.coroutines.coroutineScope
 
-val dispatcher = AsyncDispatcher()
-dispatcher.register<UserQuery>(researcher)
-dispatcher.register<ResearchComplete>(writer)
-dispatcher.publish(UserQuery("explain quantum tunneling"))
+class UserQuery(val text: String) : Event()
+class ResearchComplete(val notes: String) : Event()
+
+val router = Router()
+router.addRoute(UserQuery::class, researchAgent)
+router.addRoute(ResearchComplete::class, writingAgent)
+
+coroutineScope {
+    val dispatcher = AsyncDispatcher(router)
+    dispatcher.start(this)
+    dispatcher.dispatch(UserQuery("explain quantum tunneling"))
+    dispatcher.waitForEmptyQueue(timeoutMs = 60_000)
+    dispatcher.stop()
+}
 ```
 
-`AsyncDispatcher` is the spine of multi-agent setups: agents subscribe to event types and emit new events when they finish. There is no orchestrator object that "knows everyone" — the routing falls out of the event-type subscriptions.
+`researchAgent` and `writingAgent` implement `Agent`: `receiveEvent(event)` returns the events to dispatch next. A `TerminateEvent` stops the dispatcher. `AsyncDispatcher` is the spine of multi-agent setups: there is no orchestrator object that "knows everyone" — the routing falls out of the `Router`'s event-type routes.
 
 ## Tracing
 
 Every agent run can be inspected via the `Tracer`:
 
 ```kotlin
-import com.mojentic.tracer.Tracer
+import com.mojentic.tracer.TracerSystem
 
-val tracer = Tracer()
-val solver = IterativeProblemSolver(broker = broker, tracer = tracer)
-solver.solve(goal = "...")
-tracer.events.forEach { println(it) }
+val tracer = TracerSystem()
+val broker = LlmBroker(gateway, tracer = tracer)
+val solver = IterativeProblemSolver(broker = broker, model = "gpt-4o-mini")
+solver.solve("...")
+tracer.eventStore.getEvents().forEach { println(it.printableSummary()) }
 ```
 
-You'll see every LLM call, every tool invocation, and every agent transition with timestamps. The realtime examples (`tracer-demo`) include a live console renderer.
+You'll see every LLM call, LLM response, and tool invocation with timestamps. `AsyncDispatcher` also takes a tracer and records agent interactions. The `tracer-demo` example prints every recorded event after a run.
 
 ## Related examples
 

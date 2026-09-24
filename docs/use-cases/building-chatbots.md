@@ -14,27 +14,27 @@ Use a `ChatSession` when:
 - The assistant needs to recall prior turns to make sense of the current one.
 - You want to plug in tools and let the LLM decide when to call them — `ChatSession` runs the tool/response loop until the model produces a terminal reply.
 
-For one-shot prompts (transform this text, classify this string, extract these fields), call `LlmBroker.generate()` or `generateObject()` directly — `ChatSession` adds overhead you don't need.
+For one-shot prompts (transform this text, classify this string, extract these fields), call `LlmBroker.complete()` or `completeJson()` directly — `ChatSession` adds overhead you don't need.
 
 ## Getting started
 
 ```kotlin
-import com.mojentic.chat.ChatSession
+import com.mojentic.llm.ChatSession
 import com.mojentic.llm.LlmBroker
-import com.mojentic.llm.LlmMessage
-import com.mojentic.openai.OpenAiGateway
+import com.mojentic.openai.OpenAIGateway
 
 suspend fun main() {
-    val gateway = OpenAiGateway(apiKey = System.getenv("OPENAI_API_KEY"))
-    val broker = LlmBroker(model = "gpt-4o-mini", gateway = gateway)
+    val gateway = OpenAIGateway(apiKey = System.getenv("OPENAI_API_KEY"))
+    val broker = LlmBroker(gateway)
 
     val chat = ChatSession(
         broker = broker,
+        model = "gpt-4o-mini",
         systemPrompt = "You are a concise assistant. Reply in one sentence.",
     )
 
-    println(chat.send("What is the capital of Iceland?"))
-    println(chat.send("And the population?"))
+    println(chat.send("What is the capital of Iceland?").content)
+    println(chat.send("And the population?").content)
 }
 ```
 
@@ -45,31 +45,32 @@ The second `send` invocation produces a sensible answer because the session forw
 ### 1. Build a broker
 
 ```kotlin
-val gateway = OpenAiGateway(apiKey = System.getenv("OPENAI_API_KEY"))
-val broker = LlmBroker(model = "gpt-4o-mini", gateway = gateway)
+val gateway = OpenAIGateway(apiKey = System.getenv("OPENAI_API_KEY"))
+val broker = LlmBroker(gateway)
 ```
 
-The gateway is a thin wrapper over a specific provider. The broker normalises model behaviour across providers — same surface for OpenAI, Ollama, Anthropic.
+The gateway is a thin wrapper over a specific provider. The broker normalises model behaviour across providers — same surface for OpenAI, Ollama, Anthropic. The model is chosen per call (or per session), not per broker.
 
 ### 2. Open a session
 
 ```kotlin
 val chat = ChatSession(
     broker = broker,
+    model = "gpt-4o-mini",
     systemPrompt = "...",
-    temperature = 0.2,
+    config = CompletionConfig(temperature = 0.2),
 )
 ```
 
-`systemPrompt` is added to the front of the history exactly once. `temperature` defaults to the broker default; override when you need it.
+`systemPrompt` is added to the front of the history exactly once. `config` defaults to `CompletionConfig()`; override it when you need a different temperature or other knobs.
 
 ### 3. Send turns
 
 ```kotlin
-val reply = chat.send("user text")
+val reply = chat.send("user text").content
 ```
 
-Each call appends a user message, runs `broker.generate(...)` over the full history, and appends the assistant's reply before returning the text. `chat.messages` exposes the current transcript if you need to render it.
+Each call appends a user message, runs `broker.complete(...)` over the full history, and appends the assistant's reply before returning the `LlmGatewayResponse`. If the call fails, the history rolls back to its state before the turn. `chat.messages()` returns the current transcript if you need to render it.
 
 ## Adding tools
 
@@ -80,28 +81,33 @@ import com.mojentic.llm.tools.CurrentDateTimeTool
 
 val chat = ChatSession(
     broker = broker,
+    model = "gpt-4o-mini",
     systemPrompt = "You are a date-aware assistant.",
     tools = listOf(CurrentDateTimeTool()),
 )
 
-println(chat.send("What's today's date?"))
+println(chat.send("What's today's date?").content)
 ```
 
-`ChatSession` handles the tool/response loop transparently: the model emits a tool call, the session executes the tool, appends the result, and re-prompts the model — repeating until the model produces a terminal text reply.
+The broker handles the tool/response loop transparently: the model emits a tool call, the broker executes the tool, appends the result, and re-prompts the model — repeating until the model produces a terminal text reply or `CompletionConfig.maxToolIterations` runs out.
 
-Multiple parallel tool calls in a single assistant turn are dispatched concurrently via `ParallelToolRunner` — voice-mode and high-latency tools benefit from this without any extra wiring.
+Tool calls run one at a time by default. To run the calls of one assistant turn concurrently, build the broker with a `ParallelToolRunner`:
+
+```kotlin
+val broker = LlmBroker(gateway, toolRunner = ParallelToolRunner(maxConcurrency = 4))
+```
 
 ## Streaming
 
-For UIs that want token-by-token output, switch from `send` to `sendStream`:
+For UIs that want token-by-token output, switch from `send` to `stream`:
 
 ```kotlin
-chat.sendStream("Tell me a longer story.").collect { chunk ->
-    print(chunk)
+chat.stream("Tell me a longer story.").collect { event ->
+    if (event is StreamEvent.TextChunk) print(event.text)
 }
 ```
 
-Streaming is fully tool-aware — if the model calls a tool mid-stream, the session pauses output, executes the tool, and resumes.
+Streaming is tool-aware — if the model calls a tool, the flow emits `StreamEvent.ToolCall` and `StreamEvent.ToolResult`, then continues with the follow-up response. The history is updated once the flow completes; a cancelled stream rolls the turn back.
 
 ## Resetting the conversation
 

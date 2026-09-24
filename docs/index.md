@@ -19,8 +19,9 @@ import com.mojentic.llm.LlmMessage
 import com.mojentic.ollama.OllamaGateway
 
 suspend fun main() {
-    val broker = LlmBroker(model = "qwen3:32b", gateway = OllamaGateway())
-    val response = broker.generate(
+    val broker = LlmBroker(OllamaGateway())
+    val response = broker.complete(
+        model = "qwen3:32b",
         messages = listOf(LlmMessage.user("Hello, how are you?")),
     )
     println(response.content)

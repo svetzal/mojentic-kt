@@ -106,6 +106,14 @@ patch versions move independently.
 
 ### Fixed
 
+- **Use-case guides name real APIs.** The guides and the docs index used
+  names that do not exist (`generateObject`, `OpenAiGateway`,
+  `LlmBroker(model = ...)`, `broker.generate`, `sendStream`, `LlmContentPart`,
+  `LlmToolParameter`, `com.mojentic.agent`, `Tracer()`). They now use
+  `completeJson`, `OpenAIGateway`, `LlmBroker(gateway)` with a per-call
+  `model`, `complete`, `ChatSession.stream`, `TextContent` / `ImageContent`,
+  `ToolDescriptor`, `com.mojentic.agents`, and `TracerSystem`. The guides also
+  no longer claim that tool calls run in parallel by default.
 - **`stream()` now streams.** The OpenAI, Ollama and Anthropic gateways read
   the whole response body before emitting the first chunk, because they used
   a non-prepared Ktor request, which saves the body. They now use a prepared

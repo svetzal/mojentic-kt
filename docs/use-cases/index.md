@@ -5,7 +5,7 @@ Task-oriented guides covering the four core capabilities of Mojentic's Kotlin po
 | Guide | What you'll learn |
 |---|---|
 | [Building Chatbots](building-chatbots.md) | Multi-turn conversation, tool calling, streaming, conversation reset. |
-| [Structured Output](structured-output.md) | Typed `generateObject` calls, JSON schema generation, provider quirks. |
+| [Structured Output](structured-output.md) | Typed `completeJson` calls, JSON schema generation, provider quirks. |
 | [Building Agents](building-agents.md) | Iterative solver, recursive solver, ReAct, async pubsub dispatcher, shared working memory, tracing. |
 | [Image Analysis](image-analysis.md) | Multipart user messages, vision-capable models, multimodal structured output. |
 | [Stream Events](stream-events.md) | Single-turn streaming that ends with proof of completion or a typed error. |

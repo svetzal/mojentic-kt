@@ -4,17 +4,17 @@
 
 LLMs are great at producing free-form text and terrible at producing parseable data on the first try. "Reply only with JSON" is reliable enough for demos and fragile enough that you'll regret it in production — the model will at some point wrap the JSON in `` ```json `` fences, add a trailing apology, or omit a required field.
 
-Structured output sidesteps this: the model is constrained at the API level to emit a value that matches a schema you provided. The Kotlin port exposes a single `LlmBroker.generateObject<T>()` method that:
+Structured output sidesteps this: the model is constrained at the API level to emit a value that matches a schema you provided. The Kotlin port exposes a single `LlmBroker.completeJson<T>()` method that:
 
 1. Generates a JSON Schema from your `@Serializable` data class.
-2. Tells the gateway to enforce that schema (OpenAI's `response_format = json_schema`; Anthropic's forced-tool trick under the hood).
+2. Tells the gateway to enforce that schema (OpenAI's `response_format = json_schema`; Ollama's `format`; Anthropic's forced-tool trick under the hood).
 3. Decodes the model's reply directly into a typed Kotlin value.
 
 The caller never sees raw JSON.
 
 ## When to apply this approach
 
-Reach for `generateObject` whenever you would otherwise be parsing model output with regex or `JSONObject.optString`. Particularly:
+Reach for `completeJson` whenever you would otherwise be parsing model output with regex or `JSONObject.optString`. Particularly:
 
 - Extracting specific fields from a longer body of text (entity extraction, classification, summarisation with structured metadata).
 - Producing tool inputs for a deterministic downstream system.
@@ -27,7 +27,7 @@ If your shape is "free text plus an integer at the end", structured output is th
 ```kotlin
 import com.mojentic.llm.LlmBroker
 import com.mojentic.llm.LlmMessage
-import com.mojentic.openai.OpenAiGateway
+import com.mojentic.openai.OpenAIGateway
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -37,10 +37,11 @@ data class Sentiment(
 )
 
 suspend fun main() {
-    val gateway = OpenAiGateway(apiKey = System.getenv("OPENAI_API_KEY"))
-    val broker = LlmBroker(model = "gpt-4o-mini", gateway = gateway)
+    val gateway = OpenAIGateway(apiKey = System.getenv("OPENAI_API_KEY"))
+    val broker = LlmBroker(gateway)
 
-    val result: Sentiment = broker.generateObject(
+    val result: Sentiment = broker.completeJson(
+        model = "gpt-4o-mini",
         messages = listOf(LlmMessage.user("I love this so much! It's amazing.")),
     )
 
@@ -48,7 +49,7 @@ suspend fun main() {
 }
 ```
 
-`generateObject<T>()` infers the target type from the call site via Kotlin's reified type parameters. There's no explicit "model" or "schema" argument — the `@Serializable` annotation on the data class is the schema.
+`completeJson<T>()` infers the target type from the call site via Kotlin's reified type parameters. There's no explicit "schema" argument — the `@Serializable` annotation on the data class is the schema.
 
 ## Step-by-step
 
@@ -66,10 +67,11 @@ data class Sentiment(
 
 For richer constraints (enum values, min/max), declare an `enum class` instead of `String`, or constrain via the prompt — the schema-generator emits structural constraints only.
 
-### 2. Call generateObject
+### 2. Call completeJson
 
 ```kotlin
-val result: Sentiment = broker.generateObject(
+val result: Sentiment = broker.completeJson(
+    model = "gpt-4o-mini",
     messages = listOf(LlmMessage.user("...")),
 )
 ```
@@ -77,10 +79,10 @@ val result: Sentiment = broker.generateObject(
 The broker:
 
 - Generates a JSON Schema from `Sentiment`'s `SerialDescriptor`.
-- Passes it to the gateway's structured-output channel (OpenAI's `response_format = { type: "json_schema", ... }`; Anthropic's forced `respond_in_json` tool).
+- Passes it to the gateway's structured-output channel (OpenAI's `response_format = { type: "json_schema", ... }`; Ollama's `format`; Anthropic's forced `respond_in_json` tool).
 - Parses the resulting JSON back to a `Sentiment`.
 
-If the model refuses or the response fails schema validation, the broker throws — there is no "maybe it's text" fallback. Treat that as a signal to inspect prompts.
+If the gateway gets no JSON object back, it throws `LlmGatewayException`; if the object does not decode into `Sentiment`, deserialisation throws. There is no "maybe it's text" fallback. Treat either as a signal to inspect prompts.
 
 ### 3. Use the typed result
 
@@ -100,9 +102,9 @@ You're back in normal Kotlin land with type safety.
 |---|---|
 | OpenAI | `response_format = { type: "json_schema", json_schema = { ... } }` — first-class schema enforcement. |
 | Anthropic | Synthetic forced tool `respond_in_json` with `tool_choice = { type: "tool", name: "respond_in_json" }`. The Anthropic API does not (yet) expose a first-class `response_format` knob; the broker hides this. |
-| Ollama | Model-dependent. Some models support JSON-mode via Ollama's `format: "json"` setting. Generic models may need prompt-engineered enforcement; expect occasional malformed output. |
+| Ollama | Sends the schema as Ollama's `format` field. Enforcement quality is model-dependent; expect occasional malformed output from smaller models. |
 
-Behavior is unified at the broker level: the same `generateObject` call works against all three. The differences are below the seam.
+Behavior is unified at the broker level: the same `completeJson` call works against all three. The differences are below the seam.
 
 ## Structured output in streaming requests
 
@@ -135,7 +137,8 @@ data class Person(val name: String, val age: Int)
 @Serializable
 data class Roster(val people: List<Person>)
 
-val roster: Roster = broker.generateObject(
+val roster: Roster = broker.completeJson(
+    model = "gpt-4o-mini",
     messages = listOf(LlmMessage.user("Build a 3-person roster of fictional pirates.")),
 )
 ```
