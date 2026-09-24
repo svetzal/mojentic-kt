@@ -30,6 +30,23 @@ private fun call(name: String, value: String = "v"): LlmToolCall = LlmToolCall(
 
 class ParallelToolRunnerTest {
     @Test
+    fun runBatchRespectsConfiguredConcurrency() = runTest {
+        var active = 0
+        var peak = 0
+        val tool = StubTool("a") {
+            active += 1
+            peak = maxOf(peak, active)
+            delay(10)
+            active -= 1
+            "done"
+        }
+        val calls = (1..5).map { call("a").copy(id = "call-$it") }
+        val outcomes = ParallelToolRunner(maxConcurrency = 2).runBatch(calls, listOf(tool))
+        assertEquals(2, peak)
+        assertEquals(calls.map { it.id }, outcomes.map { it.call.id })
+    }
+
+    @Test
     fun runBatchExecutesEveryKnownTool() = runTest {
         val tools = listOf(
             StubTool("a") { """{"r":"a"}""" },
@@ -44,13 +61,14 @@ class ParallelToolRunnerTest {
     }
 
     @Test
-    fun runBatchSkipsUnknownTools() = runTest {
+    fun runBatchReportsUnknownTools() = runTest {
         val tools = listOf(StubTool("a") { """{"r":"a"}""" })
         val runner = ParallelToolRunner()
 
         val outcomes = runner.runBatch(listOf(call("a"), call("missing")), tools)
 
-        assertEquals(listOf("a"), outcomes.map { it.call.name })
+        assertEquals(listOf("a", "missing"), outcomes.map { it.call.name })
+        assertFalse(outcomes.last().isOk)
     }
 
     @Test

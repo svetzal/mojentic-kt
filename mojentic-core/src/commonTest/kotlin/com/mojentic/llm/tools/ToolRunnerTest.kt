@@ -51,14 +51,16 @@ class ToolRunnerTest {
     }
 
     @Test
-    fun unmatchedCallsAreSkipped() = runTest {
+    fun unmatchedCallsRetainAnErrorOutcome() = runTest {
         val runner = SerialToolRunner()
         val outcomes = runner.runBatch(
             listOf(LlmToolCall(name = "unknown", arguments = JsonObject(emptyMap()))),
             listOf(EchoTool()),
         )
 
-        assertTrue(outcomes.isEmpty())
+        assertEquals(1, outcomes.size)
+        assertEquals("unknown", outcomes.single().call.name)
+        assertTrue(outcomes.single().error is IllegalArgumentException)
     }
 
     @Test

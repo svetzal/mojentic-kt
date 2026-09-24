@@ -57,6 +57,30 @@ public class LlmBroker(
     ): LlmGatewayResponse {
         ensureBudget(config, model)
         val cid = correlationId ?: newCorrelationId()
+        val response = generateResponse(model, messages, tools, config, cid)
+
+        if (response.toolCalls.isEmpty()) return response
+        val outcomes = dispatchTools(response.toolCalls, tools, cid)
+        if (outcomes.isEmpty()) return response
+        val nextMessages = messages + toolMessagesFor(outcomes)
+        return complete(
+            model = model,
+            messages = nextMessages,
+            tools = tools,
+            config = config.copy(maxToolIterations = config.maxToolIterations?.minus(1)),
+            correlationId = cid,
+        )
+    }
+
+    /** Return one native response without dispatching tools or changing context. */
+    public suspend fun generateResponse(
+        model: String,
+        messages: List<LlmMessage>,
+        tools: List<LlmTool> = emptyList(),
+        config: CompletionConfig = CompletionConfig(),
+        correlationId: String? = null,
+    ): LlmGatewayResponse {
+        val cid = correlationId ?: newCorrelationId()
         tracer.recordLlmCall(model, messages, config.temperature, toolNames(tools), cid)
         val mark = TimeSource.Monotonic.markNow()
         val response = gateway.complete(model, messages, tools.takeIf { it.isNotEmpty() }, config)
@@ -68,17 +92,7 @@ public class LlmBroker(
             correlationId = cid,
         )
 
-        if (response.toolCalls.isEmpty() || tools.isEmpty()) return response
-        val outcomes = dispatchTools(response.toolCalls, tools, cid)
-        if (outcomes.isEmpty()) return response
-        val nextMessages = messages + toolMessagesFor(outcomes)
-        return complete(
-            model = model,
-            messages = nextMessages,
-            tools = tools,
-            config = config.copy(maxToolIterations = config.maxToolIterations - 1),
-            correlationId = cid,
-        )
+        return response
     }
 
     public suspend inline fun <reified T> completeJson(
@@ -146,7 +160,7 @@ public class LlmBroker(
             callDuration = mark.elapsedNow(),
             correlationId = cid,
         )
-        if (accumulatedToolCalls.isEmpty() || tools.isEmpty()) return@flow
+        if (accumulatedToolCalls.isEmpty()) return@flow
         val outcomes = dispatchTools(accumulatedToolCalls, tools, cid)
         if (outcomes.isEmpty()) return@flow
         for (outcome in outcomes) {
@@ -165,17 +179,14 @@ public class LlmBroker(
                 model = model,
                 messages = nextMessages,
                 tools = tools,
-                config = config.copy(maxToolIterations = config.maxToolIterations - 1),
+                config = config.copy(maxToolIterations = config.maxToolIterations?.minus(1)),
                 correlationId = cid,
             ),
         )
     }
 
     private suspend fun dispatchTools(calls: List<LlmToolCall>, tools: List<LlmTool>, correlationId: String): List<ToolOutcome> {
-        val (known, unknown) = calls.partition { call -> tools.any { it.matches(call.name) } }
-        unknown.forEach { logger.warn { "Tool not found for call ${it.name}" } }
-        if (known.isEmpty()) return emptyList()
-        val outcomes = toolRunner.runBatch(known, tools, correlationId)
+        val outcomes = toolRunner.runBatch(calls, tools, correlationId)
         outcomes.forEach { outcome ->
             tracer.recordToolCall(
                 toolName = outcome.call.name,
@@ -200,7 +211,7 @@ public class LlmBroker(
     }
 
     private fun ensureBudget(config: CompletionConfig, model: String) {
-        if (config.maxToolIterations <= 0) {
+        if (config.maxToolIterations != null && config.maxToolIterations <= 0) {
             throw MaxToolIterationsExceededException(
                 "Tool-call iterations exceeded the maximum budget for model '$model'. " +
                     "Increase config.maxToolIterations to allow deeper recursion.",

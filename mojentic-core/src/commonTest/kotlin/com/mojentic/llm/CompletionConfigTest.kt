@@ -21,7 +21,7 @@ class CompletionConfigTest {
     fun copyDecrementsMaxToolIterations() {
         val config = CompletionConfig(maxToolIterations = 5)
 
-        val decremented = config.copy(maxToolIterations = config.maxToolIterations - 1)
+        val decremented = config.copy(maxToolIterations = config.maxToolIterations?.minus(1))
 
         assertEquals(4, decremented.maxToolIterations)
     }

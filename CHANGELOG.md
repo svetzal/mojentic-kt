@@ -12,6 +12,12 @@ patch versions move independently.
 
 ### Added
 
+- **`LlmBroker.generateResponse`** returns one native gateway response without
+  dispatching tools, extending history, or making a follow-up request. The
+  caller owns the context. `complete` and `stream` now use it for each round.
+- **`ParallelToolRunner(maxConcurrency = 4)`** bounds how many tool calls run
+  at once. Outcomes keep request order. A non-positive value throws
+  `IllegalArgumentException`.
 - **`OpenAIModelRegistry` brought to structural and catalog parity with the
   other Mojentic ports** (`mojentic-ts`, `mojentic-py`, `mojentic-ex`,
   `mojentic-ru`). The registry was previously a thin five-field lookup whose
@@ -42,6 +48,15 @@ patch versions move independently.
 
 ### Changed
 
+- **`CompletionConfig.maxToolIterations` is nullable.** `null` means
+  unlimited tool rounds; the default stays 10. Callers that read the property
+  must handle `null`, and compiled JVM consumers must rebuild against the new
+  signature.
+- **Unknown tools produce ordered error outcomes.** `SerialToolRunner` and
+  `ParallelToolRunner` return an error outcome for a call that names no known
+  tool, in its request position, instead of skipping it. The broker sends that
+  error back to the model as a tool result. This also applies when the broker
+  was given no tools.
 - **Dependency-Check 12.2.2.** Imports current NVD records that have long
   reference URLs. A new `dependencyCheckNvdDatafeedUrl` Gradle property selects
   NVD's bulk feed for local audits without an API key.

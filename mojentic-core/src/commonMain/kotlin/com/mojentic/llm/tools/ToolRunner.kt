@@ -3,6 +3,7 @@ package com.mojentic.llm.tools
 import com.mojentic.llm.LlmToolCall
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.ZERO
 import kotlin.time.TimeSource
 
 /**
@@ -34,8 +35,7 @@ public interface ToolRunner {
     /**
      * Execute [calls] against [tools], returning outcomes in input order.
      *
-     * Calls whose `name` matches no tool in [tools] are skipped silently
-     * (warned via the caller's logger upstream).
+     * Every requested call gets an outcome, including unknown tool names.
      *
      * [correlationId] threads through to any tracer events the runner
      * emits (e.g. [ParallelToolRunner]'s batch event).
@@ -61,8 +61,8 @@ public class SerialToolRunner : ToolRunner {
     ): List<ToolOutcome> {
         val outcomes = mutableListOf<ToolOutcome>()
         for (call in calls) {
-            val tool = tools.firstOrNull { it.matches(call.name) } ?: continue
-            outcomes += runOne(call, tool)
+            val tool = tools.firstOrNull { it.matches(call.name) }
+            outcomes += if (tool == null) missingToolOutcome(call) else runOne(call, tool)
         }
         return outcomes
     }
@@ -80,3 +80,9 @@ public class SerialToolRunner : ToolRunner {
         }
     }
 }
+
+internal fun missingToolOutcome(call: LlmToolCall): ToolOutcome = ToolOutcome(
+    call = call,
+    error = IllegalArgumentException("Tool '${call.name}' not found"),
+    duration = ZERO,
+)

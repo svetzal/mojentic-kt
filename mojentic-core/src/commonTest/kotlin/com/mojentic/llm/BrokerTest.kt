@@ -83,6 +83,43 @@ private class CountingTool(
 
 class BrokerTest {
     @Test
+    fun nativeResponseDoesNotDispatchToolsOrChangeHistory() = runTest {
+        val gateway = StubGateway()
+        val tool = CountingTool()
+        val call = LlmToolCall(name = "increment", arguments = JsonObject(emptyMap()))
+        val response = LlmGatewayResponse(toolCalls = listOf(call))
+        gateway.queueComplete(response)
+        val messages = listOf(LlmMessage.user("hi"))
+        val actual = LlmBroker(gateway).generateResponse("any", messages, listOf(tool))
+        assertEquals(response, actual)
+        assertEquals(0, tool.calls)
+        assertEquals(listOf(messages), gateway.completeCalls)
+    }
+
+    @Test
+    fun unlimitedExecutionRetainsUnknownToolReceipts() = runTest {
+        val gateway = StubGateway()
+        repeat(12) {
+            gateway.queueComplete(
+                LlmGatewayResponse(
+                    toolCalls = listOf(
+                        LlmToolCall(name = "unknown", arguments = JsonObject(emptyMap())),
+                    ),
+                ),
+            )
+        }
+        gateway.queueComplete(LlmGatewayResponse(content = "done"))
+        val actual = LlmBroker(gateway).complete(
+            "any",
+            listOf(LlmMessage.user("hi")),
+            config = CompletionConfig(maxToolIterations = null),
+        )
+        assertEquals("done", actual.content)
+        assertEquals(13, gateway.completeCalls.size)
+        assertEquals(12, gateway.completeCalls.last().count { it.role == MessageRole.Tool })
+    }
+
+    @Test
     fun completeReturnsAssistantTextWhenNoToolCallsRequested() = runTest {
         val gateway = StubGateway()
         gateway.queueComplete(LlmGatewayResponse(content = "hello"))

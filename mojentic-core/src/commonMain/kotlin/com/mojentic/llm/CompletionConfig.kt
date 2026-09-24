@@ -11,7 +11,7 @@ package com.mojentic.llm
  * @property maxTokens Maximum tokens to generate in the response.
  * @property numPredict Tokens to predict, `-1` for no limit. Ollama-specific knob.
  * @property reasoningEffort Optional reasoning effort for thinking-capable models.
- * @property maxToolIterations Hard ceiling on broker tool-recursion depth.
+ * @property maxToolIterations Optional ceiling on broker tool-recursion depth; null is unlimited.
  */
 public data class CompletionConfig(
     val temperature: Double = DEFAULT_TEMPERATURE,
@@ -19,7 +19,7 @@ public data class CompletionConfig(
     val maxTokens: Int = DEFAULT_MAX_TOKENS,
     val numPredict: Int = DEFAULT_NUM_PREDICT,
     val reasoningEffort: ReasoningEffort? = null,
-    val maxToolIterations: Int = DEFAULT_MAX_TOOL_ITERATIONS,
+    val maxToolIterations: Int? = DEFAULT_MAX_TOOL_ITERATIONS,
 ) {
     public companion object {
         public const val DEFAULT_TEMPERATURE: Double = 1.0

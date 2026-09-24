@@ -6,6 +6,8 @@ import com.mojentic.tracer.Tracer
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotlin.time.TimeSource
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -19,30 +21,43 @@ import kotlin.uuid.Uuid
  * via [tracer] summarising the batch (size, success / failure counts,
  * aggregate latency) so observers can quantify parallelism gains.
  *
+ * At most [maxConcurrency] calls execute at once; outcomes keep request
+ * order. A call naming an unknown tool yields an error outcome in its slot.
+ *
  * Cancellation propagates cooperatively: cancelling the calling coroutine
  * cancels every in-flight child via `coroutineScope`.
+ *
+ * @throws IllegalArgumentException if [maxConcurrency] is not positive.
  */
 @OptIn(ExperimentalUuidApi::class)
 public class ParallelToolRunner(
     private val tracer: Tracer = NullTracer,
     private val caller: String? = null,
+    private val maxConcurrency: Int = 4,
 ) : ToolRunner {
+    init {
+        require(maxConcurrency > 0) { "maxConcurrency must be positive" }
+    }
 
     override suspend fun runBatch(
         calls: List<LlmToolCall>,
         tools: List<LlmTool>,
         correlationId: String?,
     ): List<ToolOutcome> {
-        val known = calls.mapNotNull { call ->
-            val tool = tools.firstOrNull { it.matches(call.name) } ?: return@mapNotNull null
-            call to tool
-        }
-        if (known.isEmpty()) return emptyList()
+        if (calls.isEmpty()) return emptyList()
 
         val batchId = Uuid.random().toString()
         val mark = TimeSource.Monotonic.markNow()
+        val semaphore = Semaphore(maxConcurrency)
         val outcomes = coroutineScope {
-            known.map { (call, tool) -> async { runOne(call, tool) } }.awaitAll()
+            calls.map { call ->
+                async {
+                    semaphore.withPermit {
+                        val tool = tools.firstOrNull { it.matches(call.name) }
+                        if (tool == null) missingToolOutcome(call) else runOne(call, tool)
+                    }
+                }
+            }.awaitAll()
         }
         val batchDuration = mark.elapsedNow()
         val (ok, failed) = outcomes.partition { it.isOk }
