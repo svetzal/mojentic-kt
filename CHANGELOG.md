@@ -42,6 +42,9 @@ patch versions move independently.
 
 ### Changed
 
+- **Dependency-Check 12.2.2.** Imports current NVD records that have long
+  reference URLs. A new `dependencyCheckNvdDatafeedUrl` Gradle property selects
+  NVD's bulk feed for local audits without an API key.
 - **`OpenAIModelInfo` gained fields** (`modelType`, `maxOutputTokens`,
   `supportsStreaming`, `supportedTemperatures`, and the per-API flags). This is
   a source-incompatible change for any caller constructing `OpenAIModelInfo`
@@ -49,6 +52,13 @@ patch versions move independently.
   constructor parameter. The existing helper functions
   (`info`, `supportsTools`, `supportsVision`, `supportsReasoningEffort`) keep
   their signatures.
+
+### Fixed
+
+- The dependency audit now also skips the non-published `:examples` container
+  project. Gradle 9 still refuses the aggregate task's cross-project
+  resolution under parallel execution, so the security workflow and the
+  documented command run `dependencyCheckAggregate --no-parallel`.
 
 ## [0.7.1] - Phase 7 Followups ✅ Shipped (2026-05-18)
 
@@ -106,13 +116,13 @@ For the release pipeline to run end-to-end, the following must exist in
 `Settings → Secrets and variables → Actions`:
 
 | Secret | Purpose |
-|---|---|
+| --- | --- |
 | `MAVEN_CENTRAL_USERNAME` | Sonatype Central Portal username (User Token) |
 | `MAVEN_CENTRAL_PASSWORD` | Sonatype Central Portal password (User Token) |
 | `SIGNING_KEY` | GPG armoured private key, single-line with `\n` escapes |
 | `SIGNING_KEY_ID` | Short key ID (last 8 hex chars of the fingerprint) |
 | `SIGNING_KEY_PASSWORD` | Passphrase for the GPG key |
-| `NVD_API_KEY` | NVD API key from https://nvd.nist.gov/developers/request-an-api-key |
+| `NVD_API_KEY` | NVD API key from <https://nvd.nist.gov/developers/request-an-api-key> |
 
 One-time repo-admin actions required before the workflows run unattended:
 
@@ -527,7 +537,7 @@ cancels the in-flight response coroutine and the pending tool batch.
   `ParallelToolRunner`'s batch event so it correlates with the
   originating LLM call. Backward compatible via a default-null argument.
 - **`tracer-demo` example** — wires `TracerSystem` + `ParallelToolRunner`
-  + `CurrentDateTimeTool` into `LlmBroker` and prints every recorded
+  and `CurrentDateTimeTool` into `LlmBroker` and prints every recorded
   event after the run.
 
 ### Changed

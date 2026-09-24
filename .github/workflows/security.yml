@@ -52,7 +52,7 @@ jobs:
           # Without it, downloads are heavily rate-limited and the build can hang for hours.
           # The build script reads this directly from System.getenv("NVD_API_KEY").
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
-        run: ./gradlew dependencyCheckAggregate --no-daemon --stacktrace
+        run: ./gradlew dependencyCheckAggregate --no-parallel --no-daemon --stacktrace
 
       - name: Upload report
         if: always()

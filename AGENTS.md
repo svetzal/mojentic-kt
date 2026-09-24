@@ -50,9 +50,21 @@ meaningful for an empty library.
 | Build                | Gradle / KMP                          | `./gradlew build`                      |
 | Tests                | `kotlin.test` + `kotlinx-coroutines-test` + Turbine + Ktor MockEngine | `./gradlew allTests`  |
 | Coverage *(Phase 1+)*| Kover                                 | `./gradlew koverHtmlReport koverVerify`|
-| Security *(Phase 1+)*| OWASP Dependency-Check                | `./gradlew dependencyCheckAggregate`   |
+| Security *(Phase 1+)*| OWASP Dependency-Check                | `./gradlew dependencyCheckAggregate --no-parallel` |
 | API surface *(Phase 7)* | Binary-compatibility-validator     | `./gradlew apiCheck`                   |
 | Docs *(Phase 7)*     | Dokka                                 | `./gradlew dokkaHtmlMultiModule`       |
+
+For a local dependency audit without an NVD API key, Dependency-Check can read
+NVD's official bulk feed instead of the API. Check the feed's `modified.meta`
+timestamp first, because feeds can lag the API. This changes the data
+transport only, not the audit scope or the severity threshold. The API stays
+the default. See the
+[Dependency-Check feed documentation](https://dependency-check.github.io/DependencyCheck/data/mirrornvd.html).
+
+```bash
+./gradlew dependencyCheckAggregate --no-parallel \
+  '-PdependencyCheckNvdDatafeedUrl=https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-{0}.json.gz'
+```
 
 CI (GitHub Actions) runs on:
 - `ubuntu-latest` for JVM + Android targets (Android SDK installed).

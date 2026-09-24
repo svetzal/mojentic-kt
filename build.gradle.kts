@@ -29,10 +29,12 @@ dependencyCheck {
     // secrets; request a key at https://nvd.nist.gov/developers/request-an-api-key.
     nvd {
         apiKey = System.getenv("NVD_API_KEY") ?: ""
+        providers.gradleProperty("dependencyCheckNvdDatafeedUrl").orNull?.let { datafeedUrl = it }
     }
     // Examples and samples are demonstration code — never published, not part of
     // the published surface — so we don't need to gate them.
     skipProjects = listOf(
+        ":examples", // Container project also receives build-tool configurations.
         // Phase 1 examples
         ":examples:simple-llm", ":examples:list-models", ":examples:simple-structured",
         ":examples:simple-tool", ":examples:streaming",
