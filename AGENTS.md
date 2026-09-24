@@ -19,8 +19,12 @@ for the cross-port feature matrix.
   CVE-2026-53914 (unsafe deserialization in build cache metadata).
 - **JDK 17** — Kotlin compiler toolchain (`jvmToolchain(17)`). JDK 17 stays
   the bytecode target so library consumers on JDK 17 LTS keep working.
-- **Gradle 9.5+** — managed via the wrapper.
-- **Android Gradle Plugin 9.3+** — applied via the AGP-9-only
+- **Gradle 9.8+** — managed via the wrapper. The wrapper pins
+  `distributionSha256Sum`; when you upgrade, pass
+  `--gradle-distribution-sha256-sum` with the value from
+  `services.gradle.org`, and check `gradle-wrapper.jar` against the published
+  wrapper checksum.
+- **Android Gradle Plugin 9.4+** — applied via the AGP-9-only
   `com.android.kotlin.multiplatform.library` plugin (the legacy
   `com.android.library` plugin is incompatible with the Kotlin Multiplatform
   plugin from AGP 9.0 onwards). Android config lives inside the `kotlin {

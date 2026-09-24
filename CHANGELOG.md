@@ -74,6 +74,8 @@ patch versions move independently.
 
 ### Changed
 
+- **Gradle 9.8.0 and Android Gradle Plugin 9.4.1.** The wrapper now pins
+  the distribution's SHA-256, so a tampered download fails before it runs.
 - **Kotlin 2.4.20, Dokka 2.2.0, Android Gradle Plugin 9.3.3.** Kotlin 2.4.20
   fixes CVE-2026-53914, so published artifacts now depend on
   `kotlin-stdlib` 2.4.20. Dokka 2.2.0 no longer leaks its generator
