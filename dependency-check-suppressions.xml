@@ -2,25 +2,161 @@
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
 
     <!--
-        Suppression file for OWASP dependency-check.
+        Suppression file for OWASP Dependency-Check. Policy (see AGENTS.md,
+        "Dependency audit"):
 
-        Each <suppress> block must include a notes element explaining WHY this CVE
-        is suppressed for this project. Acceptable reasons:
-          - False positive (dependency-check matched the wrong artifact).
-          - Vulnerability only exposed in a code path Mojentic does not exercise.
-          - Already fixed upstream but the CVE database has not caught up.
-
-        Do NOT suppress CVEs you have not investigated. Better to leave a build
-        failing than to bury a real vulnerability.
-
-        Re-evaluate every suppression on each minor release. Stale suppressions
-        with no "until: <YYYY-MM-DD>" review date should be removed.
+          - Prefer a real fix: a newer version, a dependency constraint, or a
+            version floor in build.gradle.kts (buildToolSecurityFloors).
+          - Suppress only (i) a verified false positive, or (ii) a finding with
+            no upstream fix that is build-time only and cannot reach a
+            published artifact.
+          - Every <suppress> has <notes> that say which case applies and what
+            evidence was checked, and an `until` date no more than 90 days
+            out. When a suppression expires, the audit fails again and the
+            finding must be re-examined, not re-dated by reflex.
+          - Match exact artifact versions, so a tool upgrade brings its jars
+            back for review.
+          - Never suppress a finding in a published configuration without a
+            verified false positive.
 
         Format reference:
         https://jeremylong.github.io/DependencyCheck/general/suppression.html
     -->
 
-    <!-- Currently empty — no known false positives or accepted findings.
-         Add entries below as they arise. -->
+    <!-- ===================================================================
+         CVE-2026-53914 (Kotlin before 2.4.20): verified false positives
+         ===================================================================
+         Evidence, checked 2026-09-24:
+           - GHSA-r937-wjx7-w2jp (GitHub-reviewed, also in OSV) names one
+             affected package: org.jetbrains.kotlin:kotlin-gradle-plugin
+             < 2.4.20-Beta1. NVD's CPE is product-wide (cpe:...:jetbrains:kotlin),
+             so it matches every JetBrains Kotlin artifact by version.
+           - The fix commit, JetBrains/kotlin bf51df665b458fda7c3eaf436c4d88dc119d7ec6
+             (KT-86604), changes only plugins/kapt/kapt-base: the KAPT
+             incremental annotation-processing cache.
+           - None of the jars below contains org/jetbrains/kotlin/kapt/base/
+             incremental classes (checked with unzip -l). The positive control,
+             kotlin-annotation-processing-embeddable 2.2.21, contains 38.
+           - This project uses no KAPT, and no KAPT artifact is resolved.
+         The project's own Kotlin Gradle plugin and compiler are 2.4.20. -->
+
+    <suppress until="2026-12-23Z">
+        <notes><![CDATA[
+Case (i), verified false positive. CVE-2026-53914 is in KAPT's incremental
+cache (kapt-base), shipped only in KAPT artifacts. These are the Kotlin
+standard library, reflection and script runtime, which contain no KAPT code.
+They sit on build-tool classpaths: detekt 1.23.8 (2.0.21, and the 1.8.0
+stdlib-jdk7/jdk8 shims), ktlint 1.8.0 (2.2.21), Android lint 32.4.1 (2.2.10),
+and the 1.6.10 kotlin-reflect that JetBrains pins inside its own 2.4.20
+compiler. Published artifacts depend on kotlin-stdlib 2.4.20.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.jetbrains\.kotlin/kotlin-(stdlib|stdlib-jdk7|stdlib-jdk8|reflect|script-runtime)@(1\.6\.10|1\.8\.0|2\.0\.21|2\.2\.10|2\.2\.21)$</packageUrl>
+        <cve>CVE-2026-53914</cve>
+    </suppress>
+
+    <suppress until="2026-12-23Z">
+        <notes><![CDATA[
+Case (i), verified false positive. CVE-2026-53914 is in KAPT's incremental
+cache (kapt-base). The embedded compiler and daemon jars below contain no
+org/jetbrains/kotlin/kapt/base/incremental classes. They are the compilers
+that detekt 1.23.8 (2.0.21) and ktlint 1.8.0 (2.2.21) use to parse sources.
+Neither tool can take a Kotlin 2.4.20 floor: detekt rejects any compiler
+other than the one it was built with, and ktlint 1.8.0 fails on 2.4.20 with
+"Extensions storage is not registered". detekt 2.0.0-alpha.6 embeds 2.4.10,
+still below the fix line, and ktlint 2.0.0-ALPHA-4 embeds 2.4.0.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.jetbrains\.kotlin/kotlin-(compiler|daemon)-embeddable@(2\.0\.21|2\.2\.21)$</packageUrl>
+        <cve>CVE-2026-53914</cve>
+    </suppress>
+
+    <suppress until="2026-12-23Z">
+        <notes><![CDATA[
+Case (i), verified false positive. These are Dokka 2.2.0 jars, not Kotlin
+jars. The match is a low-confidence guess, cpe:...:jetbrains:kotlin:2.2.0,
+from Dokka's own version number. analysis-kotlin-symbols embeds the Kotlin
+Analysis API, but no KAPT code: no org/jetbrains/kotlin/kapt/base/incremental
+classes in any of these jars. Dokka 2.2.0 is the newest stable release.
+Dokka's separate kotlin-stdlib and kotlin-reflect dependencies are already
+floored to 2.4.20 in build.gradle.kts.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.jetbrains\.dokka/(all-modules-page-plugin|analysis-kotlin-symbols|analysis-markdown|dokka-base|dokka-core|templating-plugin)@2\.2\.0$</packageUrl>
+        <cve>CVE-2026-53914</cve>
+    </suppress>
+
+    <!-- ===================================================================
+         Other verified false positives
+         =================================================================== -->
+
+    <suppress until="2026-12-23Z">
+        <notes><![CDATA[
+Case (i), verified false positive. CVE-2012-2055 is a mass-assignment flaw
+in GitHub Enterprise before 2012-03-04 (cpe:...:github:github). It matched
+because kotlin-logging's group is io.github.oshai and its POM names
+"github" as the developer organisation, so version 8.0.4 was read as a
+GitHub version. The AAR contains classes.jar, a manifest and R.txt:
+a logging facade with no GitHub code.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/io\.github\.oshai/kotlin-logging-android@8\.0\.4$</packageUrl>
+        <cve>CVE-2012-2055</cve>
+    </suppress>
+
+    <suppress until="2026-12-23Z">
+        <notes><![CDATA[
+Case (i), verified false positive. CVE-2008-0986 is an integer overflow in
+BMP::readFromStream in the native libsgl.so of the 2008 Android SDK
+(m3-rc37a, m5-rc14). It matched AGP's analytics protobuf messages through a
+low-confidence android_sdk:32.4.1 CPE guess. The jar holds 4,332 generated
+protobuf classes (com/google/wireless/android/sdk/stats) and no native
+library or image decoder. It is on the androidLintTool classpath only.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/com\.android\.tools\.analytics-library/protos@32\.4\.1$</packageUrl>
+        <cve>CVE-2008-0986</cve>
+    </suppress>
+
+    <!-- ===================================================================
+         No upstream fix, build-time only (case ii)
+         ===================================================================
+         Android lint 32.4.1 (AGP 9.4.1, the newest stable) runs a Kotlin
+         compiler that Google repackages as
+         com.android.tools.external.com-intellij:kotlin-compiler:32.4.1. It
+         shades jline 3.24.1 and Kotlin's relocated protobuf 2.6.1 fork.
+         The newest pre-release, 32.5.0-alpha07, shades the same versions.
+         A shaded copy cannot be floored. These jars resolve only into the
+         androidLintTool configuration, never into a published artifact.
+         Both suppressions match the shaded copy's path inside that one jar,
+         so a direct jline or protobuf dependency elsewhere, or a new lint
+         jar, is still reported. -->
+
+    <suppress until="2026-12-23Z">
+        <notes><![CDATA[
+Case (ii), no upstream fix, build-time only. CVE-2026-56740 and
+CVE-2026-56741 are resource-exhaustion flaws in JLine's telnet server
+(TelnetIO, remote-telnet module), fixed in 3.30.14. The classes really are
+in the jar (org/jline/builtins/telnet/TelnetIO.class), but they are reachable
+only if something starts a JLine telnet server. Android lint uses the
+compiler to analyse this project's sources and opens no listener. No lint
+release, stable or pre-release, ships a fixed jline yet. Re-check the
+newest AGP when this expires.
+        ]]></notes>
+        <filePath regex="true">.*/com\.android\.tools\.external\.com-intellij/kotlin-compiler/32\.4\.1/.*/kotlin-compiler-32\.4\.1\.jar/META-INF/maven/org\.jline/jline(-[a-z-]+)?/pom\.xml$</filePath>
+        <cve>CVE-2026-56740</cve>
+        <cve>CVE-2026-56741</cve>
+    </suppress>
+
+    <suppress until="2026-12-23Z">
+        <notes><![CDATA[
+Case (ii), no upstream fix, build-time only. CVE-2022-3171 (GC-pause DoS)
+and CVE-2024-7254 (stack overflow on nested groups) need a parser fed
+hostile protobuf input. The jar holds no com/google/protobuf classes, only
+Kotlin's relocated 2.6.1 fork (277 classes under
+org/jetbrains/kotlin/protobuf), which lint uses to read Kotlin metadata from
+this build's own classes and its pinned dependencies. No lint release,
+stable or pre-release, ships a newer copy. Re-check the newest AGP when this
+expires.
+        ]]></notes>
+        <filePath regex="true">.*/com\.android\.tools\.external\.com-intellij/kotlin-compiler/32\.4\.1/.*/kotlin-compiler-32\.4\.1\.jar/META-INF/maven/com\.google\.protobuf/protobuf-java/pom\.xml$</filePath>
+        <cve>CVE-2022-3171</cve>
+        <cve>CVE-2024-7254</cve>
+    </suppress>
 
 </suppressions>

@@ -40,39 +40,82 @@ All gates must pass before any commit, matching the other ports. Run before
 each commit:
 
 ```bash
-./gradlew ktlintCheck detekt build allTests
+export ANDROID_HOME="$HOME/Library/Android/sdk"   # macOS; CI sets its own
+./gradlew -Dorg.gradle.jvmargs=-Xmx8g \
+  ktlintCheck detekt build allTests apiCheck dokkaGenerate
 ```
 
-Later phases add Kover coverage, OWASP dependency-check, binary-compatibility
-validation, and Dokka. The Phase-0 skeleton wires only the gates that are
-meaningful for an empty library.
+The iOS framework link needs the larger heap. On Apple Silicon, Gradle skips
+`iosX64Test` and prints a warning; that is expected.
 
 | Concern              | Tool                                  | Command                                |
 |----------------------|---------------------------------------|----------------------------------------|
-| Lint (style)         | ktlint (`jlleitschuh.gradle.ktlint`)  | `./gradlew ktlintCheck`                |
-| Lint (smells)        | Detekt (with `detekt.yml`)            | `./gradlew detekt`                     |
+| Lint (style)         | ktlint 1.8 (`jlleitschuh.gradle.ktlint`, engine pinned in the catalog) | `./gradlew ktlintCheck` |
+| Lint (smells)        | Detekt 1.23 (with `detekt.yml`)       | `./gradlew detekt`                     |
 | Build                | Gradle / KMP                          | `./gradlew build`                      |
 | Tests                | `kotlin.test` + `kotlinx-coroutines-test` + Turbine + Ktor MockEngine | `./gradlew allTests`  |
-| Coverage *(Phase 1+)*| Kover                                 | `./gradlew koverHtmlReport koverVerify`|
-| Security *(Phase 1+)*| OWASP Dependency-Check                | `./gradlew dependencyCheckAggregate --no-parallel` |
-| API surface *(Phase 7)* | Binary-compatibility-validator     | `./gradlew apiCheck`                   |
-| Docs *(Phase 7)*     | Dokka                                 | `./gradlew dokkaHtmlMultiModule`       |
+| API surface          | Binary-compatibility-validator        | `./gradlew apiCheck`                   |
+| Docs                 | Dokka 2                               | `./gradlew dokkaGenerate`              |
+| Security             | OWASP Dependency-Check                | see "Dependency audit" below           |
+| Coverage *(not wired)* | Kover (plugin declared, not applied) | —                                     |
 
-For a local dependency audit without an NVD API key, Dependency-Check can read
-NVD's official bulk feed instead of the API. Check the feed's `modified.meta`
-timestamp first, because feeds can lag the API. This changes the data
-transport only, not the audit scope or the severity threshold. The API stays
-the default. See the
+## Dependency audit
+
+Run the audit after any dependency or plugin change, and before a release:
+
+```bash
+./gradlew -Dorg.gradle.jvmargs=-Xmx8g dependencyCheckAggregate --no-parallel
+```
+
+It must pass with zero findings at CVSS 7.0 or higher. `--no-parallel` is
+required: Gradle 9 refuses the aggregate task's cross-project resolution under
+parallel execution. The report is in `build/reports/dependency-check/`. A run
+takes 7 to 15 minutes.
+
+Without an NVD API key (`NVD_API_KEY`), Dependency-Check can read NVD's bulk
+feed instead of the API. Check the feed's `modified.meta` timestamp first,
+because feeds can lag the API. This changes the data transport only, not the
+audit scope or the severity threshold. The API stays the default. See the
 [Dependency-Check feed documentation](https://dependency-check.github.io/DependencyCheck/data/mirrornvd.html).
 
 ```bash
-./gradlew dependencyCheckAggregate --no-parallel \
+./gradlew -Dorg.gradle.jvmargs=-Xmx8g dependencyCheckAggregate --no-parallel \
   '-PdependencyCheckNvdDatafeedUrl=https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-{0}.json.gz'
 ```
 
-CI (GitHub Actions) runs on:
-- `ubuntu-latest` for JVM + Android targets (Android SDK installed).
-- `macos-latest` for iOS targets (Xcode + iOS simulators).
+The audit scans build-tool classpaths (linters, Dokka, Android lint, Kotlin
+tooling) as well as published configurations. Do not narrow it to published
+configurations to make it pass.
+
+When the audit fails, fix in this order:
+
+1. **Upgrade** the dependency, or the tool that brings it.
+2. **Floor** it. `buildToolSecurityFloors` in `build.gradle.kts` lifts a
+   transitive dependency on named build-tool configurations. Add a floor only
+   when the tool still works on the newer version, and prove it with the full
+   gate. For a published configuration, use a dependency constraint instead.
+3. **Replace** a tool whose bundled dependencies cannot be fixed.
+4. **Suppress** in `dependency-check-suppressions.xml`, only when one of these
+   is true:
+   - (i) the finding is a verified false positive: you checked the advisory,
+     the fix commit or the jar contents, and wrote down the evidence; or
+   - (ii) there is no upstream fix, and the dependency is build-time only and
+     cannot reach a published artifact.
+
+Every suppression needs both:
+
+- `<notes>` that name the case, (i) or (ii), and the evidence.
+- An `until="YYYY-MM-DDZ"` expiry **no more than 90 days out**. When it
+  expires, the audit fails again. Re-examine the finding: upgrade if a fix
+  now exists, or re-verify and set a new date. Do not re-date without
+  checking.
+
+Match exact artifact versions in `packageUrl` (or the shaded copy's path in
+`filePath`), so a tool upgrade brings its jars back for review.
+
+Also check what consumers receive: run `./gradlew publishToMavenLocal` and
+read the generated POMs and Gradle module files in
+`~/.m2/repository/com/mojentic/`. Nothing in them may be vulnerable.
 
 ## Engineering Principles
 

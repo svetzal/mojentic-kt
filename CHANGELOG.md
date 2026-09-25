@@ -74,6 +74,20 @@ patch versions move independently.
 
 ### Changed
 
+- **The dependency audit passes.** `dependencyCheckAggregate` now reports no
+  finding at CVSS 7.0 or higher, and it still scans build-tool classpaths as
+  well as published ones. Android lint's classpath gets floors for
+  httpclient (4.5.14) and commons-lang3 (3.20.0). The remaining findings are
+  suppressed in `dependency-check-suppressions.xml`, each with its evidence
+  and an expiry of 2026-12-23. Verified false positives: CVE-2026-53914
+  matches on Kotlin standard-library, reflect and embedded linter compiler
+  jars and on Dokka jars (the flaw is in KAPT's incremental cache, which none
+  of them contain), CVE-2012-2055 on kotlin-logging-android and CVE-2008-0986
+  on AGP's analytics protos. No upstream fix, build-time only: jline 3.24.1
+  (CVE-2026-56740, CVE-2026-56741) and protobuf 2.6.1 (CVE-2022-3171,
+  CVE-2024-7254) shaded into Android lint's Kotlin compiler. The security
+  workflow uploads the report from `build/reports/dependency-check/`, where
+  Dependency-Check 13 writes it.
 - **kotlin-logging 8.0.4** (from 7.0.7). `mojentic-core` exposes it as an
   `api` dependency, so apps get the 8.x line. The library's call sites and
   the public API dump are unchanged. On the JVM, apps still supply their own

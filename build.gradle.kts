@@ -124,11 +124,13 @@ class SecurityFloor(
     val group: String,
     val version: String,
     val exceptModules: Set<String> = emptySet(),
+    val onlyModules: Set<String> = emptySet(),
 ) {
     fun appliesTo(configuration: String, requested: ModuleVersionSelector): Boolean =
         configurationPrefixes.any { configuration.startsWith(it) } &&
             (requested.group == group || requested.group.startsWith("$group.")) &&
-            requested.name !in exceptModules
+            requested.name !in exceptModules &&
+            (onlyModules.isEmpty() || requested.name in onlyModules)
 }
 
 val kotlinVersion: String = libs.versions.kotlin.asProvider().get()
@@ -155,6 +157,16 @@ val buildToolSecurityFloors: List<SecurityFloor> = listOf(
         kotlinVersion,
         exceptModules = setOf("kotlin-reflect"),
     ),
+    // Android lint's tool classpath (AGP 9.4.1). Medium findings, but cheap to
+    // clear: CVE-2020-13956 is fixed in httpclient 4.5.13 (lint brings 4.5.6),
+    // CVE-2025-48924 in commons-lang3 3.18.0 (lint brings 3.16.0).
+    SecurityFloor(
+        listOf("androidLint"),
+        "org.apache.httpcomponents",
+        "4.5.14",
+        onlyModules = setOf("httpclient"),
+    ),
+    SecurityFloor(listOf("androidLint"), "org.apache.commons", "3.20.0", onlyModules = setOf("commons-lang3")),
 )
 
 allprojects {
