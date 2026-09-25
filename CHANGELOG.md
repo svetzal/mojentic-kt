@@ -92,7 +92,12 @@ patch versions move independently.
   workflow reads NVD's bulk feed instead.
 - **CI sets up the Android SDK with `android-actions/setup-android` v4.0.4**,
   pinned by commit SHA. v3 asked sdkmanager for the removed `tools` package
-  and failed before any Gradle step ran.
+  and failed before any Gradle step ran. That had hidden a second fault: the
+  build job called `assembleRelease` and `testReleaseUnitTest`, which the
+  Kotlin Multiplatform Android library plugin does not create. The job now
+  runs `jvmJar assembleAndroidMain apiCheck`, `jvmTest` and
+  `testAndroidHostTest` across all six library modules, not only
+  `mojentic-core`.
 - **kotlin-logging 8.0.4** (from 7.0.7). `mojentic-core` exposes it as an
   `api` dependency, so apps get the 8.x line. The library's call sites and
   the public API dump are unchanged. On the JVM, apps still supply their own

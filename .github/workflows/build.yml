@@ -44,13 +44,13 @@ jobs:
         run: ./gradlew detekt --no-daemon --stacktrace
 
       - name: Build (JVM + Android)
-        run: ./gradlew :mojentic-core:jvmJar :mojentic-core:assembleRelease --no-daemon --stacktrace
+        run: ./gradlew jvmJar assembleAndroidMain apiCheck --no-daemon --stacktrace
 
       - name: Test (JVM)
-        run: ./gradlew :mojentic-core:jvmTest --no-daemon --stacktrace
+        run: ./gradlew jvmTest --no-daemon --stacktrace
 
       - name: Test (Android local unit tests)
-        run: ./gradlew :mojentic-core:testReleaseUnitTest --no-daemon --stacktrace
+        run: ./gradlew testAndroidHostTest --no-daemon --stacktrace
 
       - name: Upload reports
         if: failure()
