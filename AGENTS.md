@@ -31,7 +31,7 @@ for the cross-port feature matrix.
   android { ... } }` block — there is no separate `android { ... }`
   extension block at module scope.
 - **Targets**: `jvm()`, `android { ... }` inside the kotlin extension
-  (minSdk 24, compileSdk 36), `iosX64()`, `iosArm64()`, `iosSimulatorArm64()`.
+  (minSdk 24, compileSdk 37), `iosX64()`, `iosArm64()`, `iosSimulatorArm64()`.
   macOS / Linux / JS / wasmJs are post-MVP and opportunistic.
 
 ## Mandatory Quality Gate

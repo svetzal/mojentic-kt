@@ -53,7 +53,7 @@ kotlin {
 
     android {
         namespace = "com.mojentic.websearch.serpapi"
-        compileSdk = 36
+        compileSdk = 37
         minSdk = 24
 
         withHostTest {}

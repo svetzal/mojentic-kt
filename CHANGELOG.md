@@ -74,6 +74,12 @@ patch versions move independently.
 
 ### Changed
 
+- **Current runtime libraries.** kotlinx-coroutines 1.11.0,
+  kotlinx-serialization 1.11.0, kotlinx-datetime 0.8.0, Ktor 3.6.0 and okio
+  3.18.2. Ktor 3.6.0 brings OkHttp 5.5.0 on Android, which requires
+  `compileSdk` 37, so the Android targets now compile against API 37 and
+  Android apps that use the OpenAI, Ollama, Anthropic, realtime or SerpAPI
+  modules need `compileSdk` 37 too. `minSdk` stays 24.
 - **Gradle 9.8.0 and Android Gradle Plugin 9.4.1.** The wrapper now pins
   the distribution's SHA-256, so a tampered download fails before it runs.
 - **Kotlin 2.4.20, Dokka 2.2.0, Android Gradle Plugin 9.3.3.** Kotlin 2.4.20

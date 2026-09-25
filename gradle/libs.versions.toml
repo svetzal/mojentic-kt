@@ -4,11 +4,11 @@ kotlin = "2.4.20"
 agp = "9.4.1"
 
 # Core KMP libraries
-kotlinx-coroutines = "1.10.2"
-kotlinx-serialization = "1.8.1"
-kotlinx-datetime = "0.7.1"
-ktor = "3.4.2"
-okio = "3.16.4"
+kotlinx-coroutines = "1.11.0"
+kotlinx-serialization = "1.11.0"
+kotlinx-datetime = "0.8.0"
+ktor = "3.6.0"
+okio = "3.18.2"
 kotlin-logging = "7.0.7"
 
 # Quality / tooling plugins
@@ -56,7 +56,7 @@ kotlin-logging = { module = "io.github.oshai:kotlin-logging", version.ref = "kot
 # Test
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
-slf4j-simple = { module = "org.slf4j:slf4j-simple", version = "2.0.16" }
+slf4j-simple = { module = "org.slf4j:slf4j-simple", version = "2.0.20" }
 
 # JVM-only
 jtokkit = { module = "com.knuddels:jtokkit", version.ref = "jtokkit" }

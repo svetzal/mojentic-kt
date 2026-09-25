@@ -23,7 +23,7 @@ Reference integration showing how to consume **mojentic-core + mojentic-openai**
 
 ## How to use these files
 
-1. Create a new Android Studio project: **Empty Compose Activity**, package `com.example.mojenticchat`, minSdk 24, compileSdk 36, AGP 9.2.0+.
+1. Create a new Android Studio project: **Empty Compose Activity**, package `com.example.mojenticchat`, minSdk 24, compileSdk 37, AGP 9.4.0+.
 2. Copy `MainActivity.kt`, `ChatViewModel.kt`, `ChatScreen.kt` into `app/src/main/java/com/example/mojenticchat/`.
 3. Copy `AndroidManifest.xml` over the generated one (or merge the INTERNET permission line).
 4. In `app/build.gradle.kts`, add dependencies on:

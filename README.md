@@ -42,9 +42,10 @@ realtime voice — all built natively on Kotlin coroutines and `Flow`.
 - **Kotlin 2.3+** (K2 compiler stable, standard-library `Uuid`, current KMP
   target shape)
 - **JDK 17+** for the build
-- **Android**: AGP 9.2+, `compileSdk` 36, minimum API 24 (Android 7.0)
+- **Android**: `compileSdk` 37 or later (Ktor 3.6 brings OkHttp 5.5, which
+  requires it), minimum API 24 (Android 7.0). The build uses AGP 9.4.
 - **iOS**: minimum deployment target iOS 14
-- **Gradle**: 9.5+ (managed via the wrapper)
+- **Gradle**: 9.8+ (managed via the wrapper)
 
 ## Building Locally
 
