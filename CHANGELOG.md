@@ -90,6 +90,19 @@ patch versions move independently.
   Dependency-Check 13 writes it. With no `NVD_API_KEY`, the build no longer
   passes an empty key (which Dependency-Check 13 rejects), and the security
   workflow reads NVD's bulk feed instead.
+- **GitHub Actions are current and pinned by commit SHA.** checkout v4 to
+  v7.0.1, setup-java v4 to v6.0.1, gradle/actions setup-gradle v4 to v6.3.0,
+  upload-artifact v4 to v7.0.1, upload-pages-artifact v3 to v5.0.0,
+  deploy-pages v4 to v5.0.1, cache v4 to v6.1.0, and setup-android v4.0.4.
+  setup-gradle v6 caches through Gradle's proprietary `gradle-actions-caching`
+  component (the default enhanced provider), whose Terms of Use are accepted
+  for this repo. It now runs before the first `./gradlew` call, so the
+  wrapper checksum is validated first. The NVD cache moved out of the Gradle
+  User Home, which setup-gradle alone should cache. The docs workflow
+  uploads `build/dokka`, where Dokka writes the site (it pointed at a
+  missing `build/dokka/html`), and grants `actions: read` for deploy-pages.
+  Docs deploy and Maven Central publishing now run only for a `v*` tag; a
+  manual run of either workflow stops after the build.
 - **The Gradle daemon runs on JDK 21 everywhere.**
   `gradle/gradle-daemon-jvm.properties` pins it, so the build no longer
   depends on the host's default Java. On a host whose default is Java 25,

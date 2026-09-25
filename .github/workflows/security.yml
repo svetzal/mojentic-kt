@@ -26,19 +26,26 @@ jobs:
     name: OWASP dependencyCheckAggregate
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       # JDK 17 compiles the library (jvmToolchain(17)); JDK 21 runs the Gradle
       # daemon (gradle/gradle-daemon-jvm.properties). Register both with Gradle,
       # which does not scan the runner's tool cache, and fail fast unless it
       # detects both.
       - name: Set up JDK 17 and 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
           distribution: temurin
           java-version: |
             17
             21
+
+      # Enhanced caching (the default provider) uses the gradle-actions-caching
+      # component under Gradle's Terms of Use, accepted for this repo. Cache
+      # writes happen on main only. Set up Gradle before the first ./gradlew
+      # call so the wrapper checksum is validated first.
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
 
       - name: Register JDKs with Gradle
         run: |
@@ -51,14 +58,13 @@ jobs:
           grep -q "Language Version:   21" toolchains.txt
           rm toolchains.txt
 
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
-
       - name: Cache NVD database
-        uses: actions/cache@v4
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: ~/.gradle/dependency-check-data
-          # Bust weekly so the CVE database actually refreshes.
+          # Outside the Gradle User Home, which setup-gradle alone caches.
+          path: ~/.dependency-check-data
+          # A new entry per run, restored from the newest, so the NVD data
+          # refreshes incrementally.
           key: nvd-${{ runner.os }}-${{ github.run_id }}
           restore-keys: |
             nvd-${{ runner.os }}-
@@ -76,11 +82,12 @@ jobs:
           if [ -z "${NVD_API_KEY}" ]; then
             feed=("-PdependencyCheckNvdDatafeedUrl=https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-{0}.json.gz")
           fi
-          ./gradlew dependencyCheckAggregate --no-parallel --no-daemon --stacktrace "${feed[@]}"
+          ./gradlew dependencyCheckAggregate --no-parallel --no-daemon --stacktrace \
+            "-PdependencyCheckDataDirectory=$HOME/.dependency-check-data" "${feed[@]}"
 
       - name: Upload report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: dependency-check-report
           path: build/reports/dependency-check/
