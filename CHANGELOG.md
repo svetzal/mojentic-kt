@@ -90,6 +90,15 @@ patch versions move independently.
   Dependency-Check 13 writes it. With no `NVD_API_KEY`, the build no longer
   passes an empty key (which Dependency-Check 13 rejects), and the security
   workflow reads NVD's bulk feed instead.
+- **The Gradle daemon runs on JDK 21 everywhere.**
+  `gradle/gradle-daemon-jvm.properties` pins it, so the build no longer
+  depends on the host's default Java. On a host whose default is Java 25,
+  detekt 1.23.8 failed every task. The build now needs JDK 17 (compiler
+  toolchain) and JDK 21 (daemon) installed. No toolchain is downloaded at
+  build time. CI installs both JDKs and checks that Gradle detects them. The
+  daemon heap default is now 8 GB, which the iOS framework link needs, so
+  the gate no longer takes a `-D` flag. `.hone-gates.json` lists the six
+  required gates for Foundry's nightly maintenance.
 - **CI sets up the Android SDK with `android-actions/setup-android` v4.0.4**,
   pinned by commit SHA. v3 asked sdkmanager for the removed `tools` package
   and failed before any Gradle step ran. That had hidden a second fault: the

@@ -1,0 +1,34 @@
+{
+  "gates": [
+    {
+      "name": "format",
+      "command": "./gradlew ktlintCheck",
+      "required": true
+    },
+    {
+      "name": "lint",
+      "command": "./gradlew detekt",
+      "required": true
+    },
+    {
+      "name": "build",
+      "command": "./gradlew build",
+      "required": true
+    },
+    {
+      "name": "test",
+      "command": "./gradlew allTests",
+      "required": true
+    },
+    {
+      "name": "api",
+      "command": "./gradlew apiCheck",
+      "required": true
+    },
+    {
+      "name": "docs",
+      "command": "./gradlew dokkaGenerate",
+      "required": true
+    }
+  ]
+}

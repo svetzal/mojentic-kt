@@ -17,8 +17,17 @@ for the cross-port feature matrix.
 - **Kotlin 2.4.20+** — required for K2 compiler stability, standard-library
   `kotlin.uuid.Uuid`, the current KMP target shape, and the fix for
   CVE-2026-53914 (unsafe deserialization in build cache metadata).
-- **JDK 17** — Kotlin compiler toolchain (`jvmToolchain(17)`). JDK 17 stays
-  the bytecode target so library consumers on JDK 17 LTS keep working.
+- **JDK 17 and JDK 21, both installed.** JDK 17 is the Kotlin compiler
+  toolchain (`jvmToolchain(17)`) and stays the bytecode target, so library
+  consumers on JDK 17 LTS keep working. JDK 21 runs the Gradle daemon:
+  `gradle/gradle-daemon-jvm.properties` pins `toolchainVersion=21`, so every
+  host and CI run the build tools on the same JVM whatever `java` is on the
+  `PATH`. This matters because detekt 1.23.8 cannot parse Java 25 and fails
+  every `detekt*` task with only "> 25.0.4". Gradle must detect both JDKs;
+  check with `./gradlew javaToolchains`. If it misses one, list the JDK homes
+  in `org.gradle.java.installations.paths` in `~/.gradle/gradle.properties`.
+  No toolchain is downloaded at build time (there is no toolchain resolver
+  plugin), so a missing JDK fails fast with a clear message.
 - **Gradle 9.8+** — managed via the wrapper. The wrapper pins
   `distributionSha256Sum`; when you upgrade, pass
   `--gradle-distribution-sha256-sum` with the value from
@@ -40,13 +49,22 @@ All gates must pass before any commit, matching the other ports. Run before
 each commit:
 
 ```bash
-export ANDROID_HOME="$HOME/Library/Android/sdk"   # macOS; CI sets its own
-./gradlew -Dorg.gradle.jvmargs=-Xmx8g \
-  ktlintCheck detekt build allTests apiCheck dokkaGenerate
+./gradlew ktlintCheck detekt build allTests apiCheck dokkaGenerate
 ```
 
-The iOS framework link needs the larger heap. On Apple Silicon, Gradle skips
-`iosX64Test` and prints a warning; that is expected.
+The same six commands are the required gates in `.hone-gates.json`, which
+Foundry's nightly maintenance runs on `mojility-ops-01`. They must pass on
+macOS and Linux. The Dependency-Check audit is not a gate there, because
+Foundry's Kotlin audit runs it separately.
+
+- The Android SDK comes from `ANDROID_HOME` or from a gitignored
+  `local.properties` with `sdk.dir=...`.
+- `gradle.properties` gives the daemon an 8 GB heap, because the iOS
+  framework link needs it.
+- On Apple Silicon, Gradle skips `iosX64Test` with a warning. On Linux, every
+  iOS task is disabled with a warning, and the macOS CI job covers iOS. Do
+  not set `kotlin.native.ignoreDisabledTargets=true`: the warning is the only
+  sign that a Mac without Xcode has silently skipped iOS.
 
 | Concern              | Tool                                  | Command                                |
 |----------------------|---------------------------------------|----------------------------------------|
@@ -64,7 +82,7 @@ The iOS framework link needs the larger heap. On Apple Silicon, Gradle skips
 Run the audit after any dependency or plugin change, and before a release:
 
 ```bash
-./gradlew -Dorg.gradle.jvmargs=-Xmx8g dependencyCheckAggregate --no-parallel
+./gradlew dependencyCheckAggregate --no-parallel
 ```
 
 It must pass with zero findings at CVSS 7.0 or higher. `--no-parallel` is
@@ -79,7 +97,7 @@ audit scope or the severity threshold. The API stays the default. See the
 [Dependency-Check feed documentation](https://dependency-check.github.io/DependencyCheck/data/mirrornvd.html).
 
 ```bash
-./gradlew -Dorg.gradle.jvmargs=-Xmx8g dependencyCheckAggregate --no-parallel \
+./gradlew dependencyCheckAggregate --no-parallel \
   '-PdependencyCheckNvdDatafeedUrl=https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-{0}.json.gz'
 ```
 
