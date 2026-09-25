@@ -27,6 +27,7 @@ internal fun LlmMessage.toOpenAIMessages(): List<OpenAIMessage> = when (role) {
             ),
         )
     }
+
     MessageRole.Assistant -> listOf(
         OpenAIMessage(
             role = "assistant",
@@ -34,6 +35,7 @@ internal fun LlmMessage.toOpenAIMessages(): List<OpenAIMessage> = when (role) {
             toolCalls = toolCalls?.takeIf { it.isNotEmpty() }?.map { it.toOpenAIToolCall() },
         ),
     )
+
     else -> listOf(
         OpenAIMessage(
             role = role.wireValue,

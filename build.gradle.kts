@@ -55,6 +55,16 @@ dependencyCheck {
     )
 }
 
+// Pin the ktlint engine. The Gradle plugin otherwise falls back to its own,
+// older default (1.5.0 for plugin 14.2.0).
+subprojects {
+    plugins.withId("org.jlleitschuh.gradle.ktlint") {
+        extensions.configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
+            version.set(libs.versions.ktlint.engine)
+        }
+    }
+}
+
 apiValidation {
     // Library modules only — examples/samples are demonstration code, not part of the
     // published surface, and the application plugin's generated entry-point classes
@@ -102,28 +112,60 @@ dependencies {
     dokka(project(":mojentic-websearch-serpapi"))
 }
 
-// Build-tool classpath security floors. These configurations never reach a
-// published artifact: they resolve Dokka's HTML generator and Kotlin's
-// Swift-export tooling. Each floor lifts a transitive dependency past a
-// known CVE until the owning plugin ships the newer version itself.
-val buildToolSecurityFloors: Map<String, String> = mapOf(
+// Build-tool classpath security floors. None of these configurations reaches
+// a published artifact: they resolve linters, Dokka's HTML generator and
+// Kotlin's own build tooling. Each floor lifts a dependency past a known CVE
+// until the owning tool ships the newer version itself. A floor matches the
+// named group and its sub-groups (so `org.jetbrains.kotlin` does not touch
+// `org.jetbrains.kotlinx`), and only on configurations whose name starts with
+// one of the listed prefixes. See AGENTS.md, "Dependency audit".
+class SecurityFloor(
+    val configurationPrefixes: List<String>,
+    val group: String,
+    val version: String,
+    val exceptModules: Set<String> = emptySet(),
+) {
+    fun appliesTo(configuration: String, requested: ModuleVersionSelector): Boolean =
+        configurationPrefixes.any { configuration.startsWith(it) } &&
+            (requested.group == group || requested.group.startsWith("$group.")) &&
+            requested.name !in exceptModules
+}
+
+val kotlinVersion: String = libs.versions.kotlin.asProvider().get()
+
+val buildToolSecurityFloors: List<SecurityFloor> = listOf(
     // CVE-2026-54512, CVE-2026-54513: fixed in 2.18.8 (Dokka 2.2.0 brings 2.15.3).
-    "com.fasterxml.jackson" to "2.18.11",
+    SecurityFloor(listOf("dokka"), "com.fasterxml.jackson", "2.18.11"),
     // CVE-2026-84939: fixed in 2.3.35 (Dokka 2.2.0 brings 2.3.32).
-    "org.freemarker" to "2.3.35",
+    SecurityFloor(listOf("dokka"), "org.freemarker", "2.3.35"),
     // CVE-2026-39883 names OpenTelemetry-Go 1.15.0 to 1.42.0; the Java API
     // 1.41.0 matches the same CPE. Kotlin's Swift-export tooling brings 1.41.0.
-    "io.opentelemetry" to "1.66.0",
+    SecurityFloor(listOf("swiftExport"), "io.opentelemetry", "1.66.0"),
+    // CVE-2026-53914 CPE match, fixed in Kotlin 2.4.20: Dokka's generator
+    // runtime resolves kotlin-stdlib and kotlin-reflect 2.0.21 and the 1.8.20
+    // stdlib-jdk7/jdk8 shims. The standard library is backward compatible.
+    SecurityFloor(listOf("dokka"), "org.jetbrains.kotlin", kotlinVersion),
+    // CVE-2026-53914, fixed in Kotlin 2.4.20: KGP's ABI-validation compat
+    // classpath asks for the 2.4.0 build tools while every other Kotlin tool
+    // classpath uses the project's Kotlin version. Lift it to match.
+    // kotlin-reflect stays at the 1.6.10 that JetBrains pins for its compiler.
+    SecurityFloor(
+        listOf("kotlinAbiValidation"),
+        "org.jetbrains.kotlin",
+        kotlinVersion,
+        exceptModules = setOf("kotlin-reflect"),
+    ),
 )
 
 allprojects {
-    configurations
-        .matching { it.name.startsWith("dokka") || it.name.startsWith("swiftExport") }
-        .configureEach {
+    configurations.configureEach {
+        val configurationName = name
+        val floors = buildToolSecurityFloors.filter { floor ->
+            floor.configurationPrefixes.any { configurationName.startsWith(it) }
+        }
+        if (floors.isNotEmpty()) {
             resolutionStrategy.eachDependency {
-                val floor = buildToolSecurityFloors.entries
-                    .firstOrNull { (group, _) -> requested.group.startsWith(group) }
-                    ?.value
+                val floor = floors.firstOrNull { it.appliesTo(configurationName, requested) }?.version
                 val version = requested.version
                 if (floor != null && version != null && isOlder(version, floor)) {
                     useVersion(floor)
@@ -131,6 +173,7 @@ allprojects {
                 }
             }
         }
+    }
 }
 
 fun isOlder(version: String, floor: String): Boolean {

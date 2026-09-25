@@ -28,7 +28,9 @@ internal fun globToRegex(pattern: String): Regex {
                     sb.append("[^/]*")
                 }
             }
+
             '?' -> sb.append("[^/]")
+
             '[' -> {
                 val close = pattern.indexOf(']', startIndex = i + 1)
                 if (close < 0) {
@@ -38,8 +40,10 @@ internal fun globToRegex(pattern: String): Regex {
                     i = close
                 }
             }
+
             '.', '(', ')', '+', '|', '^', '$', '@', '%', '{', '}', '\\' ->
                 sb.append('\\').append(c)
+
             else -> sb.append(c)
         }
         i++

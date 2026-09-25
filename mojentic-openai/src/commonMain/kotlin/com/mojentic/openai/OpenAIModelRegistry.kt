@@ -172,10 +172,12 @@ private object ModelCatalog {
                 outputTokens =
                     if (isMiniOrNano) TokenLimits.GPT5_SMALL_OUTPUT else TokenLimits.GPT5_FLAGSHIP_OUTPUT
             }
+
             isDeepResearch -> {
                 contextTokens = TokenLimits.DEEP_RESEARCH_CONTEXT
                 outputTokens = TokenLimits.DEEP_RESEARCH_OUTPUT
             }
+
             else -> {
                 contextTokens = TokenLimits.O_SERIES_CONTEXT
                 outputTokens = TokenLimits.O_SERIES_OUTPUT
@@ -245,16 +247,19 @@ private object ModelCatalog {
                 contextTokens = TokenLimits.GPT5_FLAGSHIP_CONTEXT
                 outputTokens = TokenLimits.GPT5_FLAGSHIP_OUTPUT
             }
+
             isGpt41 -> {
                 contextTokens =
                     if (isMiniOrNano) TokenLimits.GPT41_SMALL_CONTEXT else TokenLimits.GPT41_FLAGSHIP_CONTEXT
                 outputTokens =
                     if (isMiniOrNano) TokenLimits.GPT41_SMALL_OUTPUT else TokenLimits.GPT41_FLAGSHIP_OUTPUT
             }
+
             model.contains("gpt-4o") -> {
                 contextTokens = TokenLimits.GPT4O_CONTEXT
                 outputTokens = TokenLimits.GPT4O_OUTPUT
             }
+
             else -> {
                 contextTokens = TokenLimits.GPT4_CONTEXT
                 outputTokens = TokenLimits.GPT4_OUTPUT

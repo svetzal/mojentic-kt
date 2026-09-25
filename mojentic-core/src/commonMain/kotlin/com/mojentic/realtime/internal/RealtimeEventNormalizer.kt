@@ -51,28 +51,34 @@ internal class RealtimeEventNormalizer(
             val id = raw["session"]?.jsonObject?.get("id")?.jsonPrimitive?.contentOrNull.orEmpty()
             listOf(RealtimeEvent.SessionOpened(id))
         }
+
         OpenAiEventNames.SESSION_UPDATED -> {
             val instructions = raw["session"]?.jsonObject?.get("instructions")?.jsonPrimitive?.contentOrNull
             listOf(RealtimeEvent.SessionUpdated(instructions))
         }
+
         else -> null
     }
 
     private fun userTurnEvent(type: String, raw: JsonObject): List<RealtimeEvent>? = when (type) {
         OpenAiEventNames.SPEECH_STARTED ->
             listOf(RealtimeEvent.UserSpeechStarted(raw["item_id"]?.jsonPrimitive?.contentOrNull))
+
         OpenAiEventNames.SPEECH_STOPPED ->
             listOf(RealtimeEvent.UserSpeechStopped(raw["item_id"]?.jsonPrimitive?.contentOrNull))
+
         OpenAiEventNames.USER_TRANSCRIPT_DELTA -> {
             val itemId = raw["item_id"]?.jsonPrimitive?.contentOrNull
             val delta = raw["delta"]?.jsonPrimitive?.contentOrNull.orEmpty()
             if (itemId == null) emptyList() else listOf(RealtimeEvent.UserTranscriptDelta(itemId, delta))
         }
+
         OpenAiEventNames.USER_TRANSCRIPT_COMPLETED -> {
             val itemId = raw["item_id"]?.jsonPrimitive?.contentOrNull
             val text = raw["transcript"]?.jsonPrimitive?.contentOrNull.orEmpty()
             if (itemId == null) emptyList() else listOf(RealtimeEvent.UserTranscript(itemId, text))
         }
+
         else -> null
     }
 
@@ -85,18 +91,23 @@ internal class RealtimeEventNormalizer(
                 currentTurnCallIds.clear()
                 listOf(RealtimeEvent.AssistantTurnStarted(turnId))
             }
+
             OpenAiEventNames.RESPONSE_TEXT_DELTA ->
                 listOf(RealtimeEvent.AssistantTextDelta(turnId, raw["delta"]?.jsonPrimitive?.contentOrNull.orEmpty()))
+
             OpenAiEventNames.RESPONSE_TEXT_DONE ->
                 listOf(RealtimeEvent.AssistantText(turnId, raw["text"]?.jsonPrimitive?.contentOrNull.orEmpty()))
+
             OpenAiEventNames.RESPONSE_AUDIO_TRANSCRIPT_DELTA ->
                 listOf(
                     RealtimeEvent.AssistantTranscriptDelta(turnId, raw["delta"]?.jsonPrimitive?.contentOrNull.orEmpty()),
                 )
+
             OpenAiEventNames.RESPONSE_AUDIO_TRANSCRIPT_DONE ->
                 listOf(
                     RealtimeEvent.AssistantTranscript(turnId, raw["transcript"]?.jsonPrimitive?.contentOrNull.orEmpty()),
                 )
+
             OpenAiEventNames.RESPONSE_AUDIO_DELTA -> {
                 val base64 = raw["delta"]?.jsonPrimitive?.contentOrNull
                 if (base64 == null) {
@@ -105,7 +116,9 @@ internal class RealtimeEventNormalizer(
                     listOf(RealtimeEvent.AssistantAudioDelta(turnId, Pcm16AudioCodec.decode(base64)))
                 }
             }
+
             OpenAiEventNames.RESPONSE_DONE -> listOf(buildTurnCompleted(raw, turnId))
+
             else -> null
         }
     }
@@ -138,6 +151,7 @@ internal class RealtimeEventNormalizer(
                 }
             }
         }
+
         OpenAiEventNames.RESPONSE_FUNCTION_ARGS_DELTA -> {
             val callId = raw["call_id"]?.jsonPrimitive?.contentOrNull
             val delta = raw["delta"]?.jsonPrimitive?.contentOrNull.orEmpty()
@@ -148,6 +162,7 @@ internal class RealtimeEventNormalizer(
                 listOf(RealtimeEvent.ToolCallArgsDelta(callId, delta))
             }
         }
+
         OpenAiEventNames.RESPONSE_FUNCTION_ARGS_DONE -> {
             val callId = raw["call_id"]?.jsonPrimitive?.contentOrNull
             if (callId == null) {
@@ -156,7 +171,9 @@ internal class RealtimeEventNormalizer(
                 listOf(finaliseToolCall(callId, raw))
             }
         }
+
         OpenAiEventNames.RESPONSE_OUTPUT_ITEM_DONE -> emptyList()
+
         else -> null
     }
 
@@ -177,11 +194,13 @@ internal class RealtimeEventNormalizer(
                 ?.jsonPrimitive?.longOrNull?.let { it * MILLIS_PER_SECOND }
             listOf(RealtimeEvent.RateLimited(resetMs, raw))
         }
+
         OpenAiEventNames.ERROR -> {
             val message = raw["error"]?.jsonObject?.get("message")?.jsonPrimitive?.contentOrNull
                 ?: "Unknown realtime gateway error"
             listOf(RealtimeEvent.GatewayError(message, recoverable = false))
         }
+
         else -> null
     }
 

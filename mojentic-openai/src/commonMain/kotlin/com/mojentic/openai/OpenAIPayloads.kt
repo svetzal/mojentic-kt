@@ -34,8 +34,10 @@ internal data class OpenAIResponseFormat(
 
 internal fun ResponseFormat.toOpenAIResponseFormat(): OpenAIResponseFormat = when (this) {
     ResponseFormat.Text -> OpenAIResponseFormat(type = "text")
+
     is ResponseFormat.Json -> when (val schema = schema) {
         null -> OpenAIResponseFormat(type = "json_object")
+
         else -> OpenAIResponseFormat(
             type = "json_schema",
             jsonSchema = OpenAIJsonSchema(name = "response", schema = schema),

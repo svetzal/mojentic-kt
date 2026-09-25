@@ -151,9 +151,11 @@ public class RealtimeSession internal constructor(
             is RealtimeEvent.AssistantTurnStarted -> {
                 inFlightTurnId = event.turnId
             }
+
             is RealtimeEvent.AssistantTurnCompleted, is RealtimeEvent.Interrupted -> {
                 inFlightTurnId = null
             }
+
             else -> Unit
         }
     }

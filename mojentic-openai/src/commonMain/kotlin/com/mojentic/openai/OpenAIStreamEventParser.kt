@@ -72,9 +72,11 @@ internal class OpenAIStreamEventParser(private val json: Json) {
 
     private fun acceptContent(content: JsonElement?, payload: String): List<CompletionStreamEvent> = when {
         content == null || content is JsonNull -> emptyList()
+
         content is JsonPrimitive && content.isString -> listOfNotNull(
             content.content.takeIf { it.isNotEmpty() }?.let { CompletionStreamEvent.Content(it) },
         )
+
         else -> listOf(fail(StreamErrorReason.InvalidStreamEvent(payload)))
     }
 

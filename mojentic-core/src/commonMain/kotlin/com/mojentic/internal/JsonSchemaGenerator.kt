@@ -49,12 +49,15 @@ public object JsonSchemaGenerator {
 
     private fun primitiveTypeFor(kind: PrimitiveKind): String = when (kind) {
         PrimitiveKind.STRING, PrimitiveKind.CHAR -> "string"
+
         PrimitiveKind.BOOLEAN -> "boolean"
+
         PrimitiveKind.BYTE,
         PrimitiveKind.SHORT,
         PrimitiveKind.INT,
         PrimitiveKind.LONG,
         -> "integer"
+
         PrimitiveKind.FLOAT, PrimitiveKind.DOUBLE -> "number"
     }
 

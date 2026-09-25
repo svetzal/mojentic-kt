@@ -163,8 +163,11 @@ public class LlmBroker(
                     contentBuilder.append(event.text)
                     emit(StreamEvent.TextChunk(event.text))
                 }
+
                 is GatewayStreamEvent.Thinking -> emit(StreamEvent.ThinkingChunk(event.text))
+
                 is GatewayStreamEvent.ToolCalls -> accumulatedToolCalls += event.calls
+
                 is GatewayStreamEvent.Raw -> { /* no-op by default */ }
             }
         }
@@ -321,10 +324,12 @@ public class LlmBroker(
 private val CompletionStreamEvent.evidence: CompletionEvidence?
     get() = when (this) {
         is CompletionStreamEvent.Completed -> evidence
+
         is CompletionStreamEvent.Error -> when (val cause = reason) {
             is StreamErrorReason.IncompleteCompletion -> cause.evidence
             is StreamErrorReason.IncompleteStream -> cause.evidence
             else -> null
         }
+
         is CompletionStreamEvent.Content -> null
     }

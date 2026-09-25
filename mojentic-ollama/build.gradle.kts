@@ -11,7 +11,7 @@ plugins {
 }
 
 mavenPublishing {
-    publishToMavenCentral(com.vanniktech.maven.publish.SonatypeHost.CENTRAL_PORTAL, automaticRelease = false)
+    publishToMavenCentral(automaticRelease = false)
     signAllPublications()
     coordinates(project.group.toString(), project.name, project.version.toString())
     pom {

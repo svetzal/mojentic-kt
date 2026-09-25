@@ -50,6 +50,7 @@ private fun LlmMessage.userContentBlocks(): List<AnthropicContentBlock> {
     return parts.map { part ->
         when (part) {
             is TextContent -> AnthropicContentBlock.Text(text = part.text)
+
             is ImageContent -> AnthropicContentBlock.Image(
                 source = AnthropicImageSource(mediaType = part.mimeType, data = part.data),
             )

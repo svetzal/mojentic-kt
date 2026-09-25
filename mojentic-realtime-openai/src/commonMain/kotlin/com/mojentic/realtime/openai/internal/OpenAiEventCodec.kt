@@ -30,16 +30,20 @@ internal object OpenAiEventCodec {
             put("type", "session.update")
             put("session", sessionConfigJson(event.config))
         }
+
         is ClientRealtimeEvent.InputAudioBufferAppend -> buildJsonObject {
             put("type", "input_audio_buffer.append")
             put("audio", encodeAudio(event.frame))
         }
+
         ClientRealtimeEvent.InputAudioBufferCommit -> buildJsonObject {
             put("type", "input_audio_buffer.commit")
         }
+
         ClientRealtimeEvent.InputAudioBufferClear -> buildJsonObject {
             put("type", "input_audio_buffer.clear")
         }
+
         is ClientRealtimeEvent.UserText -> buildJsonObject {
             put("type", "conversation.item.create")
             put(
@@ -59,6 +63,7 @@ internal object OpenAiEventCodec {
                 },
             )
         }
+
         is ClientRealtimeEvent.FunctionCallOutput -> buildJsonObject {
             put("type", "conversation.item.create")
             put(
@@ -70,9 +75,11 @@ internal object OpenAiEventCodec {
                 },
             )
         }
+
         ClientRealtimeEvent.ResponseCreate -> buildJsonObject {
             put("type", "response.create")
         }
+
         ClientRealtimeEvent.ResponseCancel -> buildJsonObject {
             put("type", "response.cancel")
         }
@@ -123,13 +130,17 @@ internal object OpenAiEventCodec {
             put("prefix_padding_ms", vad.prefixPaddingMs)
             put("silence_duration_ms", vad.silenceDurationMs)
         }
+
         VadConfig.Manual -> buildJsonObject { put("type", "none") }
     }
 
     private fun toolChoiceJson(choice: ToolChoice): kotlinx.serialization.json.JsonElement = when (choice) {
         ToolChoice.Auto -> kotlinx.serialization.json.JsonPrimitive("auto")
+
         ToolChoice.None -> kotlinx.serialization.json.JsonPrimitive("none")
+
         ToolChoice.Required -> kotlinx.serialization.json.JsonPrimitive("required")
+
         is ToolChoice.Named -> buildJsonObject {
             put("type", "function")
             put("name", choice.name)

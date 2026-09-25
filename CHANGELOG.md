@@ -74,6 +74,14 @@ patch versions move independently.
 
 ### Changed
 
+- **Current build tooling.** ktlint Gradle plugin 14.2.0 with the ktlint
+  engine pinned to 1.8.0 (the plugin's own default is 1.5.0), Kover 0.9.9,
+  binary-compatibility-validator 0.18.2, Dependency-Check 13.0.0 and
+  maven-publish 0.37.0. ktlint 1.8.0 adds blank lines between multi-line
+  `when` branches; the sources are reformatted to match. Publishing uses
+  `publishToMavenCentral(automaticRelease = false)`, because 0.37.0 removed
+  `SonatypeHost`. Build-tool security floors now also lift Dokka's Kotlin
+  standard library and KGP's ABI-validation classpath to Kotlin 2.4.20.
 - **Current runtime libraries.** kotlinx-coroutines 1.11.0,
   kotlinx-serialization 1.11.0, kotlinx-datetime 0.8.0, Ktor 3.6.0 and okio
   3.18.2. Ktor 3.6.0 brings OkHttp 5.5.0 on Android, which requires

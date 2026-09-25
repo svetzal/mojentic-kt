@@ -44,10 +44,12 @@ public class IterativeProblemSolver(
                     logger.info { "Task failed: $result" }
                     break
                 }
+
                 "DONE" in normalised -> {
                     logger.info { "Task completed: $result" }
                     break
                 }
+
                 else -> {
                     remaining -= 1
                     if (remaining <= 0) {

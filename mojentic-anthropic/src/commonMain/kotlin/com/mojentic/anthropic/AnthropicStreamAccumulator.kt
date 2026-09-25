@@ -46,15 +46,19 @@ internal class AnthropicStreamAccumulator(private val json: Json) {
             handleBlockStart(event)
             false
         }
+
         is AnthropicStreamEvent.ContentBlockDelta -> {
             handleDelta(event, emit)
             false
         }
+
         is AnthropicStreamEvent.ContentBlockStop -> {
             finaliseBlock(event.index)
             false
         }
+
         is AnthropicStreamEvent.MessageStop -> true
+
         else -> false
     }
 
@@ -67,6 +71,7 @@ internal class AnthropicStreamAccumulator(private val json: Json) {
                     argsBuffer = StringBuilder(),
                 )
             }
+
             else -> Unit
         }
     }
@@ -78,9 +83,12 @@ internal class AnthropicStreamAccumulator(private val json: Json) {
         when (val delta = event.delta) {
             is AnthropicDelta.TextDelta ->
                 if (delta.text.isNotEmpty()) emit(GatewayStreamEvent.Content(delta.text))
+
             is AnthropicDelta.ThinkingDelta ->
                 if (delta.thinking.isNotEmpty()) emit(GatewayStreamEvent.Thinking(delta.thinking))
+
             is AnthropicDelta.InputJsonDelta -> pendingTools[event.index]?.argsBuffer?.append(delta.partialJson)
+
             is AnthropicDelta.SignatureDelta -> Unit
         }
     }

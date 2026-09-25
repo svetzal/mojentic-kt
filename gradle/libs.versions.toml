@@ -12,13 +12,14 @@ okio = "3.18.2"
 kotlin-logging = "7.0.7"
 
 # Quality / tooling plugins
-ktlint-plugin = "13.0.0"
+ktlint-plugin = "14.2.0"
+ktlint-engine = "1.8.0"
 detekt = "1.23.8"
-kover = "0.9.1"
+kover = "0.9.9"
 dokka = "2.2.0"
-binary-compat-validator = "0.18.1"
-dependency-check = "12.2.2"
-maven-publish = "0.30.0"
+binary-compat-validator = "0.18.2"
+dependency-check = "13.0.0"
+maven-publish = "0.37.0"
 
 # Test
 turbine = "1.2.1"

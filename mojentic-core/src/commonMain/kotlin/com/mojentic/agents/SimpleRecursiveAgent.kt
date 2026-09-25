@@ -81,12 +81,14 @@ public class SimpleRecursiveAgent(
                         emitted += SolverEvent.GoalFailed(final)
                         return@withTimeoutOrNull final
                     }
+
                     normalised == "DONE" -> {
                         val final = next.copy(solution = response, isComplete = true)
                         emitted += SolverEvent.IterationCompleted(next, response)
                         emitted += SolverEvent.GoalAchieved(final)
                         return@withTimeoutOrNull final
                     }
+
                     next.iteration >= next.maxIterations -> {
                         val final = next.copy(
                             solution = "Best solution after ${next.maxIterations} iterations:\n$response",
@@ -96,6 +98,7 @@ public class SimpleRecursiveAgent(
                         emitted += SolverEvent.GoalAchieved(final)
                         return@withTimeoutOrNull final
                     }
+
                     else -> {
                         emitted += SolverEvent.IterationCompleted(next, response)
                         current = next
