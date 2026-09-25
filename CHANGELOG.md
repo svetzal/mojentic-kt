@@ -87,7 +87,12 @@ patch versions move independently.
   (CVE-2026-56740, CVE-2026-56741) and protobuf 2.6.1 (CVE-2022-3171,
   CVE-2024-7254) shaded into Android lint's Kotlin compiler. The security
   workflow uploads the report from `build/reports/dependency-check/`, where
-  Dependency-Check 13 writes it.
+  Dependency-Check 13 writes it. With no `NVD_API_KEY`, the build no longer
+  passes an empty key (which Dependency-Check 13 rejects), and the security
+  workflow reads NVD's bulk feed instead.
+- **CI sets up the Android SDK with `android-actions/setup-android` v4.0.4**,
+  pinned by commit SHA. v3 asked sdkmanager for the removed `tools` package
+  and failed before any Gradle step ran.
 - **kotlin-logging 8.0.4** (from 7.0.7). `mojentic-core` exposes it as an
   `api` dependency, so apps get the 8.x line. The library's call sites and
   the public API dump are unchanged. On the JVM, apps still supply their own

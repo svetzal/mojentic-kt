@@ -52,7 +52,14 @@ jobs:
           # Without it, downloads are heavily rate-limited and the build can hang for hours.
           # The build script reads this directly from System.getenv("NVD_API_KEY").
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
-        run: ./gradlew dependencyCheckAggregate --no-parallel --no-daemon --stacktrace
+        # Without an API key, read NVD's bulk feed instead (see AGENTS.md,
+        # "Dependency audit"). Same audit scope and threshold.
+        run: |
+          feed=()
+          if [ -z "${NVD_API_KEY}" ]; then
+            feed=("-PdependencyCheckNvdDatafeedUrl=https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-{0}.json.gz")
+          fi
+          ./gradlew dependencyCheckAggregate --no-parallel --no-daemon --stacktrace "${feed[@]}"
 
       - name: Upload report
         if: always()

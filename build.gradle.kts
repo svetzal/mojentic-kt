@@ -28,7 +28,9 @@ dependencyCheck {
     // can stall for hours waiting on the public-tier feed. Set NVD_API_KEY in CI
     // secrets; request a key at https://nvd.nist.gov/developers/request-an-api-key.
     nvd {
-        apiKey = System.getenv("NVD_API_KEY") ?: ""
+        // Leave the key unset when the variable is empty: Dependency-Check 13
+        // rejects an empty key instead of treating it as absent.
+        System.getenv("NVD_API_KEY")?.takeIf { it.isNotBlank() }?.let { apiKey = it }
         providers.gradleProperty("dependencyCheckNvdDatafeedUrl").orNull?.let { datafeedUrl = it }
     }
     // Examples and samples are demonstration code — never published, not part of
