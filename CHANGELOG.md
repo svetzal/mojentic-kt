@@ -74,6 +74,10 @@ patch versions move independently.
 
 ### Changed
 
+- **kotlin-logging 8.0.4** (from 7.0.7). `mojentic-core` exposes it as an
+  `api` dependency, so apps get the 8.x line. The library's call sites and
+  the public API dump are unchanged. On the JVM, apps still supply their own
+  SLF4J binding.
 - **Current build tooling.** ktlint Gradle plugin 14.2.0 with the ktlint
   engine pinned to 1.8.0 (the plugin's own default is 1.5.0), Kover 0.9.9,
   binary-compatibility-validator 0.18.2, Dependency-Check 13.0.0 and
