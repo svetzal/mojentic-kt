@@ -10,7 +10,6 @@ import com.mojentic.llm.LlmMessage
 import com.mojentic.llm.StreamErrorReason
 import com.mojentic.llm.StreamEventsGateway
 import com.mojentic.llm.tools.LlmTool
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.HttpClientEngine
@@ -37,8 +36,6 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
-
-private val logger = KotlinLogging.logger {}
 
 /**
  * Default OpenAI HTTP host.
@@ -160,15 +157,13 @@ public class OpenAIGateway(
         }
         statement.execute { httpResponse ->
             ensureSuccess(httpResponse)
-            val accumulator = StreamingToolCallAccumulator(json)
+            val parser = OpenAILegacyStreamParser(json)
             val channel = httpResponse.bodyAsChannel()
-            var stopped = false
-            while (!stopped) {
+            while (!parser.isDone) {
                 val line = channel.readLine() ?: break
-                stopped = handleSseLine(line, accumulator) { event -> send(event) }
+                parser.accept(line).forEach { send(it) }
             }
-            val finalised = accumulator.toLlmToolCalls()
-            if (finalised.isNotEmpty()) send(GatewayStreamEvent.ToolCalls(finalised))
+            parser.finish().forEach { send(it) }
         }
     }.buffer(Channel.RENDEZVOUS)
 
@@ -217,35 +212,6 @@ public class OpenAIGateway(
         }
     }.buffer(Channel.RENDEZVOUS)
         .catch { failure -> emit(CompletionStreamEvent.Error(StreamErrorReason.RequestFailed(failure))) }
-
-    private suspend fun handleSseLine(
-        line: String,
-        accumulator: StreamingToolCallAccumulator,
-        emit: suspend (GatewayStreamEvent) -> Unit,
-    ): Boolean {
-        val payload = ssePayload(line) ?: return false
-        if (payload == "[DONE]") return true
-        val delta = parseSseDelta(payload) ?: return false
-        delta.content?.takeIf { it.isNotEmpty() }?.let { emit(GatewayStreamEvent.Content(it)) }
-        delta.reasoningContent?.takeIf { it.isNotEmpty() }?.let { emit(GatewayStreamEvent.Thinking(it)) }
-        delta.toolCalls?.forEach { accumulator.append(it) }
-        return false
-    }
-
-    private fun parseSseDelta(payload: String): OpenAIResponseMessage? {
-        val chunk = runCatching { json.decodeFromString(OpenAIChatResponse.serializer(), payload) }
-            .getOrElse {
-                logger.warn { "Skipping malformed OpenAI SSE chunk: $payload" }
-                null
-            }
-        return chunk?.choices?.firstOrNull()?.delta
-    }
-
-    private fun ssePayload(line: String): String? {
-        if (line.isEmpty()) return null
-        if (!line.startsWith("data:")) return null
-        return line.removePrefix("data:").trim()
-    }
 
     private fun buildChatRequest(
         model: String,
