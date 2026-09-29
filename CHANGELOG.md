@@ -12,6 +12,22 @@ patch versions move independently.
 
 ### Added
 
+- **`OmlxGateway`** (`com.mojentic.omlx`, in `mojentic-openai`) connects to
+  [oMLX](https://github.com/jundot/omlx), an LLM server for Apple Silicon. It
+  uses the OpenAI message adapter and stream parsers but not the OpenAI model
+  registry, so every configured parameter reaches the server unchanged for any
+  model name: `temperature`, `max_tokens` (never `max_completion_tokens`),
+  `reasoning_effort`, `response_format` and `tools`. `reasoning_content` maps
+  to `thinking`, and `usage` is kept exactly as reported, including oMLX's
+  extra timing fields. Configuration is `host`, `apiKey` and `timeout`, with
+  `OMLX_HOST`, `OMLX_API_KEY` and `OMLX_TIMEOUT` (milliseconds) as fallbacks
+  on the JVM, and defaults of `http://localhost:8000` (the gateway adds `/v1`),
+  no key, and 10 minutes for every request. A `Warning` header on a structured
+  request goes into `metadata` under `response_format_warning`, with a logged
+  warning. Both streaming APIs drop oMLX keep-alive frames, so `keepalive`
+  never becomes the provider model. New `loadModel` and `unloadModel` warm up
+  and release a model; `embed` needs an explicit model and sends one request
+  per text. See `docs/use-cases/omlx.md` and `examples/omlx-simple`.
 - **`LlmBroker.generateStreamEvents`** streams one turn as a
   `Flow<CompletionStreamEvent>`: `Content` events, then exactly one terminal
   `Completed(CompletionEvidence)` or `Error(StreamErrorReason)`. OpenAI

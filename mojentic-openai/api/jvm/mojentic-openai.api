@@ -1,3 +1,24 @@
+public final class com/mojentic/omlx/OmlxGateway : com/mojentic/llm/EmbeddingsGateway, com/mojentic/llm/LlmGateway, com/mojentic/llm/StreamEventsGateway {
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Duration;Lio/ktor/client/engine/HttpClientEngine;Lkotlinx/serialization/json/Json;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Duration;Lio/ktor/client/engine/HttpClientEngine;Lkotlinx/serialization/json/Json;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun availableModels (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun close ()V
+	public fun complete (Ljava/lang/String;Ljava/util/List;Ljava/util/List;Lcom/mojentic/llm/CompletionConfig;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun completeJson (Ljava/lang/String;Ljava/util/List;Lkotlinx/serialization/json/JsonObject;Lcom/mojentic/llm/CompletionConfig;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun completeJsonResponse (Ljava/lang/String;Ljava/util/List;Lkotlinx/serialization/json/JsonObject;Lcom/mojentic/llm/CompletionConfig;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun embed (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun embedBatch (Ljava/lang/String;Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun loadModel (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun stream (Ljava/lang/String;Ljava/util/List;Ljava/util/List;Lcom/mojentic/llm/CompletionConfig;)Lkotlinx/coroutines/flow/Flow;
+	public fun streamEvents (Ljava/lang/String;Ljava/util/List;Lcom/mojentic/llm/CompletionConfig;)Lkotlinx/coroutines/flow/Flow;
+	public final fun unloadModel (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/mojentic/omlx/OmlxGatewayKt {
+	public static final field DEFAULT_OMLX_HOST Ljava/lang/String;
+	public static final fun getDEFAULT_OMLX_TIMEOUT ()J
+}
+
 public final class com/mojentic/openai/JtokkitTokenizerGateway : com/mojentic/llm/TokenizerGateway {
 	public static final field Companion Lcom/mojentic/openai/JtokkitTokenizerGateway$Companion;
 	public fun <init> (Ljava/lang/String;)V

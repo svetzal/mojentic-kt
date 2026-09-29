@@ -7,7 +7,7 @@ The Kotlin port is a Kotlin Multiplatform library targeting JVM, Android, and iO
 ## Design goals
 
 - Simple to use to do simple things.
-- One vendor-neutral surface across multiple LLM providers (Ollama, OpenAI, Anthropic).
+- One vendor-neutral surface across multiple LLM providers (Ollama, OpenAI, oMLX, Anthropic).
 - An async pubsub agent architecture rather than the popular directed-graph or delegation styles.
 - Idiomatic Kotlin throughout: `suspend` functions, `Flow`, sealed-class unions, data classes with named arguments — no shoehorned-from-Python ergonomics.
 
@@ -42,7 +42,7 @@ Three sections, mirroring the other Mojentic ports:
 |---|---|
 | `mojentic-core` | Vendor-neutral types (`LlmMessage`, `LlmBroker`, `LlmGateway`, tool interfaces, tracer, task list, file tools, realtime broker, gateway interfaces). |
 | `mojentic-ollama` | Ollama gateway. |
-| `mojentic-openai` | OpenAI gateway (Chat Completions API). |
+| `mojentic-openai` | OpenAI gateway (Chat Completions API), and the oMLX gateway for local models on Apple Silicon (`com.mojentic.omlx`). |
 | `mojentic-anthropic` | Anthropic gateway (Messages API). |
 | `mojentic-realtime-openai` | OpenAI Realtime gateway over WebSockets. |
 | `mojentic-websearch-serpapi` | SerpApi-backed web search tool. |
