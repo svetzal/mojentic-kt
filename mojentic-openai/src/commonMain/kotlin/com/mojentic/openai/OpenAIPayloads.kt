@@ -1,6 +1,8 @@
 package com.mojentic.openai
 
 import com.mojentic.llm.ResponseFormat
+import kotlinx.serialization.EncodeDefault
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
@@ -61,11 +63,13 @@ internal data class OpenAIMessage(
     @SerialName("tool_call_id") val toolCallId: String? = null,
 )
 
+// `type` is required on the wire, so it is encoded even though it is the default.
+@OptIn(ExperimentalSerializationApi::class)
 @Serializable
 internal data class OpenAIToolCall(
     val index: Int? = null,
     val id: String? = null,
-    val type: String = "function",
+    @EncodeDefault val type: String = "function",
     val function: OpenAIToolCallFunction,
 )
 
@@ -75,9 +79,11 @@ internal data class OpenAIToolCallFunction(
     val arguments: String = "",
 )
 
+// `type` is required on the wire, so it is encoded even though it is the default.
+@OptIn(ExperimentalSerializationApi::class)
 @Serializable
 internal data class OpenAITool(
-    val type: String = "function",
+    @EncodeDefault val type: String = "function",
     val function: OpenAIToolFunction,
 )
 

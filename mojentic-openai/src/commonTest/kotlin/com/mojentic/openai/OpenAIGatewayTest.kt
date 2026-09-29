@@ -3,7 +3,10 @@ package com.mojentic.openai
 import com.mojentic.llm.CompletionConfig
 import com.mojentic.llm.ImageContent
 import com.mojentic.llm.LlmMessage
+import com.mojentic.llm.LlmToolCall
 import com.mojentic.llm.ReasoningEffort
+import com.mojentic.llm.tools.LlmTool
+import com.mojentic.llm.tools.ToolDescriptor
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.request.HttpRequestData
@@ -11,8 +14,12 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -163,5 +170,38 @@ class OpenAIGatewayTest {
         assertTrue(body.contains("\"max_completion_tokens\""), "expected max_completion_tokens in body: $body")
         assertTrue(body.contains("\"reasoning_effort\":\"high\""), "expected reasoning_effort=high in body: $body")
         assertTrue(!body.contains("\"temperature\""), "expected temperature omitted for reasoning model: $body")
+    }
+
+    @Test
+    fun toolsAndAssistantToolCallsCarryTheFunctionType() = runTest {
+        var requestBodyText: String? = null
+        val engine = MockEngine { request ->
+            requestBodyText = (request.body as? io.ktor.http.content.TextContent)?.text
+            respond(
+                content = """{"choices":[{"index":0,"message":{"role":"assistant","content":"done"}}]}""",
+                status = HttpStatusCode.OK,
+                headers = headersOf(HttpHeaders.ContentType, "application/json"),
+            )
+        }
+        gateway = OpenAIGateway(apiKey = "test", engine = engine)
+        val call = LlmToolCall(id = "call_1", name = "lookup", arguments = buildJsonObject { put("q", JsonPrimitive("x")) })
+        val tool = object : LlmTool {
+            override val descriptor =
+                ToolDescriptor("lookup", "Look something up", buildJsonObject { put("type", JsonPrimitive("object")) })
+
+            override suspend fun execute(arguments: JsonObject): String = "found"
+        }
+
+        gateway.complete(
+            model = "gpt-4o-mini",
+            messages = listOf(LlmMessage.user("look up x"), LlmMessage.assistant(toolCalls = listOf(call)), LlmMessage.tool("found", call)),
+            tools = listOf(tool),
+        )
+
+        val body = Json.parseToJsonElement(assertNotNull(requestBodyText)).jsonObject
+        val sentTool = body.getValue("tools").jsonArray.single().jsonObject
+        assertEquals(JsonPrimitive("function"), sentTool["type"], "tools need type: $body")
+        val sentCall = body.getValue("messages").jsonArray[1].jsonObject.getValue("tool_calls").jsonArray.single().jsonObject
+        assertEquals(JsonPrimitive("function"), sentCall["type"], "assistant tool_calls need type: $body")
     }
 }

@@ -172,6 +172,10 @@ patch versions move independently.
 
 ### Fixed
 
+- **OpenAI tools and tool calls carry `"type": "function"`.** The request
+  codec leaves out values that equal their defaults, so `OpenAIGateway` sent
+  `tools` entries and assistant `tool_calls` without the `type` field that
+  OpenAI's API requires. Both now always send it.
 - **Use-case guides name real APIs.** The guides and the docs index used
   names that do not exist (`generateObject`, `OpenAiGateway`,
   `LlmBroker(model = ...)`, `broker.generate`, `sendStream`, `LlmContentPart`,
