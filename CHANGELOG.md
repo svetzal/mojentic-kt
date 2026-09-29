@@ -125,7 +125,7 @@ patch versions move independently.
   the public API dump are unchanged. On the JVM, apps still supply their own
   SLF4J binding.
 - **Current build tooling.** ktlint Gradle plugin 14.2.0 with the ktlint
-  engine pinned to 1.8.0 (the plugin's own default is 1.5.0), Kover 0.9.9,
+  engine pinned to 1.8.0 (the plugin's own default is 1.5.0), Kover 0.9.10,
   binary-compatibility-validator 0.18.2, Dependency-Check 13.0.0 and
   maven-publish 0.37.0. ktlint 1.8.0 adds blank lines between multi-line
   `when` branches; the sources are reformatted to match. Publishing uses
