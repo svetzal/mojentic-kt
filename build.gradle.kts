@@ -54,6 +54,8 @@ dependencyCheck {
         ":examples:realtime-text",
         // Phase 6 examples
         ":examples:anthropic-simple",
+        // oMLX examples
+        ":examples:omlx-simple",
     )
 }
 
@@ -89,6 +91,8 @@ apiValidation {
             "realtime-text",
             // Phase 6 examples
             "anthropic-simple",
+            // oMLX examples
+            "omlx-simple",
         ),
     )
     // Internal-only markers; the validator excludes anything annotated this way from

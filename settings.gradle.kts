@@ -67,3 +67,6 @@ include(":examples:realtime-text")
 
 // Phase 6 examples (JVM-only Gradle subprojects)
 include(":examples:anthropic-simple")
+
+// oMLX examples (JVM-only Gradle subprojects)
+include(":examples:omlx-simple")
