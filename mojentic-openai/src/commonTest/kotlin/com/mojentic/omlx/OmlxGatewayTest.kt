@@ -2,10 +2,13 @@ package com.mojentic.omlx
 
 import com.mojentic.errors.LlmGatewayException
 import com.mojentic.llm.CompletionConfig
+import com.mojentic.llm.ImageContent
 import com.mojentic.llm.LlmMessage
 import com.mojentic.llm.LlmToolCall
+import com.mojentic.llm.MessageRole
 import com.mojentic.llm.ReasoningEffort
 import com.mojentic.llm.ResponseFormat
+import com.mojentic.llm.TextContent
 import com.mojentic.llm.tools.LlmTool
 import com.mojentic.llm.tools.ToolDescriptor
 import com.mojentic.omlx.OmlxTestServer.Companion.JSON_HEADERS
@@ -211,6 +214,25 @@ class OmlxGatewayTest {
         assertEquals("2026-09-29", sent[2].string("content"))
         assertEquals("Today's date is **September 29, 2026** (2026-09-29).", response.content)
         assertEquals("The tool returned the date: 2026-09-29. I should tell the user the current date.", response.thinking)
+    }
+
+    @Test
+    fun toolResultPartsKeepTextAndCallId() = runTest {
+        val server = OmlxTestServer.answering(OmlxFixtures.CHAT_AFTER_TOOL_RESULT)
+        val call = LlmToolCall(id = "call_parts", name = "resolve_date", arguments = buildJsonObject {})
+        server.open().complete(
+            model,
+            listOf(
+                LlmMessage(
+                    role = MessageRole.Tool,
+                    contentParts = listOf(TextContent("first"), ImageContent("AAAA", "image/png"), TextContent("second")),
+                    toolCalls = listOf(call),
+                ),
+            ),
+        )
+        val sent = server.body.getValue("messages").jsonArray.single().jsonObject
+        assertEquals("first\nsecond", sent.string("content"))
+        assertEquals("call_parts", sent.string("tool_call_id"))
     }
 
     // 5. Structured output

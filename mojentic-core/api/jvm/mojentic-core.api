@@ -608,6 +608,10 @@ public final class com/mojentic/llm/MessageRole$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
+public final class com/mojentic/llm/MessagesKt {
+	public static final fun messageText (Lcom/mojentic/llm/LlmMessage;)Ljava/lang/String;
+}
+
 public final class com/mojentic/llm/ReasoningEffort : java/lang/Enum {
 	public static final field HIGH Lcom/mojentic/llm/ReasoningEffort;
 	public static final field LOW Lcom/mojentic/llm/ReasoningEffort;

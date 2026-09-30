@@ -4,7 +4,9 @@ import com.mojentic.llm.CompletionConfig
 import com.mojentic.llm.ImageContent
 import com.mojentic.llm.LlmMessage
 import com.mojentic.llm.LlmToolCall
+import com.mojentic.llm.MessageRole
 import com.mojentic.llm.ReasoningEffort
+import com.mojentic.llm.TextContent
 import com.mojentic.llm.tools.LlmTool
 import com.mojentic.llm.tools.ToolDescriptor
 import io.ktor.client.engine.mock.MockEngine
@@ -42,6 +44,39 @@ class OpenAIGatewayTest {
             status = status,
             headers = headersOf(HttpHeaders.ContentType, "application/json"),
         )
+    }
+
+    @Test
+    fun textOnlyRolesKeepPartsTextAndDropImages() = runTest {
+        var requestBodyText: String? = null
+        gateway = OpenAIGateway(
+            apiKey = "test",
+            engine = MockEngine { request ->
+                requestBodyText = (request.body as io.ktor.http.content.TextContent).text
+                respond(
+                    """{"choices":[{"index":0,"message":{"role":"assistant","content":"ok"}}]}""",
+                    HttpStatusCode.OK,
+                    headersOf(HttpHeaders.ContentType, "application/json"),
+                )
+            },
+        )
+        val call = LlmToolCall(id = "call_1", name = "lookup", arguments = buildJsonObject {})
+        val parts = listOf(TextContent("first"), ImageContent("AAAA", "image/png"), TextContent("second"))
+        gateway.complete(
+            "gpt-4o",
+            listOf(
+                LlmMessage(role = MessageRole.System, contentParts = parts),
+                LlmMessage(role = MessageRole.Assistant, contentParts = parts, toolCalls = listOf(call)),
+                LlmMessage(role = MessageRole.Tool, contentParts = parts, toolCalls = listOf(call)),
+                LlmMessage(role = MessageRole.System, content = "preferred", contentParts = parts),
+                LlmMessage(role = MessageRole.Assistant, content = "", contentParts = parts),
+            ),
+        )
+        val sent = Json.parseToJsonElement(assertNotNull(requestBodyText)).jsonObject.getValue("messages").jsonArray
+        listOf(0, 1, 2).forEach { assertEquals(JsonPrimitive("first\nsecond"), sent[it].jsonObject["content"]) }
+        assertEquals(JsonPrimitive("preferred"), sent[3].jsonObject["content"])
+        assertEquals(JsonPrimitive(""), sent[4].jsonObject["content"])
+        assertEquals(JsonPrimitive("call_1"), sent[2].jsonObject["tool_call_id"])
     }
 
     @Test

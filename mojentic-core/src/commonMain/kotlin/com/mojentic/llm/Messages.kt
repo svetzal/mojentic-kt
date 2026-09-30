@@ -85,6 +85,16 @@ public data class LlmMessage(
 }
 
 /**
+ * Plain message text for provider roles that accept text only.
+ *
+ * Explicit [LlmMessage.content], including an empty string, takes precedence.
+ * Otherwise text parts are joined with newlines and image parts are omitted.
+ */
+public fun LlmMessage.messageText(): String? = content ?: contentParts
+    ?.filterIsInstance<TextContent>()
+    ?.joinToString("\n") { it.text }
+
+/**
  * A non-streaming response from an [com.mojentic.llm.gateway.LlmGateway].
  *
  * @property content Assistant text response, when present.

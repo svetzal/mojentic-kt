@@ -5,6 +5,7 @@ import com.mojentic.llm.LlmMessage
 import com.mojentic.llm.LlmToolCall
 import com.mojentic.llm.MessageRole
 import com.mojentic.llm.TextContent
+import com.mojentic.llm.messageText
 import com.mojentic.llm.tools.LlmTool
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -22,7 +23,7 @@ internal fun LlmMessage.toOpenAIMessages(): List<OpenAIMessage> = when (role) {
         listOf(
             OpenAIMessage(
                 role = "tool",
-                content = JsonPrimitive(content.orEmpty()),
+                content = JsonPrimitive(messageText().orEmpty()),
                 toolCallId = toolCallId,
             ),
         )
@@ -31,12 +32,16 @@ internal fun LlmMessage.toOpenAIMessages(): List<OpenAIMessage> = when (role) {
     MessageRole.Assistant -> listOf(
         OpenAIMessage(
             role = "assistant",
-            content = content?.let { JsonPrimitive(it) },
+            content = messageText()?.let { JsonPrimitive(it) },
             toolCalls = toolCalls?.takeIf { it.isNotEmpty() }?.map { it.toOpenAIToolCall() },
         ),
     )
 
-    else -> listOf(
+    MessageRole.System -> listOf(
+        OpenAIMessage(role = "system", content = messageText()?.let { JsonPrimitive(it) }),
+    )
+
+    MessageRole.User -> listOf(
         OpenAIMessage(
             role = role.wireValue,
             content = openAIContent(),

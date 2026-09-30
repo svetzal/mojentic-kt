@@ -10,6 +10,11 @@ patch versions move independently.
 
 ## [Unreleased]
 
+### Fixed
+
+- OpenAI and oMLX keep text parts on tool, assistant and system messages.
+  These roles omit images and prefer explicit string content.
+
 ### Added
 
 - **`OmlxGateway`** (`com.mojentic.omlx`, in `mojentic-openai`) connects to

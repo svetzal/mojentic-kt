@@ -123,3 +123,10 @@ Clears all messages except the system prompt. Useful for "new chat" buttons in a
 - [`examples/chat-session-with-tool`](https://github.com/svetzal/mojentic-kt/tree/main/examples/chat-session-with-tool) — chat plus a date-resolver tool.
 - [`examples/streaming`](https://github.com/svetzal/mojentic-kt/tree/main/examples/streaming) — token-by-token streaming.
 - [`examples/realtime-text`](https://github.com/svetzal/mojentic-kt/tree/main/examples/realtime-text) — chat over the OpenAI Realtime WebSocket endpoint.
+
+## Text parts on provider messages
+
+OpenAI and oMLX send system, assistant and tool messages as text. Explicit
+`content` takes precedence, including an empty string. Otherwise they join
+`TextContent` parts with newlines and omit `ImageContent` parts on these roles.
+User messages keep their image parts.
