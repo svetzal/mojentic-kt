@@ -12,6 +12,9 @@ patch versions move independently.
 
 ### Fixed
 
+- Stream events reject malformed evidence and terminal fields. Ollama keeps
+  reported usage and timings across frames, including an early end of stream.
+
 - Anthropic tool results keep text parts and their matching tool-call id.
 
 - Anthropic keeps system and assistant text parts when string content is absent.

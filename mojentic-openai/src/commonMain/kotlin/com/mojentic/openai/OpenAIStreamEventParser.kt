@@ -53,6 +53,9 @@ internal class OpenAIStreamEventParser(private val json: Json) {
         frame["error"]?.takeUnless { it is JsonNull }?.let {
             return listOf(fail(StreamErrorReason.ProviderError(detail = it.toString())))
         }
+        if (!optionalString(frame["model"]) || !optionalObject(frame["usage"])) {
+            return listOf(fail(StreamErrorReason.InvalidStreamEvent(payload)))
+        }
         (frame["model"] as? JsonPrimitive)?.contentOrNull?.let { providerModel = it }
         (frame["usage"] as? JsonObject)?.let { usage = it }
         val choices = frame["choices"] as? JsonArray
@@ -64,8 +67,11 @@ internal class OpenAIStreamEventParser(private val json: Json) {
     private fun acceptChoice(choice: JsonElement, payload: String): List<CompletionStreamEvent> {
         val delta = (choice as? JsonObject)?.get("delta") as? JsonObject
             ?: return listOf(fail(StreamErrorReason.InvalidStreamEvent(payload)))
-        (choice["finish_reason"] as? JsonPrimitive)?.contentOrNull?.let { finishReason = it }
         val toolCalls = delta["tool_calls"]
+        if (!optionalString(choice["finish_reason"]) || !optionalArray(toolCalls)) {
+            return listOf(fail(StreamErrorReason.InvalidStreamEvent(payload)))
+        }
+        (choice["finish_reason"] as? JsonPrimitive)?.contentOrNull?.let { finishReason = it }
         if (toolCalls is JsonArray && toolCalls.isNotEmpty()) return listOf(fail(StreamErrorReason.UnexpectedToolCalls))
         return acceptContent(delta["content"], payload)
     }
@@ -79,6 +85,13 @@ internal class OpenAIStreamEventParser(private val json: Json) {
 
         else -> listOf(fail(StreamErrorReason.InvalidStreamEvent(payload)))
     }
+
+    private fun optionalString(value: JsonElement?): Boolean =
+        value == null || value is JsonNull || (value is JsonPrimitive && value.isString)
+
+    private fun optionalArray(value: JsonElement?): Boolean = value == null || value is JsonNull || value is JsonArray
+
+    private fun optionalObject(value: JsonElement?): Boolean = value == null || value is JsonNull || value is JsonObject
 
     private fun evidence(): CompletionEvidence =
         CompletionEvidence(finishReason = finishReason, usage = usage, providerModel = providerModel)
