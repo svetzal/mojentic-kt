@@ -145,18 +145,59 @@ newest AGP when this expires.
 
     <suppress until="2026-12-23Z">
         <notes><![CDATA[
-Case (ii), no upstream fix, build-time only. CVE-2022-3171 (GC-pause DoS)
-and CVE-2024-7254 (stack overflow on nested groups) need a parser fed
+Case (ii), no upstream fix, build-time only. CVE-2021-22569 (unknown-field
+allocation DoS), CVE-2022-3171 (GC-pause DoS), and CVE-2024-7254 (stack overflow on nested groups) need a parser fed
 hostile protobuf input. The jar holds no com/google/protobuf classes, only
 Kotlin's relocated 2.6.1 fork (277 classes under
 org/jetbrains/kotlin/protobuf), which lint uses to read Kotlin metadata from
 this build's own classes and its pinned dependencies. No lint release,
 stable or pre-release, ships a newer copy. Re-check the newest AGP when this
-expires.
+expires. Google Maven metadata still lists 32.4.1 as the newest stable
+on 2026-09-30; the existing 32.5.0-alpha07 inspection remains current.
         ]]></notes>
         <filePath regex="true">.*/com\.android\.tools\.external\.com-intellij/kotlin-compiler/32\.4\.1/.*/kotlin-compiler-32\.4\.1\.jar/META-INF/maven/com\.google\.protobuf/protobuf-java/pom\.xml$</filePath>
+        <cve>CVE-2021-22569</cve>
         <cve>CVE-2022-3171</cve>
         <cve>CVE-2024-7254</cve>
+    </suppress>
+
+
+    <suppress until="2026-12-23Z">
+        <notes><![CDATA[
+Case (i), verified false positive on 2026-09-30. CVE-2020-29582 was fixed
+in Kotlin 1.4.21, per JetBrains Security Bulletin Q4 2020:
+https://blog.jetbrains.com/blog/2021/02/03/jetbrains-security-bulletin-q4-2020/
+Every matched artifact here is newer than 1.4.21. The CPE match incorrectly
+marks versions 1.6.10, 1.8.0 and 2.0.21 as vulnerable. Match exact artifacts
+and versions, so older Kotlin dependencies would still be reported.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.jetbrains\.kotlin/kotlin-(compiler-embeddable|daemon-embeddable|reflect|script-runtime|stdlib|stdlib-jdk7|stdlib-jdk8)@(1\.6\.10|1\.8\.0|2\.0\.21)$</packageUrl>
+        <cve>CVE-2020-29582</cve>
+    </suppress>
+
+    <suppress until="2026-12-23Z">
+        <notes><![CDATA[
+Case (i), verified false positive on 2026-09-30. CVE-2023-50572 affects
+GroovyEngine.execute in jline-groovy, per https://github.com/jline/jline3/issues/909.
+The Android lint compiler jar contains zero org/jline/groovy classes, checked
+with zipfile against kotlin-compiler-32.4.1.jar. The scanner matched shaded
+JLine modules that do not contain this component. This suppression applies
+only to those embedded POMs; an actual jline-groovy dependency remains visible.
+        ]]></notes>
+        <filePath regex="true">.*/com\.android\.tools\.external\.com-intellij/kotlin-compiler/32\.4\.1/.*/kotlin-compiler-32\.4\.1\.jar/META-INF/maven/org\.jline/jline(-[a-z-]+)?/pom\.xml$</filePath>
+        <cve>CVE-2023-50572</cve>
+    </suppress>
+
+    <suppress until="2026-12-23Z">
+        <notes><![CDATA[
+Case (i), verified false positive on 2026-09-30. CVE-2026-54285 affects the
+npm package @opentelemetry/core before 2.8.0, not these Java Maven modules:
+https://github.com/open-telemetry/opentelemetry-js/security/advisories/GHSA-8988-4f7v-96qf
+The Java equivalent has its own advisory and was fixed in 1.62.0. These Java
+artifacts are 1.66.0. Match only api/common/context at this exact version.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/io\.opentelemetry/opentelemetry-(api|common|context)@1\.66\.0$</packageUrl>
+        <cve>CVE-2026-54285</cve>
     </suppress>
 
 </suppressions>
