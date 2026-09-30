@@ -10,7 +10,6 @@ import com.mojentic.llm.tools.LlmTool
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 
 internal fun List<LlmMessage>.toOpenAIMessages(): List<OpenAIMessage> = flatMap { it.toOpenAIMessages() }
@@ -100,6 +99,3 @@ internal fun List<LlmTool>.toOpenAITools(): List<OpenAITool> = map { tool ->
         ),
     )
 }
-
-@Suppress("unused")
-private val MARKER: JsonArray = buildJsonArray { /* keep import path stable */ }
