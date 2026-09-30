@@ -28,7 +28,7 @@ library that runs identically across all targets.
 - Maintain full feature parity with the Python, Elixir, Rust, TypeScript, and
   Swift implementations of Mojentic (see `PARITY.md` in the monorepo).
 - Ship as a first-class Kotlin Multiplatform library:
-  - **JVM / Android** → Maven Central (`com.mojentic:mojentic-core:<v>`,
+  - **JVM / Android** → Maven Central (`com.vetzal.mojentic:mojentic-core:<v>`,
     plus per-gateway modules).
   - **iOS** → XCFramework + Swift Package Manager (preferred) and CocoaPods
     (fallback).

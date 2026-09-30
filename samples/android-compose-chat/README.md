@@ -27,8 +27,8 @@ Reference integration showing how to consume **mojentic-core + mojentic-openai**
 2. Copy `MainActivity.kt`, `ChatViewModel.kt`, `ChatScreen.kt` into `app/src/main/java/com/example/mojenticchat/`.
 3. Copy `AndroidManifest.xml` over the generated one (or merge the INTERNET permission line).
 4. In `app/build.gradle.kts`, add dependencies on:
-   - `com.mojentic:mojentic-core` (when published to Maven Central)
-   - `com.mojentic:mojentic-openai`
+   - `com.vetzal.mojentic:mojentic-core` (when published to Maven Central)
+   - `com.vetzal.mojentic:mojentic-openai`
    - `androidx.lifecycle:lifecycle-viewmodel-compose`
    - The latest Compose BOM
 5. Set `OPENAI_API_KEY` in `local.properties` or your build environment and wire it through `BuildConfig.OPENAI_API_KEY` (see Android Studio docs for the standard pattern).

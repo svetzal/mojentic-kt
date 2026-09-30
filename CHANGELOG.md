@@ -10,6 +10,11 @@ patch versions move independently.
 
 ## [Unreleased]
 
+### Changed
+
+- Maven publishing uses `com.vetzal.mojentic` under the personally controlled
+  `vetzal.com` domain. Kotlin source packages remain `com.mojentic.*`.
+
 ### Fixed
 
 - Stream events reject malformed evidence and terminal fields. Ollama keeps

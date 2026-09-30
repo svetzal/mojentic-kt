@@ -133,7 +133,7 @@ Match exact artifact versions in `packageUrl` (or the shaded copy's path in
 
 Also check what consumers receive: run `./gradlew publishToMavenLocal` and
 read the generated POMs and Gradle module files in
-`~/.m2/repository/com/mojentic/`. Nothing in them may be vulnerable.
+`~/.m2/repository/com/vetzal/mojentic/`. Nothing in them may be vulnerable.
 
 ## Engineering Principles
 

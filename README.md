@@ -71,10 +71,10 @@ Once published to Maven Central:
 ```kotlin
 // build.gradle.kts
 dependencies {
-    implementation("com.mojentic:mojentic-core:<version>")
+    implementation("com.vetzal.mojentic:mojentic-core:<version>")
     // Add gateways as they ship:
-    // implementation("com.mojentic:mojentic-ollama:<version>")
-    // implementation("com.mojentic:mojentic-openai:<version>")
+    // implementation("com.vetzal.mojentic:mojentic-ollama:<version>")
+    // implementation("com.vetzal.mojentic:mojentic-openai:<version>")
 }
 ```
 
