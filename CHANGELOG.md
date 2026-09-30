@@ -21,6 +21,9 @@ patch versions move independently.
 
 ### Added
 
+- Broker streaming regressions verify split-chunk tool-call ids survive into
+  follow-up OpenAI and oMLX tool messages.
+
 - **`OmlxGateway`** (`com.mojentic.omlx`, in `mojentic-openai`) connects to
   [oMLX](https://github.com/jundot/omlx), an LLM server for Apple Silicon. It
   uses the OpenAI message adapter and stream parsers but not the OpenAI model
