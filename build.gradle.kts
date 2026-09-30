@@ -59,6 +59,13 @@ dependencyCheck {
     )
 }
 
+// Audit feeds and suppression rules change independently of resolved dependencies.
+// A release audit must not reuse a report produced before those changes.
+tasks.named("dependencyCheckAggregate") {
+    inputs.file("dependency-check-suppressions.xml")
+    outputs.upToDateWhen { false }
+}
+
 // Pin the ktlint engine. The Gradle plugin otherwise falls back to its own,
 // older default (1.5.0 for plugin 14.2.0).
 subprojects {
