@@ -5,6 +5,7 @@ import com.mojentic.llm.LlmMessage
 import com.mojentic.llm.LlmToolCall
 import com.mojentic.llm.MessageRole
 import com.mojentic.llm.TextContent
+import com.mojentic.llm.messageText
 import com.mojentic.llm.tools.LlmTool
 
 /**
@@ -28,7 +29,7 @@ internal data class AdaptedMessages(
 
 internal fun List<LlmMessage>.toAnthropicMessages(): AdaptedMessages {
     val systemPieces = filter { it.role == MessageRole.System }
-        .mapNotNull { it.content?.takeIf { c -> c.isNotBlank() } }
+        .mapNotNull { it.messageText()?.takeIf { c -> c.isNotBlank() } }
     val system = if (systemPieces.isEmpty()) null else systemPieces.joinToString(" ")
     val rest = filterNot { it.role == MessageRole.System }
         .map { it.toAnthropicMessage() }
@@ -59,7 +60,7 @@ private fun LlmMessage.userContentBlocks(): List<AnthropicContentBlock> {
 }
 
 private fun LlmMessage.assistantContentBlocks(): List<AnthropicContentBlock> {
-    val text = content?.takeIf { it.isNotEmpty() }?.let { AnthropicContentBlock.Text(text = it) }
+    val text = messageText()?.takeIf { it.isNotEmpty() }?.let { AnthropicContentBlock.Text(text = it) }
     val toolUses = toolCalls.orEmpty().map { it.toAnthropicToolUse() }
     val blocks = listOfNotNull(text) + toolUses
     return if (blocks.isEmpty()) listOf(AnthropicContentBlock.Text(text = "")) else blocks

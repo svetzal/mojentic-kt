@@ -130,3 +130,6 @@ OpenAI and oMLX send system, assistant and tool messages as text. Explicit
 `content` takes precedence, including an empty string. Otherwise they join
 `TextContent` parts with newlines and omit `ImageContent` parts on these roles.
 User messages keep their image parts.
+
+Anthropic uses the same text selection for its top-level system prompt and
+assistant messages. Images on these roles are omitted.

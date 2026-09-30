@@ -49,6 +49,30 @@ class AnthropicGatewayTest {
     }
 
     @Test
+    fun systemAndAssistantPartsKeepTextAndIgnoreImages() = runTest {
+        gateway = AnthropicGateway(
+            apiKey = "test",
+            engine = mockEngine(
+                """{"content":[{"type":"text","text":"ok"}]}""",
+            ),
+        )
+        val parts = listOf(TextContent("first"), ImageContent("AAAA", "image/png"), TextContent("second"))
+        gateway.complete(
+            "claude",
+            listOf(
+                LlmMessage(role = MessageRole.System, contentParts = parts),
+                LlmMessage(role = MessageRole.System, content = "preferred", contentParts = parts),
+                LlmMessage(role = MessageRole.Assistant, contentParts = parts),
+            ),
+        )
+        val body = kotlinx.serialization.json.Json.parseToJsonElement(assertNotNull(lastRequestBody))
+            as kotlinx.serialization.json.JsonObject
+        assertEquals(JsonPrimitive("first\nsecond preferred"), body["system"])
+        assertContains(assertNotNull(lastRequestBody), "\"text\":\"first\\nsecond\"")
+        assertTrue("AAAA" !in assertNotNull(lastRequestBody))
+    }
+
+    @Test
     fun completeParsesAssistantText() = runTest {
         gateway = AnthropicGateway(
             apiKey = "test",
