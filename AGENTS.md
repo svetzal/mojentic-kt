@@ -6,8 +6,8 @@ this file covers Kotlin-specific quality gates, tooling, and patterns.
 
 ## Project Overview
 
-`mojentic-kt` is the Kotlin Multiplatform (KMP) port of Mojentic. The Python
-implementation (`mojentic-py`) is the source of truth for API design and
+`mojentic-kt` is the Kotlin Multiplatform (KMP) port of Mojentic. The Elixir
+implementation (`mojentic-ex`) is the source of truth for API design and
 feature behaviour. See `KOTLIN.md` in the `mojentic-unify` monorepo for the
 full plan, roadmap, and Kotlin-idiomatic translation choices; see `PARITY.md`
 for the cross-port feature matrix.
