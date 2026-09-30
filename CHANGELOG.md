@@ -12,6 +12,8 @@ patch versions move independently.
 
 ### Fixed
 
+- Anthropic tool results keep text parts and their matching tool-call id.
+
 - Anthropic keeps system and assistant text parts when string content is absent.
 
 - OpenAI and oMLX keep text parts on tool, assistant and system messages.

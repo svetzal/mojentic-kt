@@ -73,6 +73,31 @@ class AnthropicGatewayTest {
     }
 
     @Test
+    fun toolPartsKeepTextAndMatchingCallId() = runTest {
+        gateway = AnthropicGateway(
+            apiKey = "test",
+            engine = mockEngine(
+                """{"content":[{"type":"text","text":"ok"}]}""",
+            ),
+        )
+        val call = LlmToolCall(id = "tu_parts", name = "lookup", arguments = buildJsonObject {})
+        gateway.complete(
+            "claude",
+            listOf(
+                LlmMessage(
+                    role = MessageRole.Tool,
+                    contentParts = listOf(TextContent("first"), ImageContent("AAAA", "image/png"), TextContent("second")),
+                    toolCalls = listOf(call),
+                ),
+            ),
+        )
+        val body = assertNotNull(lastRequestBody)
+        assertContains(body, "\"content\":\"first\\nsecond\"")
+        assertContains(body, "\"tool_use_id\":\"tu_parts\"")
+        assertTrue("AAAA" !in body)
+    }
+
+    @Test
     fun completeParsesAssistantText() = runTest {
         gateway = AnthropicGateway(
             apiKey = "test",

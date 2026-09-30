@@ -73,7 +73,7 @@ private fun LlmMessage.toolContentBlocks(): List<AnthropicContentBlock> {
     return listOf(
         AnthropicContentBlock.ToolResult(
             toolUseId = id,
-            content = content.orEmpty(),
+            content = messageText().orEmpty(),
             isError = null,
         ),
     )

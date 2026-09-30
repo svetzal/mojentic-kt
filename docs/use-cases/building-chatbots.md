@@ -132,4 +132,4 @@ OpenAI and oMLX send system, assistant and tool messages as text. Explicit
 User messages keep their image parts.
 
 Anthropic uses the same text selection for its top-level system prompt and
-assistant messages. Images on these roles are omitted.
+assistant messages and tool results. Images on these roles are omitted.
