@@ -90,6 +90,9 @@ patch versions move independently.
 
 ### Changed
 
+- Kover plugin 0.9.10 -> 0.9.11 (patch). The plugin is declared in the version
+  catalog but not applied to any module, so this is a catalog-only change.
+
 - **The dependency audit passes.** `dependencyCheckAggregate` now reports no
   finding at CVSS 7.0 or higher, and it still scans build-tool classpaths as
   well as published ones. Android lint's classpath gets floors for
