@@ -10,6 +10,8 @@ patch versions move independently.
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-09-30
+
 ### Changed
 
 - Maven publishing uses `com.vetzal.mojentic` under the personally controlled
