@@ -1,6 +1,6 @@
 [versions]
 # Language & build
-kotlin = "2.4.20"
+kotlin = "2.4.21"
 agp = "9.4.1"
 
 # Core KMP libraries

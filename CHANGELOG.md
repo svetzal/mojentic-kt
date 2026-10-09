@@ -10,6 +10,10 @@ patch versions move independently.
 
 ## [Unreleased]
 
+### Changed
+
+- Kotlin 2.4.21 (patch update from 2.4.20).
+
 ## [2.1.0] - 2026-09-30
 
 ### Changed
