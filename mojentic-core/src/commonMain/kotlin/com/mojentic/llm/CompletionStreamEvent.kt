@@ -79,7 +79,7 @@ public sealed interface StreamErrorReason {
 /**
  * Optional gateway capability behind [LlmBroker.generateStreamEvents].
  *
- * An implementation sends exactly one streaming request per collection,
+ * An implementation sends one request per wire attempt (one by default),
  * supplies no tools, and emits [CompletionStreamEvent.Content] events followed
  * by exactly one terminal event. It reports failures as
  * [CompletionStreamEvent.Error] rather than by throwing. Cancelling the
@@ -98,4 +98,23 @@ public interface StreamEventsGateway {
         messages: List<LlmMessage>,
         config: CompletionConfig = CompletionConfig(),
     ): Flow<CompletionStreamEvent>
+}
+
+/** Collect the terminal event without aborting the gateway's owned recovery attempt. */
+internal suspend fun collectRecoveryStreamEvents(
+    events: Flow<CompletionStreamEvent>,
+    content: StringBuilder,
+    emit: suspend (CompletionStreamEvent) -> Unit,
+): CompletionStreamEvent {
+    var terminal: CompletionStreamEvent? = null
+    events.collect { event ->
+        check(terminal == null) { "Event after terminal completion" }
+        if (event is CompletionStreamEvent.Content) {
+            content.append(event.text)
+            emit(event)
+        } else {
+            terminal = event
+        }
+    }
+    return terminal ?: CompletionStreamEvent.Error(StreamErrorReason.IncompleteStream(null))
 }

@@ -54,6 +54,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -258,19 +259,23 @@ public class OmlxGateway internal constructor(
         messages: List<LlmMessage>,
         tools: List<LlmTool>?,
         config: CompletionConfig,
-    ): Flow<GatewayStreamEvent> = channelFlow {
-        chatStatement(chatRequest(model, messages, tools, config, stream = true)).execute { response ->
-            ensureSuccess(response)
-            val parser = OpenAILegacyStreamParser(json)
-            val channel = response.bodyAsChannel()
-            while (!parser.isDone) {
-                val line = channel.readLine() ?: break
-                if (isKeepAliveFrame(line, json)) continue
-                parser.accept(line).forEach { send(it) }
+    ): Flow<GatewayStreamEvent> = if (config.recovery != null) {
+        recoveryStream(model, messages, tools, config)
+    } else {
+        channelFlow {
+            chatStatement(chatRequest(model, messages, tools, config, stream = true)).execute { response ->
+                ensureSuccess(response)
+                val parser = OpenAILegacyStreamParser(json)
+                val channel = response.bodyAsChannel()
+                while (!parser.isDone) {
+                    val line = channel.readLine() ?: break
+                    if (isKeepAliveFrame(line, json)) continue
+                    parser.accept(line).forEach { send(it) }
+                }
+                parser.finish().forEach { send(it) }
             }
-            parser.finish().forEach { send(it) }
-        }
-    }.buffer(Channel.RENDEZVOUS)
+        }.buffer(Channel.RENDEZVOUS)
+    }
 
     /**
      * Streams one turn as [CompletionStreamEvent]s for [com.mojentic.llm.LlmBroker.generateStreamEvents].
@@ -285,25 +290,69 @@ public class OmlxGateway internal constructor(
         model: String,
         messages: List<LlmMessage>,
         config: CompletionConfig,
-    ): Flow<CompletionStreamEvent> = channelFlow {
+    ): Flow<CompletionStreamEvent> = if (config.recovery != null) {
+        recoveryStreamEvents(model, messages, config)
+    } else {
+        channelFlow {
+            val request = chatRequest(model, messages, tools = null, config = config, stream = true)
+                .copy(streamOptions = OpenAIStreamOptions(includeUsage = true))
+
+            chatStatement(request).execute { response ->
+                if (!response.status.isSuccess()) {
+                    send(CompletionStreamEvent.Error(StreamErrorReason.ProviderError(response.bodyAsText(), response.status.value)))
+                    return@execute
+                }
+                val parser = OpenAIStreamEventParser(json)
+                val channel = response.bodyAsChannel()
+                while (!parser.isTerminal) {
+                    val line = channel.readLine() ?: break
+                    if (isKeepAliveFrame(line, json)) continue
+                    parser.accept(line).forEach { send(it) }
+                }
+                if (!parser.isTerminal) send(parser.endOfStream())
+            }
+        }.buffer(Channel.RENDEZVOUS)
+            .catch { failure -> emit(CompletionStreamEvent.Error(StreamErrorReason.RequestFailed(failure))) }
+    }
+
+    private fun recoveryStream(
+        model: String,
+        messages: List<LlmMessage>,
+        tools: List<LlmTool>?,
+        config: CompletionConfig,
+    ): Flow<GatewayStreamEvent> = flow {
+        val request = chatRequest(model, messages, tools, config, stream = true)
+            .copy(streamOptions = OpenAIStreamOptions(includeUsage = true))
+        RecoveryHttp(recoveryClient, "omlx", "${settings.baseUrl}/chat/completions", settings.apiKey).executeStream(
+            json.encodeToString(OpenAIChatRequest.serializer(), request),
+            "stream",
+            requireNotNull(config.recovery),
+        ) { stream ->
+            OmlxRecoveryStreamParser(json).consume(stream, allowTools = true) { emit(it) }
+        }
+    }
+
+    private fun recoveryStreamEvents(
+        model: String,
+        messages: List<LlmMessage>,
+        config: CompletionConfig,
+    ): Flow<CompletionStreamEvent> = flow {
         val request = chatRequest(model, messages, tools = null, config = config, stream = true)
             .copy(streamOptions = OpenAIStreamOptions(includeUsage = true))
-        chatStatement(request).execute { response ->
-            if (!response.status.isSuccess()) {
-                send(CompletionStreamEvent.Error(StreamErrorReason.ProviderError(response.bodyAsText(), response.status.value)))
-                return@execute
+
+        var completed: CompletionStreamEvent.Completed? = null
+        RecoveryHttp(recoveryClient, "omlx", "${settings.baseUrl}/chat/completions", settings.apiKey).executeStream(
+            json.encodeToString(OpenAIChatRequest.serializer(), request),
+            "streamEvents",
+            requireNotNull(config.recovery),
+        ) { stream ->
+            val evidence = OmlxRecoveryStreamParser(json).consume(stream, allowTools = false) { event ->
+                if (event is GatewayStreamEvent.Content) emit(CompletionStreamEvent.Content(event.text))
             }
-            val parser = OpenAIStreamEventParser(json)
-            val channel = response.bodyAsChannel()
-            while (!parser.isTerminal) {
-                val line = channel.readLine() ?: break
-                if (isKeepAliveFrame(line, json)) continue
-                parser.accept(line).forEach { send(it) }
-            }
-            if (!parser.isTerminal) send(parser.endOfStream())
+            completed = CompletionStreamEvent.Completed(evidence)
         }
-    }.buffer(Channel.RENDEZVOUS)
-        .catch { failure -> emit(CompletionStreamEvent.Error(StreamErrorReason.RequestFailed(failure))) }
+        emit(checkNotNull(completed))
+    }.catch { failure -> emit(CompletionStreamEvent.Error(StreamErrorReason.RequestFailed(failure))) }
 
     /**
      * Lists the models oMLX serves, from `GET /v1/models`, sorted.

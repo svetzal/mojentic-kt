@@ -44,3 +44,35 @@ private fun responseMessage(body: String): JsonObject? {
 }
 
 private fun JsonObject.hasReasoning(): Boolean = hasText("thinking") || hasText("reasoning_content")
+
+/** Conservative semantic observation includes incomplete frames before capture and parsing. */
+internal fun streamingProgress(bytes: ByteArray): RecoveryProgress {
+    val body = bytes.decodeToString()
+    val content = CONTENT_PREFIX.containsMatchIn(body)
+    val reasoning = REASONING_PREFIX.containsMatchIn(body)
+    val tools = TOOL_PREFIX.containsMatchIn(body)
+    var counts = RecoverySemanticProgress()
+    body.lineSequence().forEach { line ->
+        val payload = line.removePrefix("data:").trim()
+        val root = runCatching { Json.parseToJsonElement(payload) as? JsonObject }.getOrNull()
+        val choice = (root?.get("choices") as? JsonArray)?.firstOrNull() as? JsonObject
+        val delta = (root?.get("message") ?: choice?.get("delta")) as? JsonObject
+        fun size(key: String): Long = (delta?.get(key) as? JsonPrimitive)?.takeIf { it.isString }
+            ?.content?.encodeToByteArray()?.size?.toLong() ?: 0
+        val calls = (delta?.get("tool_calls") as? JsonArray)?.size?.toLong() ?: 0
+        counts = counts.copy(
+            contentBytes = counts.contentBytes + size("content"),
+            reasoningBytes = counts.reasoningBytes + size("thinking") + size("reasoning_content"),
+            toolFragments = counts.toolFragments + calls,
+        )
+    }
+    return RecoveryProgress(
+        true,
+        bytes.size.toLong(),
+        content || reasoning || tools,
+        contentObserved = content,
+        reasoningObserved = reasoning,
+        toolFragmentsObserved = tools,
+        observed = counts,
+    )
+}

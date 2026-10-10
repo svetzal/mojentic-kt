@@ -1,8 +1,8 @@
 # Opt-in completion recovery
 
-Ordinary and structured Ollama/oMLX completions can recover one provider request.
+Ordinary, structured and streaming Ollama/oMLX completions can recover one provider request.
 Configure the existing `CompletionConfig`; `LlmBroker` and `ChatSession` pass it
-through. Streaming, OpenAI, Anthropic, embeddings and realtime do not use this policy.
+through. OpenAI, Anthropic, embeddings and realtime do not use this policy.
 
 ```kotlin
 val gateway = OllamaGateway()
@@ -57,7 +57,7 @@ Full jitter samples from zero through the exponential ceiling, capped without
 overflow. Numeric and HTTP-date Retry-After are minimum delays; invalid values use
 policy backoff. A minimum outside the delay ceiling or remaining budget refuses
 recovery instead of shortening that minimum. A known 400/401/403 stays permanent
-when reading its body fails. Malformed responses and every partial successful body
+when reading its body fails. Malformed responses and every partial successful non-streaming body
 are terminal, even with explicit admission. Observed reasoning, content and tool
 fields are tracked before capture. Raw bytes, including whitespace, are separate
 from semantic evidence; no output is delivered until non-streaming decoding succeeds.
@@ -97,3 +97,51 @@ must meet the same contract. Native transport conformance is pending Apple
 controller validation; see [RECOVERY-CONFORMANCE.md](../../RECOVERY-CONFORMANCE.md).
 The legacy oMLX timeout still applies outside the dedicated recovery client.
 No provider ownership, termination or idempotency facility is claimed by this slice.
+
+## Streaming migration
+
+Pass the same config to `gateway.stream`, `broker.stream` or `session.stream`.
+These APIs throw `RecoveryException` on opt-in interruption or exhaustion. A
+failure after observed reasoning, content or tool fragments is terminal even
+when capture prevented delivery. Check `failure.failures.last().progress` and
+`failure.reason`; never append a new attempt to an interrupted response.
+
+```kotlin
+try {
+    session.stream("Your prompt").collect { event -> render(event) }
+} catch (failure: RecoveryException) {
+    safeFailureStore.append(failure.summary())
+    renderInterrupted() // Already-rendered text is partial evidence.
+}
+```
+
+For tool-free terminal evidence use `broker.generateStreamEvents(model,
+messages, config)`. Its terminal `Error(RequestFailed(...))` contains the safe
+`RecoveryException`; inspect its cause explicitly to obtain bounded attempt
+history. It never executes tools. `Completed` requires Ollama `done: true` with
+`done_reason: "stop"`, or oMLX normal finish plus `[DONE]`. EOF, a keepalive or
+local socket closure never proves completion or remote inference termination.
+
+A keepalive-only transport failure can recover after explicit caller admission.
+The encoded request is identical across admitted attempts, including all history
+supported by the existing message model. Native reasoning-history fields remain
+unsupported. The broker collects gateway tools before dispatching them; recovery
+cannot replay tools. The session commits history only on success and restores
+its pre-turn snapshot after failure.
+
+Recovery-enabled flows emit directly, without an internal producer buffer.
+A consumer suspended on content or reasoning pauses completion finalization.
+Cancellation during the attempt closes the
+owned response, records the actual failed attempt and one terminal `CANCELLED`,
+and cannot produce `SUCCEEDED` afterward. Tool-free `Completed` is delivered
+only after recovery finalizes and closes the response; cancellation of its
+collector afterward adds no attempt lifecycle. Caller-added buffering has the normal
+Kotlin Flow semantics and can allow upstream completion before downstream work.
+
+Safe `PROGRESS` and `METRICS` lifecycle events contain the wire identity,
+one-based validated frame index, cumulative UTF-8 semantic byte counts and
+numeric provider counts/durations only. Valid Ollama length termination reports
+progress then metrics before failure. Missing metrics remain absent. Malformed
+frames produce no fabricated telemetry. Explicit capture retains exact body
+bytes, including line separators; capture observes semantic evidence before
+calling the hook and any hook failure is terminal.

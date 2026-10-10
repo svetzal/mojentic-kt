@@ -869,6 +869,8 @@ public final class com/mojentic/llm/recovery/RecoveryClientKt {
 public final class com/mojentic/llm/recovery/RecoveryEvent {
 	public fun <init> (Lcom/mojentic/llm/recovery/RecoveryStage;Lcom/mojentic/llm/recovery/RecoveryIdentity;Ljava/lang/Long;Lcom/mojentic/llm/recovery/RecoveryFailure;Ljava/util/List;ILcom/mojentic/llm/recovery/RecoveryProgress;)V
 	public synthetic fun <init> (Lcom/mojentic/llm/recovery/RecoveryStage;Lcom/mojentic/llm/recovery/RecoveryIdentity;Ljava/lang/Long;Lcom/mojentic/llm/recovery/RecoveryFailure;Ljava/util/List;ILcom/mojentic/llm/recovery/RecoveryProgress;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lcom/mojentic/llm/recovery/RecoveryStage;Lcom/mojentic/llm/recovery/RecoveryIdentity;Ljava/lang/Long;Lcom/mojentic/llm/recovery/RecoveryFailure;Ljava/util/List;ILcom/mojentic/llm/recovery/RecoveryProgress;Ljava/lang/Long;Lcom/mojentic/llm/recovery/RecoveryStreamMetrics;)V
+	public synthetic fun <init> (Lcom/mojentic/llm/recovery/RecoveryStage;Lcom/mojentic/llm/recovery/RecoveryIdentity;Ljava/lang/Long;Lcom/mojentic/llm/recovery/RecoveryFailure;Ljava/util/List;ILcom/mojentic/llm/recovery/RecoveryProgress;Ljava/lang/Long;Lcom/mojentic/llm/recovery/RecoveryStreamMetrics;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Lcom/mojentic/llm/recovery/RecoveryStage;
 	public final fun component2 ()Lcom/mojentic/llm/recovery/RecoveryIdentity;
 	public final fun component3 ()Ljava/lang/Long;
@@ -876,13 +878,19 @@ public final class com/mojentic/llm/recovery/RecoveryEvent {
 	public final fun component5 ()Ljava/util/List;
 	public final fun component6 ()I
 	public final fun component7 ()Lcom/mojentic/llm/recovery/RecoveryProgress;
+	public final fun component8 ()Ljava/lang/Long;
+	public final fun component9 ()Lcom/mojentic/llm/recovery/RecoveryStreamMetrics;
 	public final fun copy (Lcom/mojentic/llm/recovery/RecoveryStage;Lcom/mojentic/llm/recovery/RecoveryIdentity;Ljava/lang/Long;Lcom/mojentic/llm/recovery/RecoveryFailure;Ljava/util/List;ILcom/mojentic/llm/recovery/RecoveryProgress;)Lcom/mojentic/llm/recovery/RecoveryEvent;
+	public final fun copy (Lcom/mojentic/llm/recovery/RecoveryStage;Lcom/mojentic/llm/recovery/RecoveryIdentity;Ljava/lang/Long;Lcom/mojentic/llm/recovery/RecoveryFailure;Ljava/util/List;ILcom/mojentic/llm/recovery/RecoveryProgress;Ljava/lang/Long;Lcom/mojentic/llm/recovery/RecoveryStreamMetrics;)Lcom/mojentic/llm/recovery/RecoveryEvent;
 	public static synthetic fun copy$default (Lcom/mojentic/llm/recovery/RecoveryEvent;Lcom/mojentic/llm/recovery/RecoveryStage;Lcom/mojentic/llm/recovery/RecoveryIdentity;Ljava/lang/Long;Lcom/mojentic/llm/recovery/RecoveryFailure;Ljava/util/List;ILcom/mojentic/llm/recovery/RecoveryProgress;ILjava/lang/Object;)Lcom/mojentic/llm/recovery/RecoveryEvent;
+	public static synthetic fun copy$default (Lcom/mojentic/llm/recovery/RecoveryEvent;Lcom/mojentic/llm/recovery/RecoveryStage;Lcom/mojentic/llm/recovery/RecoveryIdentity;Ljava/lang/Long;Lcom/mojentic/llm/recovery/RecoveryFailure;Ljava/util/List;ILcom/mojentic/llm/recovery/RecoveryProgress;Ljava/lang/Long;Lcom/mojentic/llm/recovery/RecoveryStreamMetrics;ILjava/lang/Object;)Lcom/mojentic/llm/recovery/RecoveryEvent;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getDelayMillis ()Ljava/lang/Long;
 	public final fun getFailure ()Lcom/mojentic/llm/recovery/RecoveryFailure;
 	public final fun getFailures ()Ljava/util/List;
+	public final fun getFrameIndex ()Ljava/lang/Long;
 	public final fun getIdentity ()Lcom/mojentic/llm/recovery/RecoveryIdentity;
+	public final fun getMetrics ()Lcom/mojentic/llm/recovery/RecoveryStreamMetrics;
 	public final fun getProgress ()Lcom/mojentic/llm/recovery/RecoveryProgress;
 	public final fun getStage ()Lcom/mojentic/llm/recovery/RecoveryStage;
 	public final fun getWireAttempts ()I
@@ -980,6 +988,7 @@ public final class com/mojentic/llm/recovery/RecoveryHttp {
 	public fun <init> (Lio/ktor/client/HttpClient;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 	public synthetic fun <init> (Lio/ktor/client/HttpClient;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun execute (Ljava/lang/String;Ljava/lang/String;Lcom/mojentic/llm/recovery/RecoveryPolicy;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun executeStream (Ljava/lang/String;Ljava/lang/String;Lcom/mojentic/llm/recovery/RecoveryPolicy;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class com/mojentic/llm/recovery/RecoveryIdentity {
@@ -1017,18 +1026,26 @@ public final class com/mojentic/llm/recovery/RecoveryIdentity$Companion {
 public final class com/mojentic/llm/recovery/RecoveryLifecycleSummary {
 	public static final field Companion Lcom/mojentic/llm/recovery/RecoveryLifecycleSummary$Companion;
 	public fun <init> (Lcom/mojentic/llm/recovery/RecoveryStage;Lcom/mojentic/llm/recovery/RecoveryIdentity;Ljava/lang/Long;Ljava/util/List;ILcom/mojentic/llm/recovery/RecoveryProgress;)V
+	public fun <init> (Lcom/mojentic/llm/recovery/RecoveryStage;Lcom/mojentic/llm/recovery/RecoveryIdentity;Ljava/lang/Long;Ljava/util/List;ILcom/mojentic/llm/recovery/RecoveryProgress;Ljava/lang/Long;Lcom/mojentic/llm/recovery/RecoveryStreamMetrics;)V
+	public synthetic fun <init> (Lcom/mojentic/llm/recovery/RecoveryStage;Lcom/mojentic/llm/recovery/RecoveryIdentity;Ljava/lang/Long;Ljava/util/List;ILcom/mojentic/llm/recovery/RecoveryProgress;Ljava/lang/Long;Lcom/mojentic/llm/recovery/RecoveryStreamMetrics;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Lcom/mojentic/llm/recovery/RecoveryStage;
 	public final fun component2 ()Lcom/mojentic/llm/recovery/RecoveryIdentity;
 	public final fun component3 ()Ljava/lang/Long;
 	public final fun component4 ()Ljava/util/List;
 	public final fun component5 ()I
 	public final fun component6 ()Lcom/mojentic/llm/recovery/RecoveryProgress;
+	public final fun component7 ()Ljava/lang/Long;
+	public final fun component8 ()Lcom/mojentic/llm/recovery/RecoveryStreamMetrics;
 	public final fun copy (Lcom/mojentic/llm/recovery/RecoveryStage;Lcom/mojentic/llm/recovery/RecoveryIdentity;Ljava/lang/Long;Ljava/util/List;ILcom/mojentic/llm/recovery/RecoveryProgress;)Lcom/mojentic/llm/recovery/RecoveryLifecycleSummary;
+	public final fun copy (Lcom/mojentic/llm/recovery/RecoveryStage;Lcom/mojentic/llm/recovery/RecoveryIdentity;Ljava/lang/Long;Ljava/util/List;ILcom/mojentic/llm/recovery/RecoveryProgress;Ljava/lang/Long;Lcom/mojentic/llm/recovery/RecoveryStreamMetrics;)Lcom/mojentic/llm/recovery/RecoveryLifecycleSummary;
 	public static synthetic fun copy$default (Lcom/mojentic/llm/recovery/RecoveryLifecycleSummary;Lcom/mojentic/llm/recovery/RecoveryStage;Lcom/mojentic/llm/recovery/RecoveryIdentity;Ljava/lang/Long;Ljava/util/List;ILcom/mojentic/llm/recovery/RecoveryProgress;ILjava/lang/Object;)Lcom/mojentic/llm/recovery/RecoveryLifecycleSummary;
+	public static synthetic fun copy$default (Lcom/mojentic/llm/recovery/RecoveryLifecycleSummary;Lcom/mojentic/llm/recovery/RecoveryStage;Lcom/mojentic/llm/recovery/RecoveryIdentity;Ljava/lang/Long;Ljava/util/List;ILcom/mojentic/llm/recovery/RecoveryProgress;Ljava/lang/Long;Lcom/mojentic/llm/recovery/RecoveryStreamMetrics;ILjava/lang/Object;)Lcom/mojentic/llm/recovery/RecoveryLifecycleSummary;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getDelayMillis ()Ljava/lang/Long;
 	public final fun getFailures ()Ljava/util/List;
+	public final fun getFrameIndex ()Ljava/lang/Long;
 	public final fun getIdentity ()Lcom/mojentic/llm/recovery/RecoveryIdentity;
+	public final fun getMetrics ()Lcom/mojentic/llm/recovery/RecoveryStreamMetrics;
 	public final fun getProgress ()Lcom/mojentic/llm/recovery/RecoveryProgress;
 	public final fun getStage ()Lcom/mojentic/llm/recovery/RecoveryStage;
 	public final fun getWireAttempts ()I
@@ -1090,7 +1107,11 @@ public final class com/mojentic/llm/recovery/RecoveryProgress {
 	public static final field Companion Lcom/mojentic/llm/recovery/RecoveryProgress$Companion;
 	public fun <init> (ZJZZZZZIZ)V
 	public synthetic fun <init> (ZJZZZZZIZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (ZJZZZZZIZLcom/mojentic/llm/recovery/RecoverySemanticProgress;Lcom/mojentic/llm/recovery/RecoverySemanticProgress;)V
+	public synthetic fun <init> (ZJZZZZZIZLcom/mojentic/llm/recovery/RecoverySemanticProgress;Lcom/mojentic/llm/recovery/RecoverySemanticProgress;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Z
+	public final fun component10 ()Lcom/mojentic/llm/recovery/RecoverySemanticProgress;
+	public final fun component11 ()Lcom/mojentic/llm/recovery/RecoverySemanticProgress;
 	public final fun component2 ()J
 	public final fun component3 ()Z
 	public final fun component4 ()Z
@@ -1100,11 +1121,15 @@ public final class com/mojentic/llm/recovery/RecoveryProgress {
 	public final fun component8 ()I
 	public final fun component9 ()Z
 	public final fun copy (ZJZZZZZIZ)Lcom/mojentic/llm/recovery/RecoveryProgress;
+	public final fun copy (ZJZZZZZIZLcom/mojentic/llm/recovery/RecoverySemanticProgress;Lcom/mojentic/llm/recovery/RecoverySemanticProgress;)Lcom/mojentic/llm/recovery/RecoveryProgress;
 	public static synthetic fun copy$default (Lcom/mojentic/llm/recovery/RecoveryProgress;ZJZZZZZIZILjava/lang/Object;)Lcom/mojentic/llm/recovery/RecoveryProgress;
+	public static synthetic fun copy$default (Lcom/mojentic/llm/recovery/RecoveryProgress;ZJZZZZZIZLcom/mojentic/llm/recovery/RecoverySemanticProgress;Lcom/mojentic/llm/recovery/RecoverySemanticProgress;ILjava/lang/Object;)Lcom/mojentic/llm/recovery/RecoveryProgress;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getCompletedToolCallsObserved ()I
 	public final fun getContentObserved ()Z
+	public final fun getDelivered ()Lcom/mojentic/llm/recovery/RecoverySemanticProgress;
 	public final fun getHeadersReceived ()Z
+	public final fun getObserved ()Lcom/mojentic/llm/recovery/RecoverySemanticProgress;
 	public final fun getRawBytes ()J
 	public final fun getReasoningObserved ()Z
 	public final fun getReplayUnsafe ()Z
@@ -1236,6 +1261,41 @@ public final class com/mojentic/llm/recovery/RecoveryRetryAfter$Invalid : com/mo
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class com/mojentic/llm/recovery/RecoverySemanticProgress {
+	public static final field Companion Lcom/mojentic/llm/recovery/RecoverySemanticProgress$Companion;
+	public fun <init> ()V
+	public fun <init> (JJJJ)V
+	public synthetic fun <init> (JJJJILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()J
+	public final fun component2 ()J
+	public final fun component3 ()J
+	public final fun component4 ()J
+	public final fun copy (JJJJ)Lcom/mojentic/llm/recovery/RecoverySemanticProgress;
+	public static synthetic fun copy$default (Lcom/mojentic/llm/recovery/RecoverySemanticProgress;JJJJILjava/lang/Object;)Lcom/mojentic/llm/recovery/RecoverySemanticProgress;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCompletedToolCalls ()J
+	public final fun getContentBytes ()J
+	public final fun getReasoningBytes ()J
+	public final fun getToolFragments ()J
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class com/mojentic/llm/recovery/RecoverySemanticProgress$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lcom/mojentic/llm/recovery/RecoverySemanticProgress$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lcom/mojentic/llm/recovery/RecoverySemanticProgress;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lcom/mojentic/llm/recovery/RecoverySemanticProgress;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class com/mojentic/llm/recovery/RecoverySemanticProgress$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
 public final class com/mojentic/llm/recovery/RecoveryStage : java/lang/Enum {
 	public static final field ADMISSION_PENDING Lcom/mojentic/llm/recovery/RecoveryStage;
 	public static final field ADMITTED Lcom/mojentic/llm/recovery/RecoveryStage;
@@ -1243,6 +1303,9 @@ public final class com/mojentic/llm/recovery/RecoveryStage : java/lang/Enum {
 	public static final field Companion Lcom/mojentic/llm/recovery/RecoveryStage$Companion;
 	public static final field EXHAUSTED Lcom/mojentic/llm/recovery/RecoveryStage;
 	public static final field FAILED Lcom/mojentic/llm/recovery/RecoveryStage;
+	public static final field INTERRUPTED Lcom/mojentic/llm/recovery/RecoveryStage;
+	public static final field METRICS Lcom/mojentic/llm/recovery/RecoveryStage;
+	public static final field PROGRESS Lcom/mojentic/llm/recovery/RecoveryStage;
 	public static final field REJECTED Lcom/mojentic/llm/recovery/RecoveryStage;
 	public static final field SCHEDULED Lcom/mojentic/llm/recovery/RecoveryStage;
 	public static final field STARTED Lcom/mojentic/llm/recovery/RecoveryStage;
@@ -1253,6 +1316,59 @@ public final class com/mojentic/llm/recovery/RecoveryStage : java/lang/Enum {
 }
 
 public final class com/mojentic/llm/recovery/RecoveryStage$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class com/mojentic/llm/recovery/RecoveryStream {
+	public static final field BUFFER_SIZE I
+	public final fun completedTools (I)V
+	public final fun delivered (Ljava/lang/String;Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun delivered$default (Lcom/mojentic/llm/recovery/RecoveryStream;Ljava/lang/String;Ljava/lang/String;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun finish (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun invalid (Ljava/lang/Throwable;)Ljava/lang/Void;
+	public final fun metrics (Lkotlinx/serialization/json/JsonObject;Lkotlinx/serialization/json/JsonObject;)V
+	public final fun progress (I)V
+	public static synthetic fun progress$default (Lcom/mojentic/llm/recovery/RecoveryStream;IILjava/lang/Object;)V
+	public final fun readLine (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/mojentic/llm/recovery/RecoveryStreamClosedException : java/io/IOException {
+	public fun <init> ()V
+}
+
+public final class com/mojentic/llm/recovery/RecoveryStreamException : java/lang/RuntimeException {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/Object;)V
+	public synthetic fun <init> (Ljava/lang/Object;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun inspectEvidence ()Ljava/lang/Object;
+}
+
+public final class com/mojentic/llm/recovery/RecoveryStreamMetrics {
+	public static final field Companion Lcom/mojentic/llm/recovery/RecoveryStreamMetrics$Companion;
+	public fun <init> (Ljava/util/Map;Ljava/util/Map;)V
+	public final fun component1 ()Ljava/util/Map;
+	public final fun component2 ()Ljava/util/Map;
+	public final fun copy (Ljava/util/Map;Ljava/util/Map;)Lcom/mojentic/llm/recovery/RecoveryStreamMetrics;
+	public static synthetic fun copy$default (Lcom/mojentic/llm/recovery/RecoveryStreamMetrics;Ljava/util/Map;Ljava/util/Map;ILjava/lang/Object;)Lcom/mojentic/llm/recovery/RecoveryStreamMetrics;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDurations ()Ljava/util/Map;
+	public final fun getUsage ()Ljava/util/Map;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class com/mojentic/llm/recovery/RecoveryStreamMetrics$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lcom/mojentic/llm/recovery/RecoveryStreamMetrics$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lcom/mojentic/llm/recovery/RecoveryStreamMetrics;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lcom/mojentic/llm/recovery/RecoveryStreamMetrics;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class com/mojentic/llm/recovery/RecoveryStreamMetrics$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 

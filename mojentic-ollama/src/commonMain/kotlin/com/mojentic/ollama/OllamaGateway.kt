@@ -7,10 +7,13 @@ import com.mojentic.llm.GatewayStreamEvent
 import com.mojentic.llm.LlmGateway
 import com.mojentic.llm.LlmGatewayResponse
 import com.mojentic.llm.LlmMessage
+import com.mojentic.llm.LlmToolCall
 import com.mojentic.llm.StreamErrorReason
 import com.mojentic.llm.StreamEventsGateway
 import com.mojentic.llm.recovery.RecoveryHttp
 import com.mojentic.llm.recovery.RecoveryPolicy
+import com.mojentic.llm.recovery.RecoveryStreamClosedException
+import com.mojentic.llm.recovery.RecoveryStreamException
 import com.mojentic.llm.recovery.recoveryHttpClient
 import com.mojentic.llm.tools.LlmTool
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -36,6 +39,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 
@@ -142,43 +146,48 @@ public class OllamaGateway(
         messages: List<LlmMessage>,
         tools: List<LlmTool>?,
         config: CompletionConfig,
-    ): Flow<GatewayStreamEvent> = channelFlow {
-        val request = OllamaChatRequest(
-            model = model,
-            messages = messages.toOllamaMessages(),
-            options = optionsFor(config),
-            stream = true,
-            tools = tools?.toOllamaTools(),
-            format = config.responseFormat?.toOllamaFormat(),
-            think = if (config.reasoningEffort != null) true else null,
-        )
-        val statement = httpClient.preparePost("$host/api/chat") {
-            contentType(ContentType.Application.Json)
-            setBody(json.encodeToString(OllamaChatRequest.serializer(), request))
-        }
-        statement.execute { httpResponse ->
-            ensureSuccess(httpResponse)
-            val channel = httpResponse.bodyAsChannel()
-            while (true) {
-                val line = channel.readLine() ?: break
-                if (line.isBlank()) continue
-                val chunk = runCatching { json.decodeFromString(OllamaChatResponse.serializer(), line) }
-                    .getOrElse {
-                        logger.warn { "Skipping malformed Ollama stream chunk: $line" }
-                        continue
+    ): Flow<GatewayStreamEvent> = if (config.recovery != null) {
+        recoveryStream(model, messages, tools, config)
+    } else {
+        channelFlow {
+            val request = OllamaChatRequest(
+                model = model,
+                messages = messages.toOllamaMessages(),
+                options = optionsFor(config),
+                stream = true,
+                tools = tools?.toOllamaTools(),
+                format = config.responseFormat?.toOllamaFormat(),
+                think = if (config.reasoningEffort != null) true else null,
+            )
+
+            val statement = httpClient.preparePost("$host/api/chat") {
+                contentType(ContentType.Application.Json)
+                setBody(json.encodeToString(OllamaChatRequest.serializer(), request))
+            }
+            statement.execute { httpResponse ->
+                ensureSuccess(httpResponse)
+                val channel = httpResponse.bodyAsChannel()
+                while (true) {
+                    val line = channel.readLine() ?: break
+                    if (line.isBlank()) continue
+                    val chunk = runCatching { json.decodeFromString(OllamaChatResponse.serializer(), line) }
+                        .getOrElse {
+                            logger.warn { "Skipping malformed Ollama stream chunk: $line" }
+                            continue
+                        }
+                    chunk.message.content?.takeIf { it.isNotEmpty() }?.let {
+                        send(GatewayStreamEvent.Content(it))
                     }
-                chunk.message.content?.takeIf { it.isNotEmpty() }?.let {
-                    send(GatewayStreamEvent.Content(it))
-                }
-                chunk.message.thinking?.takeIf { it.isNotEmpty() }?.let {
-                    send(GatewayStreamEvent.Thinking(it))
-                }
-                chunk.message.toolCalls?.takeIf { it.isNotEmpty() }?.let { calls ->
-                    send(GatewayStreamEvent.ToolCalls(calls.map { it.toLlmToolCall() }))
+                    chunk.message.thinking?.takeIf { it.isNotEmpty() }?.let {
+                        send(GatewayStreamEvent.Thinking(it))
+                    }
+                    chunk.message.toolCalls?.takeIf { it.isNotEmpty() }?.let { calls ->
+                        send(GatewayStreamEvent.ToolCalls(calls.map { it.toLlmToolCall() }))
+                    }
                 }
             }
-        }
-    }.buffer(Channel.RENDEZVOUS)
+        }.buffer(Channel.RENDEZVOUS)
+    }
 
     /**
      * Streams one turn as [CompletionStreamEvent]s for [com.mojentic.llm.LlmBroker.generateStreamEvents].
@@ -192,7 +201,92 @@ public class OllamaGateway(
         model: String,
         messages: List<LlmMessage>,
         config: CompletionConfig,
-    ): Flow<CompletionStreamEvent> = channelFlow {
+    ): Flow<CompletionStreamEvent> = if (config.recovery != null) {
+        recoveryStreamEvents(model, messages, config)
+    } else {
+        channelFlow {
+            val request = OllamaChatRequest(
+                model = model,
+                messages = messages.toOllamaMessages(),
+                options = optionsFor(config),
+                stream = true,
+                format = config.responseFormat?.toOllamaFormat(),
+                think = if (config.reasoningEffort != null) true else null,
+            )
+
+            val statement = httpClient.preparePost("$host/api/chat") {
+                contentType(ContentType.Application.Json)
+                setBody(json.encodeToString(OllamaChatRequest.serializer(), request))
+            }
+            statement.execute { response ->
+                if (!response.status.isSuccess()) {
+                    val detail = response.bodyAsText()
+                    send(CompletionStreamEvent.Error(StreamErrorReason.ProviderError(detail, response.status.value)))
+                    return@execute
+                }
+                val parser = OllamaStreamEventParser(json)
+                val channel = response.bodyAsChannel()
+                while (!parser.isTerminal) {
+                    val line = channel.readLine() ?: break
+                    parser.accept(line).forEach { send(it) }
+                }
+                if (!parser.isTerminal) send(parser.endOfStream())
+            }
+        }.buffer(Channel.RENDEZVOUS)
+            .catch { failure -> emit(CompletionStreamEvent.Error(StreamErrorReason.RequestFailed(failure))) }
+    }
+
+    private fun recoveryStream(
+        model: String,
+        messages: List<LlmMessage>,
+        tools: List<LlmTool>?,
+        config: CompletionConfig,
+    ): Flow<GatewayStreamEvent> = flow {
+        val request = OllamaChatRequest(
+            model = model,
+            messages = messages.toOllamaMessages(),
+            options = optionsFor(config),
+            stream = true,
+            tools = tools?.toOllamaTools(),
+            format = config.responseFormat?.toOllamaFormat(),
+            think = if (config.reasoningEffort != null) true else null,
+        )
+
+        RecoveryHttp(recoveryClient, "ollama", "$host/api/chat").executeStream(
+            json.encodeToString(OllamaChatRequest.serializer(), request),
+            "stream",
+            requireNotNull(config.recovery),
+        ) { stream ->
+            var terminal = false
+            val completedTools = mutableListOf<LlmToolCall>()
+            while (!terminal) {
+                val line = stream.readLine() ?: throw RecoveryStreamClosedException()
+                if (line.isBlank()) continue
+                val chunk = try {
+                    json.decodeRecoveryFrame(line)
+                } catch (cause: Exception) {
+                    stream.invalid(cause)
+                }
+                completedTools += chunk.message.toolCalls.orEmpty().map { it.toLlmToolCall() }
+                stream.progress(if (chunk.done && chunk.doneReason == "stop") completedTools.size else 0)
+                if (chunk.done) stream.metrics(chunk.reportedUsage, chunk.reportedMetadata)
+                emitRecoveryChunk(chunk, stream)
+                if (chunk.done && chunk.doneReason != "stop") throw RecoveryStreamException()
+                terminal = chunk.done
+            }
+            stream.finish()
+            if (completedTools.isNotEmpty()) {
+                stream.delivered(toolCalls = completedTools.size)
+                emit(GatewayStreamEvent.ToolCalls(completedTools))
+            }
+        }
+    }
+
+    private fun recoveryStreamEvents(
+        model: String,
+        messages: List<LlmMessage>,
+        config: CompletionConfig,
+    ): Flow<CompletionStreamEvent> = flow {
         val request = OllamaChatRequest(
             model = model,
             messages = messages.toOllamaMessages(),
@@ -201,26 +295,48 @@ public class OllamaGateway(
             format = config.responseFormat?.toOllamaFormat(),
             think = if (config.reasoningEffort != null) true else null,
         )
-        val statement = httpClient.preparePost("$host/api/chat") {
-            contentType(ContentType.Application.Json)
-            setBody(json.encodeToString(OllamaChatRequest.serializer(), request))
-        }
-        statement.execute { response ->
-            if (!response.status.isSuccess()) {
-                val detail = response.bodyAsText()
-                send(CompletionStreamEvent.Error(StreamErrorReason.ProviderError(detail, response.status.value)))
-                return@execute
-            }
+
+        var completed: CompletionStreamEvent.Completed? = null
+        RecoveryHttp(recoveryClient, "ollama", "$host/api/chat").executeStream(
+            json.encodeToString(OllamaChatRequest.serializer(), request),
+            "streamEvents",
+            requireNotNull(config.recovery),
+        ) { stream ->
             val parser = OllamaStreamEventParser(json)
-            val channel = response.bodyAsChannel()
             while (!parser.isTerminal) {
-                val line = channel.readLine() ?: break
-                parser.accept(line).forEach { send(it) }
+                val line = stream.readLine() ?: throw RecoveryStreamClosedException()
+                if (line.isBlank()) continue
+                val chunk = try {
+                    json.decodeRecoveryFrame(line)
+                } catch (cause: Exception) {
+                    stream.invalid(cause)
+                }
+                val events = parser.accept(line)
+                val error = events.filterIsInstance<CompletionStreamEvent.Error>().firstOrNull()
+                if (error?.reason is StreamErrorReason.InvalidStreamEvent || error?.reason is StreamErrorReason.ProviderError) {
+                    throw RecoveryStreamException(error.reason)
+                }
+                stream.progress()
+                if (chunk.done) stream.metrics(chunk.reportedUsage, chunk.reportedMetadata)
+                for (event in events) {
+                    when (event) {
+                        is CompletionStreamEvent.Error -> throw RecoveryStreamException(event.reason)
+
+                        is CompletionStreamEvent.Content -> {
+                            stream.delivered(content = event.text)
+                            emit(event)
+                        }
+
+                        is CompletionStreamEvent.Completed -> {
+                            stream.finish()
+                            completed = event
+                        }
+                    }
+                }
             }
-            if (!parser.isTerminal) send(parser.endOfStream())
         }
-    }.buffer(Channel.RENDEZVOUS)
-        .catch { failure -> emit(CompletionStreamEvent.Error(StreamErrorReason.RequestFailed(failure))) }
+        emit(checkNotNull(completed))
+    }.catch { failure -> emit(CompletionStreamEvent.Error(StreamErrorReason.RequestFailed(failure))) }
 
     override suspend fun availableModels(): List<String> {
         val response: HttpResponse = httpClient.get("$host/api/tags")

@@ -1,20 +1,19 @@
 # Completion recovery conformance — bounded Kotlin slice
 
-This repairs the default production transport under the preserved ordinary and
-structured recovery slice for public Ollama/oMLX adapters, including existing
-broker/session delegation. It does not claim whole-mission alignment. Intent
-references are `TRANSIENT-RECOVERY-2026-10.md` and
-`RECOVERY-REQUEST-2026-10.txt`, with the current Foundry correction requiring one
-HTTP request per policy attempt and preserved provider connect/socket settings
-without a total generation timeout. The Rust comparator is exactly
-`4ca1ed279c02eab37827a1ed07c30e961155ecf3`, inspected read-only; no sibling source
-or harness pin changed.
+This slice adds opt-in streaming completion recovery through both public local
+adapters, `stream`, `streamEvents`, broker streaming and session streaming. It
+retains the landed ordinary/structured recovery and dedicated transport.
+Acceptance uses `TRANSIENT-RECOVERY-2026-10.md`, `RECOVERY-REQUEST-2026-10.txt`
+and the October 10 supplement supplied in the correction plan. Rust is compared
+read-only at exactly `4ca1ed279c02eab37827a1ed07c30e961155ecf3`.
+No whole-mission parity, live inference, harness integration or Apple validation
+is claimed.
 
-Preserved Kotlin revision: `ec491f458c812651cfc4cb07d64cb32f39bed124`,
-whose parent is fetched `origin/main` at
-`e313f32030b0613dc954912b1b4920493f3b45e6`. Working-source and comparator
-SHA-256 hashes are recorded in `.foundry/logs/source-hashes.json`.
-They describe the reviewed working implementation, not a released revision.
+Starting Kotlin revision is `83dd144f0f13097aed23f608476ab0daa7b6abb5`, with a
+clean tree. Foundry forbids Git finalization and ref modifications: no fetch
+that updates refs, pull, rebase, commit, push, release or tag is performed.
+Existing coordinator guidance is preserved. Exact working/comparator source
+hashes and complete command logs are retained under `.foundry/logs/`.
 
 ## Assertion-backed acceptance
 
@@ -22,13 +21,13 @@ The matrices in `CompletionRecoveryHttpTest` and `RecoveryTransportHttpTest` exe
 against both public adapters using their default real JVM HTTP engine and a
 scripted loopback HTTP/1.1 server. No LlmGateway mocks or private retry helper tests
 are used. The preserved `OllamaRecoveryProofTest` retains permanent-status truncation coverage.
-For this repair, the early proof changed the existing 503 input to carry
-`Retry-After: 0`, before expanding fixtures or documentation. The original
-production client sent two server requests while capture recorded only attempt 1
-(expected `[1, 2]`, actual `[1]`). The corrected same public-entrypoint matrix
-passed. Actual exits are 1 and 0 in [.foundry/proof.json](.foundry/proof.json);
-complete logs are [.foundry/logs/rejecting.log](.foundry/logs/rejecting.log) and
-[.foundry/logs/corrected.log](.foundry/logs/corrected.log).
+The early public Ollama probe `observedStreamingContentBlocksReplayBeforeCaptureDelivery`
+first rejected the legacy path with a real truncated HTTP body. The correction
+observed UTF-8 content before throwing capture, retained the exact typed cause,
+delivered no events, and sent one actual request. Actual exits 1 and 0 are in
+[.foundry/proof.json](.foundry/proof.json), with both complete logs. The scripted
+server synchronizes capture before closing a truncated body; this ensures its
+bytes are available to the real engine rather than discarded during closure.
 
 | Acceptance | Test and assertions |
 | --- | --- |
@@ -62,7 +61,7 @@ partial bytes and original exceptions require explicit inspection.
 | --- | --- | --- |
 | Ollama ordinary/structured | opt-in request recovery | unknown; caller admission required |
 | oMLX ordinary/structured | opt-in request recovery | unknown; caller admission required |
-| Ollama/oMLX streaming (`stream`, `streamEvents`) | existing paths preserved; recovery pending | no added termination proof |
+| Ollama/oMLX streaming (`stream`, `streamEvents`) | opt-in request recovery; legacy paths preserved | unknown; caller admission required |
 | OpenAI/Anthropic completion/streaming | existing behavior preserved; recovery pending | not investigated here |
 | Embeddings, realtime, model management | existing behavior preserved; outside completion recovery | not investigated here |
 
@@ -122,7 +121,10 @@ additions; legacy CompletionConfig constructor/copy descriptors are retained.
 Foundry owns finalization: this worktree remains dirty, with no ref modifications,
 commit, push, tag, branch, PR or release.
 
-## Correction provenance and review
+## Prior transport repair record (historical)
+
+The following outcomes describe the landed transport repair, not this streaming
+worktree. Current-run results are recorded in `.foundry/validation.json`.
 
 The initial worktree was clean at preserved commit
 `ec491f458c812651cfc4cb07d64cb32f39bed124`. A fresh `git fetch origin`
@@ -152,12 +154,12 @@ the refreshed 337-entry audit, local publication and all 72 metadata hashes
 with no blockers. The record is
 `.foundry/logs/independent-review.md`. Apple execution remains **pending**.
 
-Current-run final validation outcomes are recorded in `.foundry/validation.json`
+Prior-run final validation outcomes are recorded in `.foundry/validation.json`
 and complete command logs under `.foundry/logs/`. Prior-run gate/audit counts are
-not evidence for this repair. Exact Native binary vulnerability analysis remains
+not evidence for the streaming packet. Exact Native binary vulnerability analysis remains
 pending Apple/controller validation.
 
-Final current-run Linux results after the header refinement: the combined six
+Final prior-run Linux results after the header refinement: the combined six
 configured gates passed, 544 tasks. All 20 HTTP tests passed with zero
 failures/errors, including compressed 503 handling; the delayed-response matrix
 completed four real 11-second replies. The refreshed unfiltered audit passed
@@ -175,3 +177,64 @@ Native binary analysis and Apple runtime validation remain pending. Existing
 unrelated compiler/Dokka/Gradle warnings remain visible in complete logs. Earlier
 validation iterations are retained with explicit `before-header-refinement` and
 failure labels, rather than presented as final evidence.
+
+## Streaming assertion evidence
+
+`StreamingRecoveryHttpTest` and `StreamingRecoveryLifecycleTest` use the default real HTTP engine through both public
+adapters and both streaming APIs. Its assertions cover:
+
+| Test | Evidence |
+| --- | --- |
+| `admittedRetriesPreserveExactPayloadCaptureAndIdentities` | 503 admission; identical request/capture bytes; distinct attempt IDs and stable logical ID; ordered lifecycle; private payload/credential exclusion |
+| `retryAfterAndBoundedGatewayTimeout`, `retryAfterDatesInvalidAndMinimumRefusalAndHealthyGenerationBudget` | numeric statuses/history; 429 seconds/date/invalid delay; minimum refusal; bounded 504; first-failure budgets do not time out successful generation |
+| `admissionWaitRejectAndRecoveryBudgetDoNotSend` | pending decision holds one wire request; rejection and exhausted budget prevent resend |
+| `allObservedSemanticChannelsInterruptWithoutReplay` | reasoning, content and tool fragments each block replay, including tool-free reasoning; UTF-8 byte counts and explicit interruption |
+| `keepaliveOnlyClosureRequiresAdmissionAndCanRecover` | raw bytes without semantic output; unknown acceptance; explicit admission permits retry |
+| `truncatedPermanentStatusesRemainPermanent` | 400/401 remain permanent after truncated bodies; exact partial private evidence and original IOException |
+| `captureFailureIsTerminalBeforeDeliveryThroughBothAdapters` | capture fails before delivery with original hook object identity; no resend |
+| `validLengthHasProgressThenMetricsThenFailureAndMalformedHasNoTelemetry` | validated Ollama Progress then Metrics then Failed; original token counts/durations, absent fields stay absent; no fabricated malformed-frame metrics |
+| `pausedConsumerCancellationRecordsFailedAttemptBeforeOneTerminalCancellation` | consumer paused on final content; server observes socket closure; Failed before exactly one Cancelled; available status/progress retained; no success |
+| `pausedTerminalCompletionClosesOwnedResponseBeforeCancellation` | terminal-only completion is delivered after the attempt finalizes and response closes; later consumer cancellation adds no attempt lifecycle |
+| `finalizationObserverFailureProducesOnlyPrivateErrorThroughGatewayAndBroker` | throwing success observer emits one Error and no Completed through both public boundaries; original private cause identity and privacy retained |
+| `terminalOnlyMetricsCancellationCannotSucceed`, `cancellationFromProgressObserverRetainsZeroDeliveredBytes` | observer cancellation at telemetry prevents success; zero delivered bytes when consumer was never invoked |
+| `cancellationDuringAdmissionAndBackoffNeverResends` | cancellable admission/backoff; no later request or duplicate terminal cancellation |
+| `invalidUtf8AndProviderErrorsCannotManufactureSuccessOrTelemetry`, `quotedTelemetryAndTerminationAreMalformedBeforeProgress` | exact invalid wire input and primitive-type validation; no invented telemetry or success; private provider echo excluded |
+| `brokerToolRunsOnceAndSessionRestoresSnapshotAfterFollowupFails` | completed tool executes exactly once; follow-up failures recover only that completion with identical tool history; session snapshot restored; successful stream commits history |
+
+Opt-in flows have no internal output buffer. Synchronous lifecycle telemetry
+cannot run ahead of a suspended direct collector. Caller-added Flow buffers have
+normal upstream/downstream semantics and are outside that guarantee.
+
+Remaining mission gaps: OpenAI/Anthropic recovery, validated provider codes/request
+IDs, native reasoning-history representation, provider ownership/remote
+termination/idempotency facilities, Native/Apple execution and exact Native
+artifact analysis. This packet adds no continuation, tool/agent replay, sibling
+port changes or harness experiment. Existing security exclusions remain intact.
+
+## Current streaming validation
+
+All six configured Linux gates passed together (`ktlintCheck detekt build
+allTests apiCheck dokkaGenerate`). All 384 JVM tests passed, including the
+20 streaming transport/lifecycle tests. The API snapshot only adds signatures;
+existing constructor/default/copy descriptors remain. Independent read-only
+review verified source, actual proof outcomes, gate logs and assertion results.
+
+The unfiltered `dependencyCheckAggregate --no-parallel` audit passed with 337
+entries and zero unsuppressed vulnerabilities. Existing exclusions and
+suppression rules are unchanged. Missing OSS Index credentials and the .NET
+assembly analyzer warning remain visible in the retained complete logs. The NVD
+modified feed timestamp was checked before the audit.
+
+Isolated `publishToMavenLocal` passed with a disposable signing key and output
+under `/tmp`. Consumer inspection retained hashes for 36 POMs and 36 module
+files. Of 54 external coordinates, 42 match exact audited artifacts and 12
+Native coordinates match audited family versions. The existing Android logging
+false-positive finding was checked against the advisory subject and actual AAR
+classes; no rule was edited. Exact Native binary analysis and Apple runtime
+validation remain pending.
+
+Actual commands, exit codes, artifact paths and limits are in
+`.foundry/validation.json`. Complete passing/failing command logs, source/log
+hashes, exact reference revision, consumer metadata and independent-review
+evidence are retained in `.foundry/logs/`. Foundry owns finalization; no commit,
+push or ref modification was performed.

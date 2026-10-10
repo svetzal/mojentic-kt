@@ -213,7 +213,8 @@ public class LlmBroker(
      * content received before an error is evidence only.
      *
      * The turn sends one request with no tools, forces
-     * [CompletionConfig.maxToolIterations] to zero, and never retries. Stopping
+     * [CompletionConfig.maxToolIterations] to zero. Opt-in local gateway recovery
+     * can resend only the same completion before semantic progress, after admission. Stopping
      * collection early cancels the request. A gateway that does not implement
      * [StreamEventsGateway] yields a single
      * [StreamErrorReason.StreamEventsUnsupported] error, with no request and no trace.
@@ -242,17 +243,21 @@ public class LlmBroker(
             val mark = TimeSource.Monotonic.markNow()
             val content = StringBuilder()
             var terminal: CompletionStreamEvent? = null
-            source.streamEvents(model, messages, config.copy(maxToolIterations = 0))
+            val eventFlow = source.streamEvents(model, messages, config.copy(maxToolIterations = 0))
                 .catch { failure -> emit(CompletionStreamEvent.Error(StreamErrorReason.RequestFailed(failure))) }
-                .takeWhile { event -> (event is CompletionStreamEvent.Content).also { if (!it) terminal = event } }
-                .collect { event ->
-                    if (event is CompletionStreamEvent.Content) {
-                        content.append(event.text)
-                        emit(event)
+            val outcome = if (config.recovery != null) {
+                collectRecoveryStreamEvents(eventFlow, content) { emit(it) }
+            } else {
+                eventFlow
+                    .takeWhile { event -> (event is CompletionStreamEvent.Content).also { if (!it) terminal = event } }
+                    .collect { event ->
+                        if (event is CompletionStreamEvent.Content) {
+                            content.append(event.text)
+                            emit(event)
+                        }
                     }
-                }
-            val outcome = terminal
-                ?: CompletionStreamEvent.Error(StreamErrorReason.IncompleteStream(evidence = null))
+                terminal ?: CompletionStreamEvent.Error(StreamErrorReason.IncompleteStream(evidence = null))
+            }
             val evidence = outcome.evidence
             tracer.recordLlmResponse(
                 model = model,

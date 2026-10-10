@@ -18,6 +18,8 @@ internal data class ScriptedReply(
     val release: CountDownLatch? = null,
     val delayMillis: Long = 0,
     val gzip: Boolean = false,
+    val clientClosed: CountDownLatch? = null,
+    val rawBody: ByteArray? = null,
 )
 
 /** Exact HTTP/1.1 loopback scripts, including deliberately incomplete response bodies. */
@@ -40,6 +42,11 @@ internal class RecoveryScriptedServer(private val replies: List<ScriptedReply>) 
                     requests += input.readNBytes(length)
                     val reply = replies.getOrElse(requests.size - 1) { ScriptedReply(500, "unexpected-request") }
                     if (reply.status != 0) respond(socket.getOutputStream(), reply)
+                    reply.clientClosed?.let {
+                        socket.soTimeout = 5000
+                        check(input.read() == -1) { "client did not close owned response" }
+                        it.countDown()
+                    }
                 }
             }
         } catch (_: SocketException) {
@@ -51,7 +58,9 @@ internal class RecoveryScriptedServer(private val replies: List<ScriptedReply>) 
 
     private fun respond(output: java.io.OutputStream, reply: ScriptedReply) {
         Thread.sleep(reply.delayMillis)
-        val bytes = if (reply.gzip) {
+        val bytes = if (reply.rawBody != null) {
+            reply.rawBody
+        } else if (reply.gzip) {
             ByteArrayOutputStream().apply {
                 GZIPOutputStream(this).use { it.write(reply.body.encodeToByteArray()) }
             }.toByteArray()

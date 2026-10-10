@@ -46,6 +46,22 @@ public class RecoveryHttp(
         operation: String,
         policy: RecoveryPolicy,
         decode: (String, Map<String, List<String>>) -> T,
+    ): T = executeInternal(payload, operation, policy, decode, null)
+
+    /** Incremental streaming boundary; the consumer validates terminal evidence before returning. */
+    public suspend fun executeStream(
+        payload: String,
+        operation: String,
+        policy: RecoveryPolicy,
+        consume: suspend (RecoveryStream) -> Unit,
+    ): Unit = executeInternal(payload, operation, policy, { _, _ -> }, consume)
+
+    private suspend fun <T> executeInternal(
+        payload: String,
+        operation: String,
+        policy: RecoveryPolicy,
+        decode: (String, Map<String, List<String>>) -> T,
+        consume: (suspend (RecoveryStream) -> Unit)?,
     ): T {
         val failures = mutableListOf<RecoveryFailure>()
         val logicalId = RecoveryIdentity.newId()
@@ -56,7 +72,7 @@ public class RecoveryHttp(
                 currentCoroutineContext().ensureActive()
                 val attempt = ResponseEvidence()
                 policy.observer(RecoveryEvent(RecoveryStage.STARTED, identity, failures = failures.toList()))
-                val received = perform(payload, identity, policy, attempt, decode) {
+                val received = perform(payload, identity, policy, attempt, decode, consume) {
                     started?.let { checkBudget(policy, it, 0, identity, failures) }
                 }
                 val result = observeSuccess(received, policy, identity, attempt, failures)
@@ -107,7 +123,7 @@ public class RecoveryHttp(
                     identity,
                     failures = failures.toList(),
                     wireAttempts = identity.attemptNumber,
-                    progress = observedProgress(evidence.status, evidence.bytes.toByteArray()),
+                    progress = evidence.progress(),
                 ),
             )
             currentCoroutineContext().ensureActive()
@@ -146,6 +162,7 @@ public class RecoveryHttp(
         policy: RecoveryPolicy,
         evidence: ResponseEvidence,
         decode: (String, Map<String, List<String>>) -> T,
+        consume: (suspend (RecoveryStream) -> Unit)?,
         beforeSend: () -> Unit,
     ): Result<T> = try {
         evidence.capture = true
@@ -159,10 +176,19 @@ public class RecoveryHttp(
             apiKey?.let { header("Authorization", "Bearer $it") }
             setBody(payload)
         }.execute { response ->
-            readResponse(response, evidence, identity, policy, payload)
-            check(response.status.value in SUCCESS_RANGE) { "HTTP failure" }
-            evidence.decoding = true
-            decode(evidence.bytes.toByteArray().decodeToString(), evidence.headers)
+            if (consume != null && response.status.value in SUCCESS_RANGE) {
+                evidence.streaming = true
+                evidence.status = response.status.value
+                evidence.headers = response.headers.entries().associate { it.key to it.value.toList() }
+                consume(RecoveryStream(response.bodyAsChannel(), evidence, identity, policy, payload))
+                if (!evidence.responseCaptured) evidence.captureResponse(policy, identity, payload, complete = true)
+                decode("", evidence.headers)
+            } else {
+                readResponse(response, evidence, identity, policy, payload)
+                check(response.status.value in SUCCESS_RANGE) { "HTTP failure" }
+                evidence.decoding = true
+                decode(evidence.bytes.toByteArray().decodeToString(), evidence.headers)
+            }
         }
         currentCoroutineContext().ensureActive()
         Result.success(result)
@@ -287,7 +313,10 @@ public class RecoveryHttp(
         failures: List<RecoveryFailure>,
         reason: RecoveryReason,
     ): Nothing {
-        policy.observer(RecoveryEvent(RecoveryStage.EXHAUSTED, identity, failure = failures.lastOrNull(), failures = failures.toList()))
+        val last = failures.lastOrNull()
+        val streaming = last?.operation == "stream" || last?.operation == "streamEvents"
+        val stage = if (streaming && last.progress.semanticObserved) RecoveryStage.INTERRUPTED else RecoveryStage.EXHAUSTED
+        policy.observer(RecoveryEvent(stage, identity, failure = failures.lastOrNull(), failures = failures.toList()))
         throw RecoveryException(failures.toList(), reason)
     }
 
@@ -299,7 +328,23 @@ public class RecoveryHttp(
     }
 }
 
-private class ResponseEvidence {
+internal class ResponseEvidence {
+    var streaming = false
+    var delivered = false
+    var deliveredCounts = RecoverySemanticProgress()
+    var streamProgress = RecoveryProgress(false, 0, false)
+
+    fun progress(): RecoveryProgress = if (streaming) {
+        streamProgress.copy(
+            headersReceived = status != null,
+            rawBytes = bytes.size.toLong(),
+            semanticDelivered = delivered,
+            delivered = deliveredCounts,
+        )
+    } else {
+        observedProgress(status, bytes.toByteArray())
+    }
+
     var sent = false
     var observation = false
     var failedAt: Long? = null
@@ -319,7 +364,7 @@ private class ResponseEvidence {
             headers,
             status,
             complete,
-            observedProgress(status, bytes.toByteArray()),
+            progress(),
         )
 
     fun failure(
@@ -332,7 +377,7 @@ private class ResponseEvidence {
         val details = RecoveryDetails(
             category(cause),
             status,
-            observedProgress(status, bytes.toByteArray()),
+            progress(),
             retryAfter(policy.clock()),
             reason(policy, cause),
             sent,
@@ -357,12 +402,18 @@ private class ResponseEvidence {
         cause is CancellationException -> RecoveryReason.CANCELLATION
         capture -> RecoveryReason.CAPTURE
         observation -> RecoveryReason.POLICY_FAILED
+        partialStreaming() -> RecoveryReason.PARTIAL_SUCCESS
+        cause is RecoveryStreamException -> RecoveryReason.PROTOCOL
         decoding -> RecoveryReason.PROTOCOL
-        status in SUCCESS_RANGE && bytes.isNotEmpty() -> RecoveryReason.PARTIAL_SUCCESS
+        partialOrdinary() -> RecoveryReason.PARTIAL_SUCCESS
         status != null && status !in SUCCESS_RANGE -> httpReason(policy)
         policy.retryTransport && isTransport(cause) -> RecoveryReason.TRANSPORT
         else -> RecoveryReason.HTTP_PERMANENT
     }
+
+    private fun partialStreaming(): Boolean = streaming && progress().semanticObserved
+
+    private fun partialOrdinary(): Boolean = !streaming && status in SUCCESS_RANGE && bytes.isNotEmpty()
 
     private fun httpReason(policy: RecoveryPolicy): RecoveryReason =
         if (status in policy.retryableStatuses && status !in PERMANENT) RecoveryReason.HTTP_TRANSIENT else RecoveryReason.HTTP_PERMANENT
@@ -372,7 +423,8 @@ private class ResponseEvidence {
     private fun category(cause: Throwable?): RecoveryCategory = when {
         cause is CancellationException -> RecoveryCategory.CANCELLATION
         decoding -> RecoveryCategory.PROTOCOL
-        status != null -> RecoveryCategory.HTTP
+        status != null && (!streaming || status !in SUCCESS_RANGE) -> RecoveryCategory.HTTP
+        streaming && cause is RecoveryStreamException -> RecoveryCategory.PROTOCOL
         cause is HttpRequestTimeoutException -> RecoveryCategory.CLIENT_TIMEOUT
         else -> RecoveryCategory.TRANSPORT
     }

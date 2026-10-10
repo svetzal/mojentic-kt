@@ -51,6 +51,73 @@ class OllamaRecoveryProofTest {
         }
     }
 
+    @Test
+    fun observedStreamingContentBlocksReplayBeforeCaptureDelivery(): Unit = runBlocking {
+        val server = ServerSocket(0)
+        val wires = AtomicInteger()
+        val observed = CountDownLatch(1)
+        val worker = servePartialStream(server, observed, wires)
+        val gateway = OllamaGateway("http://127.0.0.1:${server.localPort}")
+        val captureCause = IllegalStateException("private-capture")
+        val delivered = mutableListOf<String>()
+        try {
+            val failure = assertFailsWith<RecoveryException> {
+                gateway.stream(
+                    "test",
+                    listOf(LlmMessage.user("private-request")),
+                    config = CompletionConfig(
+                        recovery = RecoveryPolicy(
+                            maxAttempts = 2,
+                            admission = { true },
+                            capture = {
+                                if (it.progress.semanticObserved) {
+                                    observed.countDown()
+                                    throw captureCause
+                                }
+                            },
+                        ),
+                    ),
+                ).collect { delivered += it.toString() }
+            }
+            assertEquals(
+                com.mojentic.llm.recovery.RecoveryReason.CAPTURE,
+                failure.reason,
+                failure.failures.single().summary().toString() + failure.failures.single().inspectBytes().decodeToString(),
+            )
+            assertEquals(1, wires.get())
+            assertEquals(emptyList(), delivered)
+            assertTrue(failure.failures.single().progress.contentObserved)
+            assertTrue(!failure.failures.single().progress.semanticDelivered)
+            assertTrue(failure.failures.single().inspectCause() === captureCause)
+            assertTrue("private" !in failure.toString())
+        } finally {
+            gateway.close()
+            server.close()
+            worker.join(1000)
+        }
+    }
+
+    private fun servePartialStream(server: ServerSocket, observed: CountDownLatch, wires: AtomicInteger): Thread =
+        thread(isDaemon = true) {
+            try {
+                server.accept().use { socket ->
+                    val input = socket.getInputStream().bufferedReader()
+                    val headers = generateSequence { input.readLine() }.takeWhile { it.isNotEmpty() }.toList()
+                    val length = headers.first { it.startsWith("Content-Length:", true) }.substringAfter(':').trim().toInt()
+                    repeat(length) { input.read() }
+                    wires.incrementAndGet()
+                    val body = """{"message":{"role":"assistant","content":"secret-é"},"done":false}""" + "\n"
+                    socket.getOutputStream().write(
+                        ("HTTP/1.1 200 OK\r\nContent-Length: 9999\r\nConnection: close\r\n\r\n" + body).encodeToByteArray(),
+                    )
+                    socket.getOutputStream().flush()
+                    observed.await(5, TimeUnit.SECONDS)
+                }
+            } catch (_: java.net.SocketException) {
+                // Owned server shutdown.
+            }
+        }
+
     private fun serve(server: ServerSocket, observed: CountDownLatch, wires: AtomicInteger): Thread =
         thread(isDaemon = true) {
             try {

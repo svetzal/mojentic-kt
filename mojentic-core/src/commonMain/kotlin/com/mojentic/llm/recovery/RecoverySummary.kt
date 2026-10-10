@@ -36,4 +36,35 @@ public data class RecoveryLifecycleSummary(
     val failures: List<RecoveryFailureSummary>,
     val wireAttempts: Int,
     val progress: RecoveryProgress?,
-)
+    val frameIndex: Long? = null,
+    val metrics: RecoveryStreamMetrics? = null,
+) {
+    /** Retains the pre-streaming constructor and its default-argument bridge. */
+    public constructor(
+        stage: RecoveryStage,
+        identity: RecoveryIdentity,
+        delayMillis: Long?,
+        failures: List<RecoveryFailureSummary>,
+        wireAttempts: Int,
+        progress: RecoveryProgress?,
+    ) : this(stage, identity, delayMillis, failures, wireAttempts, progress, null, null)
+
+    /** Retains the pre-streaming copy signature while preserving streaming evidence. */
+    public fun copy(
+        stage: RecoveryStage = this.stage,
+        identity: RecoveryIdentity = this.identity,
+        delayMillis: Long? = this.delayMillis,
+        failures: List<RecoveryFailureSummary> = this.failures,
+        wireAttempts: Int = this.wireAttempts,
+        progress: RecoveryProgress? = this.progress,
+    ): RecoveryLifecycleSummary = RecoveryLifecycleSummary(
+        stage,
+        identity,
+        delayMillis,
+        failures,
+        wireAttempts,
+        progress,
+        frameIndex,
+        metrics,
+    )
+}

@@ -77,7 +77,59 @@ public data class RecoveryProgress(
     val toolFragmentsObserved: Boolean = false,
     val completedToolCallsObserved: Int = 0,
     val replayUnsafe: Boolean = semanticObserved,
-)
+    val observed: RecoverySemanticProgress = RecoverySemanticProgress(),
+    val delivered: RecoverySemanticProgress = RecoverySemanticProgress(),
+) {
+    /** Retains the pre-streaming constructor and its default-argument bridge. */
+    public constructor(
+        headersReceived: Boolean,
+        rawBytes: Long,
+        semanticObserved: Boolean,
+        semanticDelivered: Boolean = false,
+        contentObserved: Boolean = false,
+        reasoningObserved: Boolean = false,
+        toolFragmentsObserved: Boolean = false,
+        completedToolCallsObserved: Int = 0,
+        replayUnsafe: Boolean = semanticObserved,
+    ) : this(
+        headersReceived,
+        rawBytes,
+        semanticObserved,
+        semanticDelivered,
+        contentObserved,
+        reasoningObserved,
+        toolFragmentsObserved,
+        completedToolCallsObserved,
+        replayUnsafe,
+        RecoverySemanticProgress(),
+        RecoverySemanticProgress(),
+    )
+
+    /** Retains the pre-streaming copy signature while preserving streaming evidence. */
+    public fun copy(
+        headersReceived: Boolean = this.headersReceived,
+        rawBytes: Long = this.rawBytes,
+        semanticObserved: Boolean = this.semanticObserved,
+        semanticDelivered: Boolean = this.semanticDelivered,
+        contentObserved: Boolean = this.contentObserved,
+        reasoningObserved: Boolean = this.reasoningObserved,
+        toolFragmentsObserved: Boolean = this.toolFragmentsObserved,
+        completedToolCallsObserved: Int = this.completedToolCallsObserved,
+        replayUnsafe: Boolean = this.replayUnsafe,
+    ): RecoveryProgress = RecoveryProgress(
+        headersReceived,
+        rawBytes,
+        semanticObserved,
+        semanticDelivered,
+        contentObserved,
+        reasoningObserved,
+        toolFragmentsObserved,
+        completedToolCallsObserved,
+        replayUnsafe,
+        observed,
+        delivered,
+    )
+}
 
 /** Explicit Retry-After parse result; invalid values never replace policy backoff. */
 @Serializable
@@ -169,7 +221,41 @@ public data class RecoveryEvent(
     val failures: List<RecoveryFailure> = emptyList(),
     val wireAttempts: Int = failures.count { it.wireSent },
     val progress: RecoveryProgress? = failure?.progress,
+    val frameIndex: Long? = null,
+    val metrics: RecoveryStreamMetrics? = null,
 ) {
+    /** Retains the pre-streaming constructor and its default-argument bridge. */
+    public constructor(
+        stage: RecoveryStage,
+        identity: RecoveryIdentity,
+        delayMillis: Long? = null,
+        failure: RecoveryFailure? = null,
+        failures: List<RecoveryFailure> = emptyList(),
+        wireAttempts: Int = failures.count { it.wireSent },
+        progress: RecoveryProgress? = failure?.progress,
+    ) : this(stage, identity, delayMillis, failure, failures, wireAttempts, progress, null, null)
+
+    /** Retains the pre-streaming copy signature while preserving streaming evidence. */
+    public fun copy(
+        stage: RecoveryStage = this.stage,
+        identity: RecoveryIdentity = this.identity,
+        delayMillis: Long? = this.delayMillis,
+        failure: RecoveryFailure? = this.failure,
+        failures: List<RecoveryFailure> = this.failures,
+        wireAttempts: Int = this.wireAttempts,
+        progress: RecoveryProgress? = this.progress,
+    ): RecoveryEvent = RecoveryEvent(
+        stage,
+        identity,
+        delayMillis,
+        failure,
+        failures,
+        wireAttempts,
+        progress,
+        frameIndex,
+        metrics,
+    )
+
     /** Serializable lifecycle snapshot with no raw provider or wire evidence. */
     public fun summary(): RecoveryLifecycleSummary = RecoveryLifecycleSummary(
         stage,
@@ -178,12 +264,27 @@ public data class RecoveryEvent(
         failures.map { it.summary() },
         wireAttempts,
         progress,
+        frameIndex,
+        metrics,
     )
 }
 
 /** Admission pending and backoff do not count as wire attempts. */
 @Serializable
-public enum class RecoveryStage { STARTED, FAILED, ADMISSION_PENDING, ADMITTED, REJECTED, SCHEDULED, SUCCEEDED, EXHAUSTED, CANCELLED }
+public enum class RecoveryStage {
+    STARTED,
+    FAILED,
+    ADMISSION_PENDING,
+    ADMITTED,
+    REJECTED,
+    SCHEDULED,
+    SUCCEEDED,
+    EXHAUSTED,
+    CANCELLED,
+    PROGRESS,
+    METRICS,
+    INTERRUPTED,
+}
 
 /** Explicit sensitive capture. Headers exclude authorization on requests. No implicit formatting of payloads. */
 public class RecoveryWire(
@@ -245,3 +346,16 @@ private const val SERVER_ERROR = 500
 private const val BAD_GATEWAY = 502
 private const val UNAVAILABLE = 503
 private const val GATEWAY_TIMEOUT = 504
+
+/** UTF-8 byte counts and tool counts; no semantic payload text is included. */
+@Serializable
+public data class RecoverySemanticProgress(
+    val contentBytes: Long = 0,
+    val reasoningBytes: Long = 0,
+    val toolFragments: Long = 0,
+    val completedToolCalls: Long = 0,
+)
+
+/** Validated numeric provider telemetry. Missing provider values remain absent. */
+@Serializable
+public data class RecoveryStreamMetrics(val usage: Map<String, Long>, val durations: Map<String, Long>)
