@@ -9,6 +9,9 @@ import com.mojentic.llm.LlmGatewayResponse
 import com.mojentic.llm.LlmMessage
 import com.mojentic.llm.StreamErrorReason
 import com.mojentic.llm.StreamEventsGateway
+import com.mojentic.llm.recovery.RecoveryHttp
+import com.mojentic.llm.recovery.RecoveryPolicy
+import com.mojentic.llm.recovery.recoveryHttpClient
 import com.mojentic.llm.tools.LlmTool
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
@@ -29,11 +32,13 @@ import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.utils.io.readLine
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 
@@ -44,6 +49,12 @@ public const val DEFAULT_OPENAI_HOST: String = "https://api.openai.com/v1"
 
 /**
  * Ktor-Client backed gateway to the OpenAI chat-completions API.
+ *
+ * Completion recovery is opt-in through [CompletionConfig.recovery]. Requests are encoded once;
+ * retries require caller admission and cannot replay observed or delivered semantic output.
+ * Default JVM/Android recovery clients disable hidden retries and redirects. Supplied engines
+ * require caller configuration; Apple transport validation remains pending.
+ * Closing a socket does not establish provider cancellation or inference termination.
  *
  * @param apiKey Bearer token. Required for the public OpenAI endpoint.
  * @param host Base URL of the OpenAI HTTP API. Default is [DEFAULT_OPENAI_HOST].
@@ -59,12 +70,15 @@ public class OpenAIGateway(
 ) : LlmGateway,
     StreamEventsGateway {
     private val httpClient: HttpClient = buildHttpClient(engine)
+    private val recoveryClientDelegate = lazy { recoveryHttpClient(engine) }
+    private val recoveryClient: HttpClient by recoveryClientDelegate
 
     /**
      * Closes the underlying Ktor client.
      */
     public fun close() {
         httpClient.close()
+        if (recoveryClientDelegate.isInitialized()) recoveryClient.close()
     }
 
     override suspend fun complete(
@@ -81,7 +95,7 @@ public class OpenAIGateway(
             stream = false,
             responseFormat = config.responseFormat?.toOpenAIResponseFormat(),
         )
-        val response = postChat(request)
+        val response = postChat(request, config.recovery, structured = false)
         val choice = response.choices.firstOrNull()
             ?: throw LlmGatewayException("OpenAI returned no choices in response")
         val message = choice.message ?: throw LlmGatewayException("OpenAI choice missing message")
@@ -119,7 +133,7 @@ public class OpenAIGateway(
                 jsonSchema = OpenAIJsonSchema(name = "structured_response", schema = schema, strict = false),
             ),
         )
-        val response = postChat(request)
+        val response = postChat(request, config.recovery, structured = true)
         val choice = response.choices.firstOrNull()
         val raw = choice?.message?.content
             ?: throw LlmGatewayException("OpenAI returned no content for structured-output request")
@@ -130,6 +144,7 @@ public class OpenAIGateway(
         return LlmGatewayResponse(
             content = raw,
             structuredJson = structured,
+            thinking = if (config.recovery != null) choice.message.reasoningContent else null,
             usage = response.usage,
             providerModel = response.model,
             finishReason = choice.finishReason,
@@ -137,6 +152,17 @@ public class OpenAIGateway(
     }
 
     override fun stream(
+        model: String,
+        messages: List<LlmMessage>,
+        tools: List<LlmTool>?,
+        config: CompletionConfig,
+    ): Flow<GatewayStreamEvent> = if (config.recovery != null) {
+        recoveryStream(model, messages, tools, config)
+    } else {
+        legacyStream(model, messages, tools, config)
+    }
+
+    private fun legacyStream(
         model: String,
         messages: List<LlmMessage>,
         tools: List<LlmTool>?,
@@ -182,6 +208,16 @@ public class OpenAIGateway(
         model: String,
         messages: List<LlmMessage>,
         config: CompletionConfig,
+    ): Flow<CompletionStreamEvent> = if (config.recovery != null) {
+        recoveryStreamEvents(model, messages, config)
+    } else {
+        legacyStreamEvents(model, messages, config)
+    }
+
+    private fun legacyStreamEvents(
+        model: String,
+        messages: List<LlmMessage>,
+        config: CompletionConfig,
     ): Flow<CompletionStreamEvent> = channelFlow {
         val request = buildChatRequest(
             model = model,
@@ -212,6 +248,56 @@ public class OpenAIGateway(
         }
     }.buffer(Channel.RENDEZVOUS)
         .catch { failure -> emit(CompletionStreamEvent.Error(StreamErrorReason.RequestFailed(failure))) }
+
+    private fun recoveryRequest(
+        model: String,
+        messages: List<LlmMessage>,
+        tools: List<LlmTool>?,
+        config: CompletionConfig,
+    ): String {
+        val request = buildChatRequest(
+            model,
+            messages,
+            tools,
+            config,
+            stream = true,
+            responseFormat = config.responseFormat?.toOpenAIResponseFormat(),
+        ).copy(streamOptions = OpenAIStreamOptions(includeUsage = true))
+        return json.encodeToString(OpenAIChatRequest.serializer(), request)
+    }
+
+    private fun recoveryBoundary(): RecoveryHttp = RecoveryHttp(recoveryClient, "openai", "$host/chat/completions", apiKey)
+
+    private fun recoveryStream(
+        model: String,
+        messages: List<LlmMessage>,
+        tools: List<LlmTool>?,
+        config: CompletionConfig,
+    ): Flow<GatewayStreamEvent> = flow {
+        val payload = recoveryRequest(model, messages, tools, config)
+        recoveryBoundary().executeStream(payload, "stream", requireNotNull(config.recovery)) { stream ->
+            OpenAIRecoveryStreamParser(json, retainCompletionEvidence = true).consume(stream, allowTools = true) { emit(it) }
+        }
+    }
+
+    private fun recoveryStreamEvents(
+        model: String,
+        messages: List<LlmMessage>,
+        config: CompletionConfig,
+    ): Flow<CompletionStreamEvent> = flow {
+        val payload = recoveryRequest(model, messages, tools = null, config)
+        var completed: CompletionStreamEvent.Completed? = null
+        recoveryBoundary().executeStream(payload, "streamEvents", requireNotNull(config.recovery)) { stream ->
+            val evidence = OpenAIRecoveryStreamParser(json, retainCompletionEvidence = true).consume(stream, allowTools = false) { event ->
+                if (event is GatewayStreamEvent.Content) emit(CompletionStreamEvent.Content(event.text))
+            }
+            completed = CompletionStreamEvent.Completed(evidence)
+        }
+        emit(checkNotNull(completed))
+    }.catch { failure ->
+        if (failure is CancellationException) throw failure
+        emit(CompletionStreamEvent.Error(StreamErrorReason.RequestFailed(failure)))
+    }
 
     private fun buildChatRequest(
         model: String,
@@ -246,7 +332,22 @@ public class OpenAIGateway(
         return parsed.data.map { it.id }.sorted()
     }
 
-    private suspend fun postChat(request: OpenAIChatRequest): OpenAIChatResponse {
+    private suspend fun postChat(
+        request: OpenAIChatRequest,
+        policy: RecoveryPolicy?,
+        structured: Boolean,
+    ): OpenAIChatResponse {
+        if (policy != null) {
+            val payload = json.encodeToString(OpenAIChatRequest.serializer(), request)
+            return recoveryBoundary().execute(payload, if (structured) "structured" else "complete", policy) { body, _ ->
+                val parsed = json.decodeFromString(OpenAIChatResponse.serializer(), body)
+                val message = requireNotNull(parsed.choices.firstOrNull()?.message)
+                // Structured JSON is validated inside the boundary to retain private decoding evidence.
+                message.toolCalls.orEmpty().forEach { it.toLlmToolCall(json) }
+                if (structured) require(json.parseToJsonElement(requireNotNull(message.content)) is JsonObject)
+                parsed
+            }
+        }
         val response: HttpResponse = httpClient.post("$host/chat/completions") {
             header(HttpHeaders.Authorization, "Bearer $apiKey")
             contentType(ContentType.Application.Json)

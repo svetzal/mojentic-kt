@@ -1,6 +1,91 @@
+# OpenAI recovery expansion — October 10 correction
+
+The current source change starts from delivered Kotlin
+`a1cd3e9515e9282c53ec9e9ec2ccb8a5d0263d44`. A read-only `git ls-remote`
+confirmed origin/main at that same revision. Foundry prohibits ref mutation, so
+fetch/pull/rebase and Git finalization were not performed. The checked-in contract,
+request and October 10 requirements in the correction plan govern this slice;
+no separate supplement file was present. Package versions and release guidance
+are preserved. No sibling or harness files are edited.
+
+The current behavioral proof is [.foundry/proof.json](.foundry/proof.json).
+`OpenAIRecoveryProofTest.escapedSemanticOutputInterruptsAtRealOpenAIBoundary`
+rejected unchanged OpenAI source (exit 1): escaped UTF-8 content followed by EOF
+completed successfully instead of throwing. The corrected public gateway probe
+passed (exit 0). Its loopback uses the default production client and distinguishable
+queued success. It asserts exactly `private-é`, one wire request, no admission,
+exact observed/delivered UTF-8 counts, exact request/response capture equality,
+original typed EOF cause, matching capture/failure identity, single-failure history
+and terminal `INTERRUPTED`. Complete proof logs are retained.
+
+OpenAI opt-in ordinary/structured requests now encode once before `RecoveryHttp`.
+Both streaming APIs use the same strict OpenAI-compatible recovery parser as oMLX;
+that parser moved with oMLX behavior preserved and OpenAI-only private telemetry retention. Retries-disabled OpenAI paths still
+use their distinct legacy/event parsers, including legacy malformed-chunk skipping,
+reasoning/tool aggregation and event-stream no-tools/usage behavior. Opt-in structured
+responses retain available reasoning; legacy structured reasoning stays absent.
+No ordinary finish handling, dependency, provider capability or package version
+changes are made.
+
+The existing `CompletionRecoveryHttpTest`, `RecoveryTransportHttpTest` and
+`StreamingRecoveryHttpTest` matrices now include `Provider.OPENAI`. Their public
+HTTP assertions cover 503 recovery, exact frozen payload/capture bytes, logical
+and attempt IDs, one-based attempt numbers, complete lifecycle/history, bounded
+504, Retry-After seconds/dates/invalid/minimum/budget refusal, pending/rejected
+admission, request/admission/backoff/paused-consumer cancellation, truncated
+400/401/403, malformed replies, capture cause identity and zero delivery, separate
+reasoning/content/tool interruptions, escaped keys and split reads, keepalive,
+terminal telemetry and safe summaries against credential/payload echoes.
+Broker structured generation and session ordinary/streaming tool rounds use the
+same public gateway: a completed tool followed by exhausted completion executes
+exactly once, retains retry payload bytes and restores session history on failure.
+`OpenAIRecoveryPayloadTest` additionally asserts golden UTF-8 bytes for chat and
+reasoning models across all four entrypoints, despite message-list mutation during
+admission, plus exact terminal telemetry and capture equality.
+`OpenAIRecoveryTelemetryTest` asserts length + DONE and EOF retain exact usage,
+provider model and finish reason through the broker tracer without replacing the
+original typed cause or recovery history. It also covers cancellation from terminal
+usage through stream, streamEvents and broker event paths, with zero output,
+original cancellation cause identity and owned socket closure. The rejecting test
+exposed wrapped cancellation being caught into an Error event; opt-in gateway and
+broker catches now rethrow cancellation.
+
+Read-only comparison at Rust exactly
+`4ca1ed279c02eab37827a1ed07c30e961155ecf3` confirms engine interruption on
+either observed or delivered semantics, cancellable admission/backoff, cancellation
+checks around capture/terminal success, and a dedicated client with hidden retries
+and redirects disabled. Exact `adapter.rs`, `engine.rs` and `frames.rs` snapshots
+are retained in `.foundry/logs/`. Kotlin uses its existing bounded recovery policy,
+explicit admission and private causes. Missing provider metadata extraction remains
+a documented shared limitation; it is not fabricated from untrusted headers.
+No endpoint-specific cancellation/status/idempotency support is established here.
+A timeout or closed socket does not prove inference termination.
+
+Current validation and independent slice review are recorded in
+`.foundry/validation.json`. Linux excludes iOS execution and Apple framework linking;
+Apple runtime/transport validation is explicitly pending. Whole-mission review and
+cross-port alignment remain required. The earlier evidence below is historical.
+
+Current Linux validation passed all six gates together (544 tasks), all 396 JVM
+tests across 68 suites (zero failures/errors/skips), and the unfiltered audit
+(337 dependency entries, zero reported vulnerabilities). OSS Index was unavailable
+without credentials; the .NET analyzer warning remains visible. No dependency,
+audit scope or suppression change was made. Local publication with a disposable
+key passed; inspection hashed 36 POMs and 36 module files with the original group
+and version. Of 54 external coordinates, 42 match exact audited artifacts and 12
+match audited family versions. Exact Native binary safety remains pending.
+Independent review verified the source corrections and proof/gate/XML/audit
+evidence. Complete logs, source snapshots, metadata, hashes and exact revisions
+are retained in `.foundry/` and copied outside the worktree to
+`/home/svetzal/.foundry/tool-logs/mojentic-kt-openai-recovery-c5-ca4ece-evidence`.
+Foundry retains Git finalization ownership; Apple and whole-mission validation
+remain explicitly pending.
+
+---
+
 # Completion recovery conformance — bounded Kotlin slice
 
-This slice adds opt-in streaming completion recovery through both public local
+Earlier slices added opt-in streaming completion recovery through both public local
 adapters, `stream`, `streamEvents`, broker streaming and session streaming. It
 retains the landed ordinary/structured recovery and dedicated transport.
 Acceptance uses `TRANSIENT-RECOVERY-2026-10.md`, `RECOVERY-REQUEST-2026-10.txt`
@@ -64,7 +149,8 @@ partial bytes and original exceptions require explicit inspection.
 | Ollama ordinary/structured | opt-in request recovery | unknown; caller admission required |
 | oMLX ordinary/structured | opt-in request recovery | unknown; caller admission required |
 | Ollama/oMLX streaming (`stream`, `streamEvents`) | opt-in request recovery; legacy paths preserved | unknown; caller admission required |
-| OpenAI/Anthropic completion/streaming | existing behavior preserved; recovery pending | not investigated here |
+| OpenAI Chat Completions ordinary/structured/stream/streamEvents | opt-in recovery; disabled parsers preserved | endpoint cancellation/status/idempotency not established; custom-host capabilities unknown |
+| Anthropic completion/streaming | existing behavior preserved; recovery pending | not investigated here |
 | Embeddings, realtime, model management | existing behavior preserved; outside completion recovery | not investigated here |
 
 Default JVM/Android OkHttp connection retries and redirects are disabled.

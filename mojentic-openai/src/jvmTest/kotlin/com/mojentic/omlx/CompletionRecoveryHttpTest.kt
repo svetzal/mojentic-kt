@@ -85,7 +85,13 @@ class CompletionRecoveryHttpTest {
                     val payload = server.requests[0].decodeToString()
                     assertTrue("prior-assistant" in payload && "private-request" in payload)
                     assertTrue("temperature" in payload)
-                    assertTrue(if (provider == Provider.OLLAMA) "think" in payload else "reasoning_effort" in payload)
+                    assertTrue(
+                        when (provider) {
+                            Provider.OLLAMA -> "think" in payload
+                            Provider.OMLX -> "reasoning_effort" in payload
+                            Provider.OPENAI -> "reasoning_effort" !in payload
+                        },
+                    )
                     assertTrue(if (structured) "schema-value" in payload else "count-tool" in payload)
                     assertFalse("private" in events.toString())
                     assertFalse("native-reasoning" in wires.toString())
@@ -97,7 +103,8 @@ class CompletionRecoveryHttpTest {
     @Test
     fun exhaustionRetainsEveryAttemptAndTypedCause(): Unit = runBlocking {
         matrix { provider, structured ->
-            RecoveryScriptedServer(List(3) { ScriptedReply(504, "secret", mapOf("X-Request-Id" to "credential-secret")) }).use { server ->
+            val replies = List(3) { ScriptedReply(504, "secret-${it + 1}", mapOf("X-Request-Id" to "credential-secret")) }
+            RecoveryScriptedServer(replies + provider.success(structured)).use { server ->
                 provider.gateway(server.url).use { gateway ->
                     val events = mutableListOf<RecoveryEvent>()
                     val failure = assertFailsWith<RecoveryException> { call(gateway.value, structured, policy(events)) }
@@ -107,10 +114,10 @@ class CompletionRecoveryHttpTest {
                     assertEquals(listOf(1, 2, 3), failure.failures.map { it.identity.attemptNumber })
                     assertEquals(listOf(504, 504, 504), failure.failures.map { it.status })
                     assertTrue(failure.failures.all { it.eligible && it.progress.headersReceived && it.progress.rawBytes > 0 })
-                    failure.failures.forEach {
-                        assertSame(it.inspectCause(), it.inspectBoundaryCause())
-                        assertTrue(it.inspectCause() is IllegalStateException)
-                        assertEquals("secret", it.inspectBytes().decodeToString())
+                    failure.failures.zip(replies).forEach { (failure, reply) ->
+                        assertSame(failure.inspectCause(), failure.inspectBoundaryCause())
+                        assertTrue(failure.inspectCause() is IllegalStateException)
+                        assertContentEquals(reply.body.encodeToByteArray(), failure.inspectBytes())
                     }
                     assertEquals(3, events.filter { it.stage == RecoveryStage.FAILED }.last().failures.size)
                     assertFalse("secret" in Json.encodeToString(failure.summary()))
@@ -427,7 +434,7 @@ class CompletionRecoveryHttpTest {
             RecoveryScriptedServer(listOf(provider.success(structured))).use { server ->
                 provider.gateway(server.url).use { gateway ->
                     val legacy = call(gateway.value, structured, null)
-                    assertEquals(if (structured && provider == Provider.OLLAMA) null else "native-reasoning", legacy.thinking)
+                    assertEquals(if (structured && provider != Provider.OMLX) null else "native-reasoning", legacy.thinking)
                     assertEquals(1, server.requests.size)
                 }
             }

@@ -14,6 +14,20 @@ patch versions move independently.
 
 - Kotlin 2.4.21 (patch update from 2.4.20).
 
+### Added
+
+- Opt-in OpenAI Chat Completions recovery for ordinary, structured, streaming
+  and tool-free event requests, with immutable request bytes, bounded attempts,
+  caller admission, private failure evidence and exact caller-owned capture.
+  Existing broker/session paths preserve tool depth and execute completed tools once.
+
+### Fixed
+
+- Semantic replay correction: escaped JSON keys and incomplete semantic frames
+  prevent recovery replay after observed or delivered content, reasoning or tools.
+  Capture failures retain observed evidence before delivery; cancellation wins
+  over terminal success while consumers are paused.
+
 ## [2.1.0] - 2026-09-30
 
 ### Changed

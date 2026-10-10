@@ -1,5 +1,6 @@
 package com.mojentic.llm.recovery
 
+import com.mojentic.llm.CompletionEvidence
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.readAvailable
 import kotlinx.coroutines.currentCoroutineContext
@@ -83,6 +84,11 @@ public class RecoveryStream internal constructor(
         currentCoroutineContext().ensureActive()
         evidence.captureResponse(policy, identity, payload, complete = true)
         currentCoroutineContext().ensureActive()
+    }
+
+    /** Retain validated completion telemetry privately, including when a later read or capture fails. */
+    public fun completionEvidence(completion: CompletionEvidence) {
+        evidence.completion = completion
     }
 
     /** Accept only numeric counts and durations under documented provider keys. */

@@ -21,6 +21,7 @@ import com.mojentic.openai.OpenAIEmbeddingsResponse
 import com.mojentic.openai.OpenAIGateway
 import com.mojentic.openai.OpenAILegacyStreamParser
 import com.mojentic.openai.OpenAIListResponse
+import com.mojentic.openai.OpenAIRecoveryStreamParser
 import com.mojentic.openai.OpenAIResponseFormat
 import com.mojentic.openai.OpenAIStreamEventParser
 import com.mojentic.openai.OpenAIStreamOptions
@@ -328,7 +329,7 @@ public class OmlxGateway internal constructor(
             "stream",
             requireNotNull(config.recovery),
         ) { stream ->
-            OmlxRecoveryStreamParser(json).consume(stream, allowTools = true) { emit(it) }
+            OpenAIRecoveryStreamParser(json).consume(stream, allowTools = true) { emit(it) }
         }
     }
 
@@ -346,7 +347,7 @@ public class OmlxGateway internal constructor(
             "streamEvents",
             requireNotNull(config.recovery),
         ) { stream ->
-            val evidence = OmlxRecoveryStreamParser(json).consume(stream, allowTools = false) { event ->
+            val evidence = OpenAIRecoveryStreamParser(json).consume(stream, allowTools = false) { event ->
                 if (event is GatewayStreamEvent.Content) emit(CompletionStreamEvent.Content(event.text))
             }
             completed = CompletionStreamEvent.Completed(evidence)

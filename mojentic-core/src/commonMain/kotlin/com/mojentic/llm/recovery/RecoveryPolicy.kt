@@ -1,5 +1,6 @@
 package com.mojentic.llm.recovery
 
+import com.mojentic.llm.CompletionEvidence
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.serialization.Serializable
@@ -187,6 +188,9 @@ public class RecoveryFailure internal constructor(
     /** Original request failure when a capture hook also failed; may contain secrets. */
     public fun inspectBoundaryCause(): Throwable? = evidence.boundaryCause
 
+    /** Validated completion telemetry retained on interruption; provider values require explicit inspection. */
+    public fun inspectCompletionEvidence(): CompletionEvidence? = evidence.completion
+
     /** The original object, which may contain secrets. Never log implicitly. */
     public fun inspectCause(): Throwable? = evidence.originalCause
 
@@ -339,6 +343,7 @@ internal class SensitiveRecoveryEvidence(
     val receivedBytes: ByteArray,
     val receivedHeaders: Map<String, List<String>>,
     val boundaryCause: Throwable?,
+    val completion: CompletionEvidence?,
 )
 
 private const val TOO_MANY_REQUESTS = 429

@@ -1,4 +1,4 @@
-package com.mojentic.omlx
+package com.mojentic.openai
 
 import com.mojentic.llm.CompletionEvidence
 import com.mojentic.llm.GatewayStreamEvent
@@ -6,8 +6,7 @@ import com.mojentic.llm.LlmToolCall
 import com.mojentic.llm.recovery.RecoveryStream
 import com.mojentic.llm.recovery.RecoveryStreamClosedException
 import com.mojentic.llm.recovery.RecoveryStreamException
-import com.mojentic.openai.OpenAIChatResponse
-import com.mojentic.openai.OpenAIResponseMessage
+import com.mojentic.omlx.isKeepAliveFrame
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -17,7 +16,10 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.longOrNull
 
 /** Strict single-attempt parser reserved for recovery; legacy parsing remains unchanged. */
-internal class OmlxRecoveryStreamParser(private val json: Json) {
+internal class OpenAIRecoveryStreamParser(
+    private val json: Json,
+    private val retainCompletionEvidence: Boolean = false,
+) {
     private data class Tool(
         val id: StringBuilder = StringBuilder(),
         val name: StringBuilder = StringBuilder(),
@@ -46,6 +48,7 @@ internal class OmlxRecoveryStreamParser(private val json: Json) {
                 usage = chunk.usage ?: evidence.usage,
                 providerModel = chunk.model ?: evidence.providerModel,
             )
+            if (retainCompletionEvidence) stream.completionEvidence(evidence)
             stream.progress()
             chunk.usage?.let { stream.metrics(it, null) }
             deliver(choice?.delta, stream, allowTools, emit)

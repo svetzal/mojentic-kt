@@ -13,6 +13,7 @@ import com.mojentic.llm.recovery.RecoveryWire
 import com.mojentic.llm.tools.LlmTool
 import com.mojentic.llm.tools.ToolDescriptor
 import com.mojentic.ollama.OllamaGateway
+import com.mojentic.openai.OpenAIGateway
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
@@ -63,10 +64,14 @@ internal object RecoveryTestFixtures {
     enum class Provider {
         OLLAMA,
         OMLX,
+        OPENAI,
         ;
 
         fun gateway(url: String, timeout: Duration? = null): OwnedGateway = if (this == OLLAMA) {
             val gateway = OllamaGateway(url)
+            OwnedGateway(gateway, gateway::close)
+        } else if (this == OPENAI) {
+            val gateway = OpenAIGateway("credential-secret", url)
             OwnedGateway(gateway, gateway::close)
         } else {
             val gateway = OmlxGateway(url, apiKey = "credential-secret", timeout = timeout)

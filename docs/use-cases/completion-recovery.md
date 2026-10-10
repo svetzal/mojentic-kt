@@ -1,8 +1,8 @@
 # Opt-in completion recovery
 
-Ordinary, structured and streaming Ollama/oMLX completions can recover one provider request.
+Ordinary, structured and streaming OpenAI/Ollama/oMLX completions can recover one provider request.
 Configure the existing `CompletionConfig`; `LlmBroker` and `ChatSession` pass it
-through. OpenAI, Anthropic, embeddings and realtime do not use this policy.
+through. Anthropic, embeddings and realtime do not use this policy.
 
 ```kotlin
 val gateway = OllamaGateway()
@@ -11,7 +11,7 @@ val policy = RecoveryPolicy(
     budgetMillis = 60_000,
     admission = { failure ->
         // Your own suspending ownership/termination check, or an explicit decision.
-        // Returning true authorizes another local inference; socket closure does not.
+        // Returning true authorizes another inference; socket closure does not.
         controller.mayResend(failure.identity.logicalId, failure.nextAttemptNumber)
     },
     observer = { event -> safeLifecycleStore.append(event) },
@@ -30,7 +30,8 @@ try {
 }
 ```
 
-Use `OmlxGateway(host = "http://localhost:8000")` for oMLX. For structured calls,
+Use `OpenAIGateway(apiKey = yourApiKey)` for OpenAI Chat Completions, or
+`OmlxGateway(host = "http://localhost:8000")` for oMLX. For structured calls,
 pass the same config to `broker.completeJson<MyResult>(model, messages, config)`
 or `gateway.completeJsonResponse(model, messages, schema, config)`. Request
 encoding happens once per logical completion, preserving existing history,
@@ -119,7 +120,7 @@ For tool-free terminal evidence use `broker.generateStreamEvents(model,
 messages, config)`. Its terminal `Error(RequestFailed(...))` contains the safe
 `RecoveryException`; inspect its cause explicitly to obtain bounded attempt
 history. It never executes tools. `Completed` requires Ollama `done: true` with
-`done_reason: "stop"`, or oMLX normal finish plus `[DONE]`. EOF, a keepalive or
+`done_reason: "stop"`, or OpenAI/oMLX normal finish plus `[DONE]`. EOF, a keepalive or
 local socket closure never proves completion or remote inference termination.
 
 A keepalive-only transport failure can recover after explicit caller admission.
@@ -156,3 +157,40 @@ retains observed progress and its original private cause, with zero delivered
 progress. Completed-tool evidence survives later wire reads. Consult
 [the conformance packet](../../RECOVERY-CONFORMANCE.md#semantic-replay-correction)
 for scripted boundary assertions and pending Apple validation.
+
+## Completion adapter capabilities
+
+| Adapter | Ordinary / structured / stream / streamEvents recovery | Cancellation, status, idempotency |
+| --- | --- | --- |
+| OpenAI Chat Completions | Opt-in on all four paths; event stream remains tool-free | No endpoint-specific facility established; unknown for custom hosts |
+| Ollama | Opt-in on all four paths | Ownership and termination unknown; caller admission required |
+| oMLX | Opt-in on all four paths | Ownership and termination unknown; caller admission required |
+| Anthropic | Policy not implemented | Not investigated in this slice |
+| Embeddings / realtime / model management | Outside completion recovery | Not investigated in this slice |
+
+OpenAI uses its existing model registry: supported reasoning models omit temperature
+and use `max_completion_tokens` with `reasoning_effort`; other models retain
+`temperature` and `max_tokens`. Unsupported controls are not invented. The semantic
+request bytes, schema and adapted messages are frozen before the first attempt.
+Recovery streams request `stream_options.include_usage`; validated terminal usage,
+provider model and finish reason survive into tool-free completion evidence.
+Opt-in structured responses also retain the provider's available reasoning text;
+legacy structured responses keep their existing behavior. No additional native
+reasoning-history representation is introduced.
+
+The hook is required for OpenAI as well as compatible custom hosts. A local client
+ID is not an idempotency key. This implementation neither sends a provider
+idempotency key nor calls a provider cancellation/status API. Socket cancellation
+closes client-owned resources; the caller must decide whether another request is
+safe. No inference status or remote termination claim follows from a 503, 504 or EOF.
+Exact capture refers to bytes Ktor receives after the engine's normal HTTP decoding,
+not compressed transport frames. Caller-supplied codecs and engines must preserve
+these request, capture and retry guarantees.
+
+Interrupted OpenAI event streams retain their last validated completion telemetry
+in `failure.failures.last().inspectCompletionEvidence()`. This explicit inspection
+can contain provider values; safe failure summaries and lifecycle events continue
+to exclude arbitrary provider text. Broker tracing retains reported usage/model/
+finish reason even on EOF or length termination, while the terminal Error keeps
+the original `RecoveryException` and attempt history. Opt-in cancellation propagates
+as coroutine cancellation through both gateway and broker event paths.

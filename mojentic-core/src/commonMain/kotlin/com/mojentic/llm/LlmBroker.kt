@@ -3,6 +3,7 @@ package com.mojentic.llm
 import com.mojentic.errors.LlmGatewayException
 import com.mojentic.errors.MaxToolIterationsExceededException
 import com.mojentic.internal.JsonSchemaGenerator
+import com.mojentic.llm.recovery.RecoveryException
 import com.mojentic.llm.tools.LlmTool
 import com.mojentic.llm.tools.SerialToolRunner
 import com.mojentic.llm.tools.ToolOutcome
@@ -10,6 +11,7 @@ import com.mojentic.llm.tools.ToolRunner
 import com.mojentic.tracer.NullTracer
 import com.mojentic.tracer.Tracer
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.emitAll
@@ -213,7 +215,7 @@ public class LlmBroker(
      * content received before an error is evidence only.
      *
      * The turn sends one request with no tools, forces
-     * [CompletionConfig.maxToolIterations] to zero. Opt-in local gateway recovery
+     * [CompletionConfig.maxToolIterations] to zero. Opt-in completion gateway recovery
      * can resend only the same completion before semantic progress, after admission. Stopping
      * collection early cancels the request. A gateway that does not implement
      * [StreamEventsGateway] yields a single
@@ -244,7 +246,10 @@ public class LlmBroker(
             val content = StringBuilder()
             var terminal: CompletionStreamEvent? = null
             val eventFlow = source.streamEvents(model, messages, config.copy(maxToolIterations = 0))
-                .catch { failure -> emit(CompletionStreamEvent.Error(StreamErrorReason.RequestFailed(failure))) }
+                .catch { failure ->
+                    if (config.recovery != null && failure is CancellationException) throw failure
+                    emit(CompletionStreamEvent.Error(StreamErrorReason.RequestFailed(failure)))
+                }
             val outcome = if (config.recovery != null) {
                 collectRecoveryStreamEvents(eventFlow, content) { emit(it) }
             } else {
@@ -333,6 +338,7 @@ private val CompletionStreamEvent.evidence: CompletionEvidence?
         is CompletionStreamEvent.Error -> when (val cause = reason) {
             is StreamErrorReason.IncompleteCompletion -> cause.evidence
             is StreamErrorReason.IncompleteStream -> cause.evidence
+            is StreamErrorReason.RequestFailed -> (cause.cause as? RecoveryException)?.failures?.lastOrNull()?.inspectCompletionEvidence()
             else -> null
         }
 

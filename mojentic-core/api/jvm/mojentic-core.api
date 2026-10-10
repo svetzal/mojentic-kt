@@ -928,6 +928,7 @@ public final class com/mojentic/llm/recovery/RecoveryFailure {
 	public final fun inspectBoundaryCause ()Ljava/lang/Throwable;
 	public final fun inspectBytes ()[B
 	public final fun inspectCause ()Ljava/lang/Throwable;
+	public final fun inspectCompletionEvidence ()Lcom/mojentic/llm/CompletionEvidence;
 	public final fun inspectHeaders ()Ljava/util/Map;
 	public final fun summary ()Lcom/mojentic/llm/recovery/RecoveryFailureSummary;
 	public fun toString ()Ljava/lang/String;
@@ -1322,6 +1323,7 @@ public final class com/mojentic/llm/recovery/RecoveryStage$Companion {
 public final class com/mojentic/llm/recovery/RecoveryStream {
 	public static final field BUFFER_SIZE I
 	public final fun completedTools (I)V
+	public final fun completionEvidence (Lcom/mojentic/llm/CompletionEvidence;)V
 	public final fun delivered (Ljava/lang/String;Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun delivered$default (Lcom/mojentic/llm/recovery/RecoveryStream;Ljava/lang/String;Ljava/lang/String;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public final fun finish (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;

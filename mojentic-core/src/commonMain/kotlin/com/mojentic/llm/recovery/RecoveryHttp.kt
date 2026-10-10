@@ -1,5 +1,6 @@
 package com.mojentic.llm.recovery
 
+import com.mojentic.llm.CompletionEvidence
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.plugins.HttpRequestTimeoutException
@@ -363,6 +364,7 @@ internal class ResponseEvidence {
     var decoding = false
     var responseCaptured = false
     var boundaryCause: Throwable? = null
+    var completion: CompletionEvidence? = null
 
     fun wire(identity: RecoveryIdentity, payload: String, complete: Boolean = false): RecoveryWire =
         RecoveryWire(
@@ -395,7 +397,7 @@ internal class ResponseEvidence {
             operation,
             identity,
             details,
-            SensitiveRecoveryEvidence(cause, bytes.toByteArray(), headers, boundaryCause),
+            SensitiveRecoveryEvidence(cause, bytes.toByteArray(), headers, boundaryCause, completion),
         )
     }
 
