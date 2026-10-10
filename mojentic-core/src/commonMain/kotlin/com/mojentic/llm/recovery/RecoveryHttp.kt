@@ -71,7 +71,7 @@ public class RecoveryHttp(
         try {
             while (true) {
                 currentCoroutineContext().ensureActive()
-                val attempt = ResponseEvidence()
+                val attempt = ResponseEvidence(payload, apiKey)
                 policy.observer(RecoveryEvent(RecoveryStage.STARTED, identity, failures = failures.toList()))
                 val received = perform(payload, identity, policy, attempt, decode, consume) {
                     started?.let { checkBudget(policy, it, 0, identity, failures) }
@@ -335,7 +335,7 @@ public class RecoveryHttp(
     }
 }
 
-internal class ResponseEvidence {
+internal class ResponseEvidence(private val payload: String = "", private val apiKey: String? = null) {
     var streaming = false
     var delivered = false
     var deliveredCounts = RecoverySemanticProgress()
@@ -391,6 +391,8 @@ internal class ResponseEvidence {
             retryAfter(policy.clock()),
             reason(policy, cause),
             sent,
+            RecoveryMetadata.code(bytes.toByteArray(), payload, apiKey),
+            RecoveryMetadata.requestId(headers, payload, apiKey),
         )
         return RecoveryFailure(
             provider,

@@ -398,3 +398,90 @@ review independently approved the correction and reconciled all JVM XML results.
 Final evidence review, command outcomes, retained failure iterations, source and
 log hashes are recorded in `.foundry/validation.json` and `.foundry/logs/`.
 No Git finalization or remote publication was performed.
+
+## Validated provider metadata correction
+
+This slice starts at delivered Kotlin
+`b8139728d77cabd02f3b58e99252e4381d308236`. It implements the public error/privacy
+contract and the task-supplied October 10 supplement; provenance is recorded in
+[.foundry/OCTOBER-10-SUPPLEMENT.md](.foundry/OCTOBER-10-SUPPLEMENT.md).
+No separate external supplement was present. Git finalization belongs to Foundry;
+no fetch, rebase, commit, push, tag, release, dependency or version mutation occurred.
+
+The early public HTTP proof is [.foundry/proof.json](.foundry/proof.json): the
+unchanged transport failed with expected `server_error`, actual null. After the
+source correction the same production OpenAI boundary retained that exact code
+and `req_123e4567-e89b-12d3-a456-426614174000`, with one request despite a queued
+success sentinel. This preceded expanded fixtures, docs and the full gates.
+The actual exit codes are 1 and 0; complete capture logs and the bounded command
+logs are retained. Initial read-only cache failures are separate evidence and
+are not counted as the behavioral rejection.
+
+`RecoveryMetadataHttpTest` now has seven passing tests and 156 scripted HTTP
+cases through production transports. Each applicable case uses all three
+adapters and all four operations: ordinary, structured, stream and streamEvents.
+Assertions cover:
+
+- Exact distinct 503/429 codes and UUID request IDs, ordered failure histories,
+  stable logical identity, distinct numbered attempt identities, identical
+  encoded request bytes, exact captured response bytes and capture identities.
+- Unknown, malformed, numeric and credential/payload-echoed values omitted from
+  safe getters and summaries, including UUID-shaped bearer credentials and
+  `req_` echoes; permanent statuses never call admission or consume the success
+  sentinel. Raw headers/body and original typed causes remain inspectable.
+- Safe formatting, report/lifecycle JSON, metadata-preserving legacy copy and
+  JSON round trips; received codes in HTTP-200 JSON/NDJSON/SSE provider errors.
+- Admitted success with exactly two requests and the original failure metadata
+  retained in the success history; broker ordinary/stream/event and session
+  send/stream preserve the same failure object, metadata, raw evidence and
+  rollback behavior.
+
+Existing recovery tests also remain in the full suite: cancellation, default
+one attempt, permanent classification, semantic replay vetoes, immutable request
+bytes and tool safety. This correction does not add retry eligibility, timeouts,
+Anthropic recovery, realtime/embedding recovery or an inference termination claim.
+
+Read-only Rust comparison is exactly
+`4ca1ed279c02eab37827a1ed07c30e961155ecf3`; relevant pinned source slices are
+retained as `.foundry/logs/rust-metadata-types.rs` and `rust-metadata-engine.rs`.
+Kotlin uses the same seven-code vocabulary and UUID spelling family with optional
+`req_`, preserving received spelling. It checks encoded request and bearer echoes;
+it additionally checks decoded JSON request strings, UUID wrapper contents and
+code echoes, and omits ambiguous header values or conflicting codes. These are
+conservative privacy limits, not claims of broader provider capabilities.
+
+All six discovered gates passed together on Linux (544 Gradle tasks), including
+API compatibility and Dokka. The JVM XML totals and the seven new test results
+are retained in `.foundry/logs/jvm-results-summary.json` and
+`metadata-test-results.xml`. Existing compiler/Dokka warnings remain visible.
+iOS runtime tests and Apple framework linking cannot run on Linux; Apple
+validation and exact Native binary vulnerability validation remain pending.
+No disabled-target warning is suppressed.
+
+The configured full-scope dependency audit passed with 335 entries, zero
+unsuppressed findings and 68 existing suppressed findings. A second scan with
+suppression disabled via a temporary init script failed: 337 entries, 68 findings,
+zero suppressions, including CVSS >= 7.0. Both reports and full logs are retained.
+The fresh NVD modified feed timestamp was `2026-10-10T18:00:07-04:00`, matching
+scanner data. Existing shaded build-tool findings and CPE matches remain visible;
+this correction does not certify a clean unfiltered security audit. No dependency,
+threshold, audit scope, suppression or allowlist was changed.
+
+A separate read-only correction review checked the behavioral proof schema and
+actual exit codes, retained every original JVM API descriptor, and verified that
+coordinates, dependencies, audit rules and AGENTS.md are unchanged. Its provenance
+is explicitly the implementation agent; an external independent review remains
+pending Foundry. This evidence makes no whole-mission alignment claim.
+
+Serial isolated `publishToMavenLocal` passed after the retained first attempt
+hit a concurrent metadata-output race with the build. Publication used a disposable
+local signing key and `/tmp/mojentic-metadata-m2`; nothing was remotely published.
+Inspection hashed 36 POMs and 36 module files and found 54 external coordinates:
+42 match audited artifacts exactly, while 12 Native variants require exact artifact
+validation. The unfiltered consumer matching retains the Android logging
+`CVE-2012-2055` CPE finding rather than silently removing it. Its actual class
+inventory is recorded in `.foundry/logs/logging-android-classes.json`; it is a
+logging facade. See the [NVD advisory](https://nvd.nist.gov/vuln/detail/CVE-2012-2055)
+for applicability review. No clean unfiltered consumer-security claim is made.
+Consumer hashes, coordinates and findings are in `.foundry/consumer-inspection.json`;
+final command outcomes and evidence/source hashes are in `.foundry/validation.json`.

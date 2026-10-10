@@ -23,6 +23,10 @@ patch versions move independently.
 
 ### Fixed
 
+- Recovery failures retain validated provider codes and request IDs across Ollama,
+  oMLX and OpenAI completion paths, safe reports and lifecycle histories. Unknown,
+  malformed and request-echoed metadata stays private with exact response evidence.
+
 - Semantic replay correction: escaped JSON keys and incomplete semantic frames
   prevent recovery replay after observed or delivered content, reasoning or tools.
   Capture failures retain observed evidence before delivery; cancellation wins

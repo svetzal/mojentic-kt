@@ -160,13 +160,16 @@ public class RecoveryFailure internal constructor(
     public val reason: RecoveryReason get() = details.reason
     public val wireSent: Boolean get() = details.wireSent
 
-    /** Arbitrary provider strings are withheld from safe summaries; inspect raw headers/body explicitly. */
-    public val providerCode: String? = null
-    public val providerRequestId: String? = null
+    /** Recognized provider code, omitted when malformed, unknown or echoed from the request. */
+    public val providerCode: String? get() = details.providerCode
+
+    /** Valid UUID request ID, omitted when it echoes credentials or request contents. */
+    public val providerRequestId: String? get() = details.providerRequestId
 
     /** Safe serializable snapshot without raw bytes, headers or Throwable objects. */
     public fun summary(): RecoveryFailureSummary = RecoveryFailureSummary(
         provider, operation, identity, category, status, progress, retryAfter, reason, acceptance, phase, eligible, wireSent,
+        providerCode, providerRequestId,
     )
 
     /** Local inference acceptance cannot be proven from socket closure or HTTP status. */
@@ -336,6 +339,8 @@ internal data class RecoveryDetails(
     val retryAfter: RecoveryRetryAfter,
     val reason: RecoveryReason,
     val wireSent: Boolean,
+    val providerCode: String? = null,
+    val providerRequestId: String? = null,
 )
 
 internal class SensitiveRecoveryEvidence(

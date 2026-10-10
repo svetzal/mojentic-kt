@@ -90,6 +90,23 @@ contain secrets. Capture failures are terminal and never trigger another request
 request-capture failure has zero wire attempts. `inspectBoundaryCause` preserves an
 original request failure when terminal capture also fails. Default formatting and
 lifecycle records contain no body text, arbitrary provider metadata or cause chain.
+Safe `failure.providerCode` and `failure.providerRequestId` also appear in
+`failure.summary()`, `exception.summary()` and `event.summary()` histories.
+For example, a received `server_error` with
+`X-Request-ID: req_123e4567-e89b-12d3-a456-426614174000` survives unchanged
+when neither value occurs in the request or bearer credential. Use the summary
+for ordinary logging; use `inspectBytes()`, `inspectHeaders()` and `inspectCause()`
+only in an explicitly authorized private evidence store.
+
+Codes are restricted to `rate_limit_exceeded`, `server_error`,
+`invalid_request_error`, `invalid_api_key`, `model_not_found`, `insufficient_quota`
+and `overloaded_error`, from a JSON error object's string `code`. Request IDs
+come only from an unambiguous `X-Request-ID` UUID, optionally prefixed by `req_`.
+Unknown strings, malformed values and echoed request/credential values are omitted,
+even when the echoed ID has valid UUID syntax. The projection also checks decoded
+JSON request strings, so escaping does not make a payload echo safe. No ID is
+inferred from a response message; Ollama responses without this header have no ID.
+Validation does not prove that the server is trusted or that inference ended.
 Do not serialize explicit inspection results into ordinary application logs.
 
 Default JVM/Android recovery clients disable OkHttp connection retries and all
@@ -194,3 +211,15 @@ to exclude arbitrary provider text. Broker tracing retains reported usage/model/
 finish reason even on EOF or length termination, while the terminal Error keeps
 the original `RecoveryException` and attempt history. Opt-in cancellation propagates
 as coroutine cancellation through both gateway and broker event paths.
+
+Validated metadata uses the shared transport for all three completion adapters.
+Provider codes in JSON, NDJSON and SSE error objects are projected conservatively;
+missing, ambiguous or unknown values remain absent. Realtime and embeddings are
+outside this completion metadata correction. Native execution remains pending
+Apple validation; no stronger Linux-only capability claim is made.
+
+Validated metadata uses the shared transport for all three completion adapters.
+Provider codes in JSON, NDJSON and SSE error objects are projected conservatively;
+missing, ambiguous or unknown values remain absent. Realtime and embeddings are
+outside this completion metadata correction. Native execution remains pending
+Apple validation; no stronger Linux-only capability claim is made.
