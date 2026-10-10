@@ -1,11 +1,13 @@
 package com.mojentic.omlx
 
+import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.net.ServerSocket
 import java.net.SocketException
 import java.util.Collections
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import java.util.zip.GZIPOutputStream
 import kotlin.concurrent.thread
 
 internal data class ScriptedReply(
@@ -14,6 +16,8 @@ internal data class ScriptedReply(
     val headers: Map<String, String> = emptyMap(),
     val truncated: Boolean = false,
     val release: CountDownLatch? = null,
+    val delayMillis: Long = 0,
+    val gzip: Boolean = false,
 )
 
 /** Exact HTTP/1.1 loopback scripts, including deliberately incomplete response bodies. */
@@ -46,11 +50,19 @@ internal class RecoveryScriptedServer(private val replies: List<ScriptedReply>) 
     }
 
     private fun respond(output: java.io.OutputStream, reply: ScriptedReply) {
-        val bytes = reply.body.encodeToByteArray()
+        Thread.sleep(reply.delayMillis)
+        val bytes = if (reply.gzip) {
+            ByteArrayOutputStream().apply {
+                GZIPOutputStream(this).use { it.write(reply.body.encodeToByteArray()) }
+            }.toByteArray()
+        } else {
+            reply.body.encodeToByteArray()
+        }
         val count = bytes.size + if (reply.truncated) TRUNCATED_EXTRA else 0
         val headers = reply.headers.entries.joinToString("") { "${it.key}: ${it.value}\r\n" }
         val head = "HTTP/1.1 ${reply.status} Scripted\r\nContent-Type: application/json\r\n" +
-            "Content-Length: $count\r\nConnection: close\r\n$headers\r\n"
+            "Content-Length: $count\r\nConnection: close\r\n" +
+            (if (reply.gzip) "Content-Encoding: gzip\r\n" else "") + "$headers\r\n"
         output.write(head.encodeToByteArray())
         output.write(bytes)
         output.flush()

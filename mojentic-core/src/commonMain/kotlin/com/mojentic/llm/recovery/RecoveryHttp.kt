@@ -26,6 +26,13 @@ import kotlinx.io.IOException
  */
 public expect fun recoveryHttpClient(engine: HttpClientEngine? = null): HttpClient
 
+/**
+ * Dedicated completion client with a provider's connect and socket timeout in milliseconds.
+ * Null keeps the engine connect default and allows an unbounded wait for generation data.
+ * There is no total request timeout. Supplied engines still require caller retry configuration.
+ */
+public expect fun recoveryHttpClient(engine: HttpClientEngine?, timeoutMillis: Long?): HttpClient
+
 /** Encoded request boundary shared only by opt-in ordinary and structured local-provider completions. */
 public class RecoveryHttp(
     private val client: HttpClient,

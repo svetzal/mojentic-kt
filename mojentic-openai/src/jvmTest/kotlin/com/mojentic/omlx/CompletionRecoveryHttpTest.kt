@@ -5,10 +5,6 @@ import com.mojentic.errors.MaxToolIterationsExceededException
 import com.mojentic.llm.ChatSession
 import com.mojentic.llm.CompletionConfig
 import com.mojentic.llm.LlmBroker
-import com.mojentic.llm.LlmGateway
-import com.mojentic.llm.LlmGatewayResponse
-import com.mojentic.llm.LlmMessage
-import com.mojentic.llm.ReasoningEffort
 import com.mojentic.llm.recovery.RecoveryCancellationException
 import com.mojentic.llm.recovery.RecoveryEvent
 import com.mojentic.llm.recovery.RecoveryException
@@ -17,9 +13,15 @@ import com.mojentic.llm.recovery.RecoveryReason
 import com.mojentic.llm.recovery.RecoveryRetryAfter
 import com.mojentic.llm.recovery.RecoveryStage
 import com.mojentic.llm.recovery.RecoveryWire
-import com.mojentic.llm.tools.LlmTool
-import com.mojentic.llm.tools.ToolDescriptor
-import com.mojentic.ollama.OllamaGateway
+import com.mojentic.omlx.RecoveryTestFixtures.Provider
+import com.mojentic.omlx.RecoveryTestFixtures.TEST_TIMEOUT
+import com.mojentic.omlx.RecoveryTestFixtures.assertAdmittedRequests
+import com.mojentic.omlx.RecoveryTestFixtures.call
+import com.mojentic.omlx.RecoveryTestFixtures.countingTool
+import com.mojentic.omlx.RecoveryTestFixtures.matrix
+import com.mojentic.omlx.RecoveryTestFixtures.messages
+import com.mojentic.omlx.RecoveryTestFixtures.policy
+import com.mojentic.omlx.RecoveryTestFixtures.schema
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
@@ -27,9 +29,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.test.Test
@@ -49,7 +48,9 @@ class CompletionRecoveryHttpTest {
             val events = mutableListOf<RecoveryEvent>()
             val wires = mutableListOf<RecoveryWire>()
             val sleeps = mutableListOf<Long>()
-            RecoveryScriptedServer(listOf(ScriptedReply(503, "private-error"), provider.success(structured))).use { server ->
+            RecoveryScriptedServer(
+                listOf(ScriptedReply(503, "private-error", mapOf("Retry-After" to "0")), provider.success(structured)),
+            ).use { server ->
                 provider.gateway(server.url).use { gateway ->
                     val response = call(gateway.value, structured, policy(events, wires, sleeps))
                     assertEquals(if (structured) "{\"value\":\"ok\"}" else "ok", response.content)
@@ -168,10 +169,14 @@ class CompletionRecoveryHttpTest {
                 for (allow in listOf(true, false)) {
                     val entered = CompletableDeferred<Unit>()
                     val decision = CompletableDeferred<Boolean>()
-                    RecoveryScriptedServer(listOf(ScriptedReply(status, "busy"), provider.success(structured))).use { server ->
+                    RecoveryScriptedServer(
+                        listOf(ScriptedReply(status, "busy", mapOf("Retry-After" to "0")), provider.success(structured)),
+                    ).use { server ->
                         provider.gateway(server.url).use { gateway ->
+                            val events = mutableListOf<RecoveryEvent>()
+                            val wires = mutableListOf<RecoveryWire>()
                             val recovery =
-                                RecoveryPolicy(maxAttempts = 2, admission = {
+                                RecoveryPolicy(maxAttempts = 2, observer = { events += it }, capture = { wires += it }, admission = {
                                     entered.complete(Unit)
                                     decision.await()
                                 }, jitter = { 0 })
@@ -179,21 +184,33 @@ class CompletionRecoveryHttpTest {
                             withTimeout(TEST_TIMEOUT) { entered.await() }
                             assertEquals(1, server.requests.size)
                             assertFalse(result.isCompleted)
+                            assertEquals(
+                                listOf(RecoveryStage.STARTED, RecoveryStage.FAILED, RecoveryStage.ADMISSION_PENDING),
+                                events.map { it.stage },
+                            )
+                            assertContentEquals(server.requests.single(), wires.first().inspectRequest())
+                            val pendingFailure = events.last().failures.single()
+                            assertEquals(if (status == 0) null else 503, pendingFailure.status)
+                            assertEquals(wires.first().identity, pendingFailure.identity)
                             decision.complete(allow)
                             val outcome = withTimeout(TEST_TIMEOUT) { result.await() }
                             if (allow) {
                                 assertTrue(outcome.isSuccess)
                                 assertEquals(2, server.requests.size)
+                                assertAdmittedRequests(wires, server.requests, events, pendingFailure)
                             } else {
                                 val failure = outcome.exceptionOrNull() as RecoveryException
                                 assertEquals(RecoveryReason.ADMISSION_REJECTED, failure.reason)
+                                assertEquals(1, failure.wireAttempts)
+                                assertEquals(if (status == 0) null else 503, failure.failures.single().status)
+                                assertEquals(listOf(RecoveryStage.REJECTED, RecoveryStage.EXHAUSTED), events.takeLast(2).map { it.stage })
                                 assertEquals(1, server.requests.size)
                             }
                         }
                     }
                 }
             }
-            RecoveryScriptedServer(listOf(ScriptedReply(503, "busy"))).use { server ->
+            RecoveryScriptedServer(listOf(ScriptedReply(503, "busy", mapOf("Retry-After" to "0")))).use { server ->
                 provider.gateway(server.url).use { gateway ->
                     val failure = assertFailsWith<RecoveryException> {
                         call(gateway.value, structured, RecoveryPolicy(maxAttempts = 3))
@@ -603,96 +620,6 @@ class CompletionRecoveryHttpTest {
         }
     }
 
-    private suspend fun matrix(block: suspend (Provider, Boolean) -> Unit) {
-        for (provider in Provider.entries) for (structured in listOf(false, true)) block(provider, structured)
-    }
-
-    private suspend fun call(gateway: LlmGateway, structured: Boolean, recovery: RecoveryPolicy?): LlmGatewayResponse {
-        val config = CompletionConfig(temperature = 0.25, reasoningEffort = ReasoningEffort.LOW, recovery = recovery)
-        return if (structured) {
-            gateway.completeJsonResponse("test-model", messages, schema, config)
-        } else {
-            gateway.complete("test-model", messages, listOf(countingTool {}), config)
-        }
-    }
-
-    private fun policy(
-        events: MutableList<RecoveryEvent> = mutableListOf(),
-        wires: MutableList<RecoveryWire> = mutableListOf(),
-        sleeps: MutableList<Long> = mutableListOf(),
-        wall: Long = 0,
-    ): RecoveryPolicy = RecoveryPolicy(
-        maxAttempts = 3,
-        admission = { true },
-        observer = { events += it },
-        capture = { wires += it },
-        sleep = { sleeps += it },
-        clock = { wall },
-        monotonicClock = { 0 },
-        jitter = { it },
-    )
-
-    private fun countingTool(execute: () -> Unit): LlmTool = object : LlmTool {
-        override val descriptor = ToolDescriptor("count-tool", "counting tool", buildJsonObject { put("type", "object") })
-        override suspend fun execute(arguments: JsonObject): String {
-            execute()
-            return "tool-result"
-        }
-    }
-
     @Serializable
     private data class Value(val value: String)
-
-    private enum class Provider {
-        OLLAMA,
-        OMLX,
-        ;
-
-        fun gateway(url: String): OwnedGateway = if (this == OLLAMA) {
-            val gateway = OllamaGateway(url)
-            OwnedGateway(gateway, gateway::close)
-        } else {
-            val gateway = OmlxGateway(url, apiKey = "credential-secret")
-            OwnedGateway(gateway, gateway::close)
-        }
-
-        fun success(structured: Boolean): ScriptedReply {
-            val content = if (structured) "{\"value\":\"ok\"}" else "ok"
-            val encoded = Json.encodeToString(content)
-            val body = if (this == OLLAMA) {
-                """{"model":"test-model",
-                    "message":{"role":"assistant","content":$encoded,"thinking":"native-reasoning"},
-                    "done":true,"done_reason":"stop","eval_count":7}"""
-            } else {
-                """{"model":"test-model","choices":[{
-                    "message":{"role":"assistant","content":$encoded,"reasoning_content":"native-reasoning"},
-                    "finish_reason":"stop"}],"usage":{"completion_tokens":7}}"""
-            }
-            return ScriptedReply(200, body)
-        }
-
-        fun toolReply(): ScriptedReply = ScriptedReply(
-            200,
-            if (this == OLLAMA) {
-                """{"message":{"role":"assistant","tool_calls":[{"function":{"name":"count-tool","arguments":{}}}]},"done":true}"""
-            } else {
-                """{"choices":[{"message":{"role":"assistant","tool_calls":[{
-                    "id":"call-1","type":"function","function":{"name":"count-tool","arguments":"{}"}}]}}]}"""
-            },
-        )
-    }
-
-    private class OwnedGateway(val value: LlmGateway, private val close: () -> Unit) : AutoCloseable {
-        override fun close() = close.invoke()
-    }
-
-    private companion object {
-        const val TEST_TIMEOUT = 10_000L
-        val messages = listOf(LlmMessage.system("system"), LlmMessage.assistant("prior-assistant"), LlmMessage.user("private-request ⚙️"))
-        val schema = buildJsonObject {
-            put("type", "object")
-            put("description", "schema-value")
-            put("properties", buildJsonObject { put("value", buildJsonObject { put("type", "string") }) })
-        }
-    }
 }

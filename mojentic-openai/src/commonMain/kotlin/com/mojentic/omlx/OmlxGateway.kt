@@ -181,7 +181,7 @@ public class OmlxGateway internal constructor(
     ) : this(OmlxSettings.resolve(host, apiKey, timeout, ::environmentVariable), engine, json)
 
     private val httpClient: HttpClient = buildHttpClient(engine)
-    private val recoveryClientDelegate = lazy { recoveryHttpClient(engine) }
+    private val recoveryClientDelegate = lazy { recoveryHttpClient(engine, settings.timeout.inWholeMilliseconds) }
     private val recoveryClient: HttpClient by recoveryClientDelegate
 
     /**

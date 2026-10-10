@@ -862,6 +862,7 @@ public final class com/mojentic/llm/recovery/RecoveryCategory$Companion {
 
 public final class com/mojentic/llm/recovery/RecoveryClientKt {
 	public static final fun recoveryHttpClient (Lio/ktor/client/engine/HttpClientEngine;)Lio/ktor/client/HttpClient;
+	public static final fun recoveryHttpClient (Lio/ktor/client/engine/HttpClientEngine;Ljava/lang/Long;)Lio/ktor/client/HttpClient;
 	public static synthetic fun recoveryHttpClient$default (Lio/ktor/client/engine/HttpClientEngine;ILjava/lang/Object;)Lio/ktor/client/HttpClient;
 }
 
