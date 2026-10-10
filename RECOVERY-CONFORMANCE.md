@@ -9,9 +9,11 @@ read-only at exactly `4ca1ed279c02eab37827a1ed07c30e961155ecf3`.
 No whole-mission parity, live inference, harness integration or Apple validation
 is claimed.
 
-Starting Kotlin revision is `83dd144f0f13097aed23f608476ab0daa7b6abb5`, with a
-clean tree. Foundry forbids Git finalization and ref modifications: no fetch
-that updates refs, pull, rebase, commit, push, release or tag is performed.
+Correction starting Kotlin revision is `985c167bf5b2a78a60f5e4f674a72e85617353b6`,
+with a clean tree, preserving the streaming slice. Foundry forbids Git finalization and ref modifications: no pull, rebase, commit, push, release or tag is performed. The initial fetch
+was rejected by read-only Git metadata; origin/main remains at the locally
+recorded `83dd144f0f13097aed23f608476ab0daa7b6abb5`. Foundry must reconcile
+the final source against current main before landing.
 Existing coordinator guidance is preserved. Exact working/comparator source
 hashes and complete command logs are retained under `.foundry/logs/`.
 
@@ -24,8 +26,8 @@ are used. The preserved `OllamaRecoveryProofTest` retains permanent-status trunc
 The early public Ollama probe `observedStreamingContentBlocksReplayBeforeCaptureDelivery`
 first rejected the legacy path with a real truncated HTTP body. The correction
 observed UTF-8 content before throwing capture, retained the exact typed cause,
-delivered no events, and sent one actual request. Actual exits 1 and 0 are in
-[.foundry/proof.json](.foundry/proof.json), with both complete logs. The scripted
+delivered no events, and sent one actual request. That is preserved prior-slice evidence; the current correction proof below
+uses escaped keys and a distinguishable queued response. The scripted
 server synchronizes capture before closing a truncated body; this ensures its
 bytes are available to the real engine rather than discarded during closure.
 
@@ -211,7 +213,7 @@ termination/idempotency facilities, Native/Apple execution and exact Native
 artifact analysis. This packet adds no continuation, tool/agent replay, sibling
 port changes or harness experiment. Existing security exclusions remain intact.
 
-## Current streaming validation
+## Preserved streaming validation (prior run)
 
 All six configured Linux gates passed together (`ktlintCheck detekt build
 allTests apiCheck dokkaGenerate`). All 384 JVM tests passed, including the
@@ -238,3 +240,75 @@ Actual commands, exit codes, artifact paths and limits are in
 hashes, exact reference revision, consumer metadata and independent-review
 evidence are retained in `.foundry/logs/`. Foundry owns finalization; no commit,
 push or ref modification was performed.
+
+## Semantic replay correction
+
+The current behavioral proof is
+[.foundry/proof.json](.foundry/proof.json). With unchanged source,
+`escapedSemanticKeysPreventReplayAtHttpBoundary` failed because escaped
+content was delivered and EOF triggered a second request that produced
+`ok-é` and successful completion. The same probe passed after correction
+through Ollama and oMLX, each using public `stream` and `streamEvents`.
+It asserts exactly `private-é`, one recorded wire request, zero admission,
+exact observed UTF-8/raw byte counts, actual capture/failure identity, complete
+single-failure history, original typed EOF cause, and terminal interruption
+without success.
+
+`escapedChannelsSurviveFragmentedReadsAndCaptureFailure` extends that matrix
+to content, reasoning and tool fragments. In the non-failing capture cases,
+a semaphore makes the HTTP server wait for boundary capture after each byte,
+including escaped keys and split UTF-8. Reasoning on the tool-free API and tools on both APIs can remain
+undelivered while still vetoing replay. The capture-failure cases throw as
+soon as the complete body is observed, before its line can be delivered. The
+hook retains its original private cause and exact observed counts with zero delivered counts
+and output. Tool-free tool fragments produce the existing private protocol
+cause rather than an EOF cause.
+
+`deliveredProgressIndependentlyPreventsHttpReplay` uses the real HTTP boundary
+with a keepalive body and independently delivered content, reasoning or
+completed tools. It asserts an unchanged original cause, one wire, complete
+history and Interrupted even when semanticObserved is false.
+`escapedInterruptionReachesBrokerAndRestoresSession` verifies exact broker
+and session output, broker tool-free Content then Error, no Completed,
+one request and session history rollback.
+`StreamingProgressTest` covers escaped incomplete frames, empty fields,
+quoted lookalikes, numeric-only progress and completed-tool evidence retained
+across subsequent reads. The keepalive admitted control retains identical
+request bytes, stable logical ID and distinct numbered attempt IDs.
+
+Read-only comparison against Rust
+`4ca1ed279c02eab37827a1ed07c30e961155ecf3`:
+`engine.rs` classifies and interrupts when either observed.any() or
+delivered.any() is true; `frames.rs` decodes JSON before accumulating UTF-8
+content/reasoning and tool fragments. Kotlin now independently uses both
+evidence channels and decodes escaped keys before capture. Its incomplete
+frame prefixes are conservative; exact semantic byte counts require complete
+JSON frames. No claim is made about remote inference termination, continuation,
+OpenAI/Anthropic expansion or whole-mission alignment.
+
+Current correction gates, audit, consumer inspection and independent review
+are recorded separately in `.foundry/validation.json` when available.
+Prior-run counts above are historical, not validation of this correction.
+Linux cannot run iOS tests or Apple framework linking; metadata and klib
+processing can still run. Apple runtime execution and exact Native binary
+vulnerability validation remain pending. No disabled-target warning is suppressed.
+
+Correction validation completed on Linux: all six configured gates passed
+together, 544 tasks. All 392 JVM tests passed (65 suites, zero failures/errors/
+skips), including the 12 HTTP recovery tests and four new progress tests.
+The unfiltered `dependencyCheckAggregate --no-parallel` audit passed with 337
+entries and zero unsuppressed findings. Existing suppression rules are unchanged;
+the Android logging/GitHub Enterprise false-positive was rechecked against
+actual AAR classes and the advisory subject. The missing .NET assembly analyzer
+warning remains visible; OSS Index was unavailable because credentials were
+not configured. No audit configuration or scope was narrowed.
+
+Isolated `publishToMavenLocal` passed with a disposable local signing key.
+Consumer inspection read and hashed 36 POMs and 36 Gradle module files; all
+published coordinates retain the configured group and version. Of 54 external
+coordinates, 42 exactly match audited artifacts and 12 match audited family
+versions. Family matches do not prove exact Native binary safety. Source/test
+review independently approved the correction and reconciled all JVM XML results.
+Final evidence review, command outcomes, retained failure iterations, source and
+log hashes are recorded in `.foundry/validation.json` and `.foundry/logs/`.
+No Git finalization or remote publication was performed.

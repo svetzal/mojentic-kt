@@ -9,10 +9,14 @@ import com.mojentic.llm.StreamErrorReason
 import com.mojentic.llm.StreamEventsGateway
 import com.mojentic.llm.recovery.RecoveryEvent
 import com.mojentic.llm.recovery.RecoveryException
+import com.mojentic.llm.recovery.RecoveryFailure
+import com.mojentic.llm.recovery.RecoveryHttp
 import com.mojentic.llm.recovery.RecoveryPolicy
 import com.mojentic.llm.recovery.RecoveryReason
 import com.mojentic.llm.recovery.RecoveryStage
+import com.mojentic.llm.recovery.RecoveryStreamClosedException
 import com.mojentic.llm.recovery.RecoveryWire
+import com.mojentic.llm.recovery.recoveryHttpClient
 import com.mojentic.omlx.RecoveryTestFixtures.Provider
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.awaitCancellation
@@ -22,6 +26,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.Json
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Semaphore
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -33,6 +38,191 @@ import kotlin.test.assertTrue
 
 /** Real HTTP through both public adapters, both streaming APIs and broker/session boundaries. */
 class StreamingRecoveryHttpTest {
+    @Test
+    fun escapedSemanticKeysPreventReplayAtHttpBoundary(): Unit = runBlocking {
+        matrix { provider, eventsApi ->
+            val events = mutableListOf<RecoveryEvent>()
+            val wires = mutableListOf<RecoveryWire>()
+            val output = mutableListOf<Any>()
+            var admissions = 0
+            val fragment = provider.fragment("content").replace("content", "\\u0063ontent")
+            RecoveryScriptedServer(listOf(ScriptedReply(200, fragment), provider.streamSuccess())).use { server ->
+                provider.gateway(server.url).use { gateway ->
+                    val failure = assertFailsWith<RecoveryException> {
+                        collect(
+                            gateway,
+                            eventsApi,
+                            RecoveryPolicy(maxAttempts = 2, admission = {
+                                admissions++
+                                true
+                            }, observer = { events += it }, capture = {
+                                wires +=
+                                    it
+                            }, sleep = {}),
+                            output,
+                        )
+                    }
+                    assertEquals(0, admissions)
+                    assertEquals(1, server.requests.size)
+                    val last = failure.failures.single()
+                    assertTrue(last.progress.semanticObserved)
+                    assertEquals("private-é".encodeToByteArray().size.toLong(), last.progress.observed.contentBytes)
+                    assertEquals(fragment.encodeToByteArray().size.toLong(), last.progress.rawBytes)
+                    assertEquals(wires.first().identity, last.identity)
+                    assertEquals(listOf(last), events.last().failures)
+                    assertEquals(RecoveryStage.INTERRUPTED, events.last().stage)
+                    assertTrue(events.none { it.stage == RecoveryStage.SUCCEEDED })
+                    assertTrue(last.inspectCause() is com.mojentic.llm.recovery.RecoveryStreamClosedException)
+                    assertEquals(
+                        if (eventsApi) {
+                            listOf(
+                                CompletionStreamEvent.Content("private-é"),
+                            )
+                        } else {
+                            listOf(GatewayStreamEvent.Content("private-é"))
+                        },
+                        output,
+                    )
+                }
+            }
+        }
+    }
+
+    @Test
+    fun escapedChannelsSurviveFragmentedReadsAndCaptureFailure(): Unit = runBlocking {
+        matrix { provider, eventsApi ->
+            for (field in listOf("content", "reasoning", "tools")) {
+                for (captureFails in listOf(false, true)) {
+                    val fragment = provider.escapedFragment(field).trimEnd() + "\n"
+                    val events = mutableListOf<RecoveryEvent>()
+                    val wires = mutableListOf<RecoveryWire>()
+                    val output = mutableListOf<Any>()
+                    val cause = IllegalArgumentException("private-capture")
+                    val acknowledged = if (captureFails) null else Semaphore(0)
+                    var admissions = 0
+                    RecoveryScriptedServer(
+                        listOf(ScriptedReply(200, fragment, readAcknowledged = acknowledged), provider.streamSuccess()),
+                    ).use { server ->
+                        provider.gateway(server.url).use { gateway ->
+                            val failure = assertFailsWith<RecoveryException> {
+                                collect(
+                                    gateway,
+                                    eventsApi,
+                                    RecoveryPolicy(
+                                        maxAttempts = 2,
+                                        admission = {
+                                            admissions++
+                                            true
+                                        },
+                                        observer = { events += it },
+                                        capture = {
+                                            wires += it
+                                            if (it.inspectResponse()?.isNotEmpty() == true) acknowledged?.release()
+                                            if (captureFails && it.inspectResponse()?.size == fragment.encodeToByteArray().size) throw cause
+                                        },
+                                    ),
+                                    output,
+                                )
+                            }
+                            assertEquals(0, admissions)
+                            val last = assertEscapedAttempt(failure, events, wires, fragment, server.requests)
+                            assertEscapedProgress(last, field)
+                            if (captureFails) {
+                                assertSame(cause, last.inspectCause())
+                                assertEquals(RecoveryReason.CAPTURE, failure.reason)
+                                assertFalse(last.progress.semanticDelivered)
+                                assertEquals(com.mojentic.llm.recovery.RecoverySemanticProgress(), last.progress.delivered)
+                                assertEquals(emptyList(), output)
+                            } else {
+                                assertEscapedDelivery(last, field, eventsApi, output)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun deliveredProgressIndependentlyPreventsHttpReplay(): Unit = runBlocking {
+        for (field in listOf("content", "reasoning", "tools")) {
+            val events = mutableListOf<RecoveryEvent>()
+            val cause = RecoveryStreamClosedException()
+            RecoveryScriptedServer(listOf(ScriptedReply(200, "\n"), ScriptedReply(200, "second"))).use { server ->
+                recoveryHttpClient().use { client ->
+                    val failure = assertFailsWith<RecoveryException> {
+                        RecoveryHttp(client, "test", server.url).executeStream(
+                            "{}",
+                            "stream",
+                            RecoveryPolicy(maxAttempts = 2, admission = { error("delivered replay") }, observer = { events += it }),
+                        ) { stream ->
+                            assertEquals("", stream.readLine())
+                            stream.delivered(
+                                content = "é".takeIf { field == "content" },
+                                reasoning = "é".takeIf { field == "reasoning" },
+                                toolCalls = if (field == "tools") 1 else 0,
+                            )
+                            throw cause
+                        }
+                    }
+                    val last = failure.failures.single()
+                    assertFalse(last.progress.semanticObserved)
+                    assertTrue(last.progress.semanticDelivered)
+                    assertTrue(last.progress.replayUnsafe)
+                    assertEquals(if (field == "content") 2L else 0L, last.progress.delivered.contentBytes)
+                    assertEquals(if (field == "reasoning") 2L else 0L, last.progress.delivered.reasoningBytes)
+                    assertEquals(if (field == "tools") 1L else 0L, last.progress.delivered.completedToolCalls)
+                    assertSame(cause, last.inspectCause())
+                    assertEquals(1, server.requests.size)
+                    assertEquals(listOf(last), events.last().failures)
+                    assertEquals(RecoveryStage.INTERRUPTED, events.last().stage)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun escapedInterruptionReachesBrokerAndRestoresSession(): Unit = runBlocking {
+        for (provider in Provider.entries) {
+            for (boundary in listOf("broker", "events", "session")) {
+                val events = mutableListOf<RecoveryEvent>()
+                val policy = RecoveryPolicy(maxAttempts = 2, admission = { error("boundary replay") }, observer = { events += it })
+                RecoveryScriptedServer(
+                    listOf(ScriptedReply(200, provider.escapedFragment("content")), provider.streamSuccess()),
+                ).use { server ->
+                    provider.gateway(server.url).use { gateway ->
+                        val broker = LlmBroker(gateway.value)
+                        val config = CompletionConfig(recovery = policy)
+                        val output = mutableListOf<Any>()
+                        if (boundary == "events") {
+                            broker.generateStreamEvents("test", RecoveryTestFixtures.messages, config).collect { output += it }
+                            assertEquals(CompletionStreamEvent.Content("private-é"), output.first())
+                            val error = output.last() as CompletionStreamEvent.Error
+                            assertTrue((error.reason as StreamErrorReason.RequestFailed).cause is RecoveryException)
+                            assertEquals(2, output.size)
+                        } else {
+                            val session = ChatSession(broker, "test", systemPrompt = "system", config = config)
+                            val before = session.messages()
+                            val failure = assertFailsWith<RecoveryException> {
+                                if (boundary == "session") {
+                                    session.stream("private-user").collect { output += it }
+                                } else {
+                                    broker.stream("test", RecoveryTestFixtures.messages, config = config).collect { output += it }
+                                }
+                            }
+                            assertEquals<List<Any>>(listOf(com.mojentic.llm.StreamEvent.TextChunk("private-é")), output)
+                            assertEquals(before, session.messages())
+                            assertTrue(failure.failures.single().progress.semanticObserved)
+                        }
+                        assertEquals(1, server.requests.size)
+                        assertEquals(RecoveryStage.INTERRUPTED, events.last().stage)
+                        assertTrue(events.none { it.stage == RecoveryStage.SUCCEEDED })
+                    }
+                }
+            }
+        }
+    }
+
     @Test
     fun admittedRetriesPreserveExactPayloadCaptureAndIdentities(): Unit = runBlocking {
         matrix { provider, eventsApi ->
@@ -219,6 +409,11 @@ class StreamingRecoveryHttpTest {
                         }),
                     )
                     assertEquals(2, server.requests.size)
+                    assertContentEquals(server.requests[0], server.requests[1])
+                    val starts = events.filter { it.stage == RecoveryStage.STARTED }
+                    assertEquals(starts[0].identity.logicalId, starts[1].identity.logicalId)
+                    assertNotEquals(starts[0].identity.attemptId, starts[1].identity.attemptId)
+                    assertEquals(listOf(1, 2), starts.map { it.identity.attemptNumber })
                     assertEquals(RecoveryStage.SUCCEEDED, events.last().stage)
                 }
             }
@@ -829,3 +1024,55 @@ private fun Provider.streamTool(): ScriptedReply = ScriptedReply(
             "\n\ndata: [DONE]\n\n"
     },
 )
+
+private fun Provider.escapedFragment(field: String): String {
+    val key = when (field) {
+        "reasoning" -> if (this == Provider.OLLAMA) "thinking" else "reasoning_content"
+        "tools" -> "tool_calls"
+        else -> "content"
+    }
+    return fragment(field).replace(key, "\\u%04x".format(key.first().code) + key.drop(1))
+}
+
+private fun assertEscapedProgress(failure: RecoveryFailure, field: String) {
+    val progress = failure.progress
+    assertEquals(if (field == "content") 10L else 0L, progress.observed.contentBytes)
+    assertEquals(if (field == "reasoning") 10L else 0L, progress.observed.reasoningBytes)
+    assertEquals(if (field == "tools") 1L else 0L, progress.observed.toolFragments)
+    assertTrue(progress.semanticObserved)
+    assertTrue(progress.replayUnsafe)
+}
+
+private fun assertEscapedDelivery(failure: RecoveryFailure, field: String, eventsApi: Boolean, output: List<Any>) {
+    if (field == "tools" && eventsApi) {
+        assertTrue(failure.inspectCause() is com.mojentic.llm.recovery.RecoveryStreamException)
+    } else {
+        assertTrue(failure.inspectCause() is RecoveryStreamClosedException)
+    }
+    val expected = when {
+        field == "content" && eventsApi -> listOf(CompletionStreamEvent.Content("private-é"))
+        field == "content" -> listOf(GatewayStreamEvent.Content("private-é"))
+        field == "reasoning" && !eventsApi -> listOf(GatewayStreamEvent.Thinking("private-é"))
+        else -> emptyList()
+    }
+    assertEquals(expected, output)
+}
+
+private fun assertEscapedAttempt(
+    failure: RecoveryException,
+    events: List<RecoveryEvent>,
+    wires: List<RecoveryWire>,
+    fragment: String,
+    requests: List<ByteArray>,
+): RecoveryFailure {
+    val last = failure.failures.single()
+    assertEquals(1, requests.size)
+    assertEquals(fragment, last.inspectBytes().decodeToString())
+    assertEquals(fragment.encodeToByteArray().size.toLong(), last.progress.rawBytes)
+    assertEquals(wires.first().identity, last.identity)
+    assertEquals(1, last.identity.attemptNumber)
+    assertEquals(listOf(last), events.last().failures)
+    assertEquals(RecoveryStage.INTERRUPTED, events.last().stage)
+    assertTrue(events.none { it.stage in setOf(RecoveryStage.SUCCEEDED, RecoveryStage.ADMISSION_PENDING, RecoveryStage.SCHEDULED) })
+    return last
+}

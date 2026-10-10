@@ -48,9 +48,10 @@ private fun JsonObject.hasReasoning(): Boolean = hasText("thinking") || hasText(
 /** Conservative semantic observation includes incomplete frames before capture and parsing. */
 internal fun streamingProgress(bytes: ByteArray): RecoveryProgress {
     val body = bytes.decodeToString()
-    val content = CONTENT_PREFIX.containsMatchIn(body)
-    val reasoning = REASONING_PREFIX.containsMatchIn(body)
-    val tools = TOOL_PREFIX.containsMatchIn(body)
+    val keys = decodedSemanticKeys(body)
+    val content = CONTENT_PREFIX.containsMatchIn(keys)
+    val reasoning = REASONING_PREFIX.containsMatchIn(keys)
+    val tools = TOOL_PREFIX.containsMatchIn(keys)
     var counts = RecoverySemanticProgress()
     body.lineSequence().forEach { line ->
         val payload = line.removePrefix("data:").trim()
@@ -69,10 +70,25 @@ internal fun streamingProgress(bytes: ByteArray): RecoveryProgress {
     return RecoveryProgress(
         true,
         bytes.size.toLong(),
-        content || reasoning || tools,
-        contentObserved = content,
-        reasoningObserved = reasoning,
-        toolFragmentsObserved = tools,
+        content || reasoning || tools || counts.contentBytes > 0 || counts.reasoningBytes > 0 || counts.toolFragments > 0,
+        contentObserved = content || counts.contentBytes > 0,
+        reasoningObserved = reasoning || counts.reasoningBytes > 0,
+        toolFragmentsObserved = tools || counts.toolFragments > 0,
         observed = counts,
     )
+}
+
+// Match whole JSON string tokens so a quoted value cannot masquerade as a key.
+// Only normalize recognized keys; leave values and original captured bytes untouched.
+private val JSON_STRING = Regex("\"(?:\\\\.|[^\"\\\\])*\"")
+private val SEMANTIC_KEYS = setOf("content", "thinking", "reasoning_content", "tool_calls")
+
+private fun decodedSemanticKeys(body: String): String = JSON_STRING.replace(body) { match ->
+    val isKey = body.substring(match.range.last + 1).dropWhile { it.isWhitespace() }.startsWith(':')
+    val key = if (isKey) {
+        runCatching { (Json.parseToJsonElement(match.value) as? JsonPrimitive)?.content }.getOrNull()
+    } else {
+        null
+    }
+    if (key in SEMANTIC_KEYS) "\"$key\"" else match.value
 }

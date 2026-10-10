@@ -55,7 +55,12 @@ public class RecoveryStream internal constructor(
                 val bytes = buffer.copyOf(count)
                 evidence.bytes.addAll(bytes.toList())
                 pending.addAll(bytes.toList())
-                evidence.streamProgress = streamingProgress(evidence.bytes.toByteArray())
+                val previous = evidence.streamProgress
+                val observed = streamingProgress(evidence.bytes.toByteArray())
+                evidence.streamProgress = observed.copy(
+                    completedToolCallsObserved = previous.completedToolCallsObserved,
+                    observed = observed.observed.copy(completedToolCalls = previous.observed.completedToolCalls),
+                )
                 evidence.captureResponse(policy, identity, payload, complete = false)
             }
         }

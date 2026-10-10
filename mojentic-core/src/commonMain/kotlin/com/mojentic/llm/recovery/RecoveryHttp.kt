@@ -315,7 +315,13 @@ public class RecoveryHttp(
     ): Nothing {
         val last = failures.lastOrNull()
         val streaming = last?.operation == "stream" || last?.operation == "streamEvents"
-        val stage = if (streaming && last.progress.semanticObserved) RecoveryStage.INTERRUPTED else RecoveryStage.EXHAUSTED
+        val stage = if (streaming &&
+            (last.progress.replayUnsafe || last.progress.semanticDelivered)
+        ) {
+            RecoveryStage.INTERRUPTED
+        } else {
+            RecoveryStage.EXHAUSTED
+        }
         policy.observer(RecoveryEvent(stage, identity, failure = failures.lastOrNull(), failures = failures.toList()))
         throw RecoveryException(failures.toList(), reason)
     }
@@ -338,7 +344,9 @@ internal class ResponseEvidence {
         streamProgress.copy(
             headersReceived = status != null,
             rawBytes = bytes.size.toLong(),
-            semanticDelivered = delivered,
+            semanticDelivered = delivered || deliveredCounts.any(),
+            replayUnsafe = streamProgress.replayUnsafe || streamProgress.observed.any() ||
+                streamProgress.completedToolCallsObserved > 0 || delivered || deliveredCounts.any(),
             delivered = deliveredCounts,
         )
     } else {
@@ -411,7 +419,7 @@ internal class ResponseEvidence {
         else -> RecoveryReason.HTTP_PERMANENT
     }
 
-    private fun partialStreaming(): Boolean = streaming && progress().semanticObserved
+    private fun partialStreaming(): Boolean = streaming && (progress().replayUnsafe || progress().semanticDelivered)
 
     private fun partialOrdinary(): Boolean = !streaming && status in SUCCESS_RANGE && bytes.isNotEmpty()
 
@@ -457,3 +465,7 @@ private fun remainingMillis(later: Long, now: Long): Long = when {
     now < 0 && later > Long.MAX_VALUE + now -> Long.MAX_VALUE
     else -> later - now
 }
+
+/** Numeric evidence independently vetoes replay, even without a semantic flag. */
+private fun RecoverySemanticProgress.any(): Boolean =
+    contentBytes > 0 || reasoningBytes > 0 || toolFragments > 0 || completedToolCalls > 0

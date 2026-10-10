@@ -145,3 +145,14 @@ progress then metrics before failure. Missing metrics remain absent. Malformed
 frames produce no fabricated telemetry. Explicit capture retains exact body
 bytes, including line separators; capture observes semantic evidence before
 calling the hook and any hook failure is terminal.
+
+Escaped JSON keys count as semantic evidence, including when received across
+multiple HTTP reads. Either observed semantics or delivered semantics independently
+blocks resend after interruption. Observed raw bytes retain their exact wire
+length; semantic byte counts use decoded UTF-8 from complete JSON frames.
+Incomplete semantic prefixes conservatively block replay without estimating
+content or reasoning byte counts. A capture hook that fails before delivery
+retains observed progress and its original private cause, with zero delivered
+progress. Completed-tool evidence survives later wire reads. Consult
+[the conformance packet](../../RECOVERY-CONFORMANCE.md#semantic-replay-correction)
+for scripted boundary assertions and pending Apple validation.

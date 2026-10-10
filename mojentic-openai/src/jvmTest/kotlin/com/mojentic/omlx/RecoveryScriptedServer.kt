@@ -6,6 +6,7 @@ import java.net.ServerSocket
 import java.net.SocketException
 import java.util.Collections
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import java.util.zip.GZIPOutputStream
 import kotlin.concurrent.thread
@@ -20,6 +21,7 @@ internal data class ScriptedReply(
     val gzip: Boolean = false,
     val clientClosed: CountDownLatch? = null,
     val rawBody: ByteArray? = null,
+    val readAcknowledged: Semaphore? = null,
 )
 
 /** Exact HTTP/1.1 loopback scripts, including deliberately incomplete response bodies. */
@@ -73,13 +75,24 @@ internal class RecoveryScriptedServer(private val replies: List<ScriptedReply>) 
             "Content-Length: $count\r\nConnection: close\r\n" +
             (if (reply.gzip) "Content-Encoding: gzip\r\n" else "") + "$headers\r\n"
         output.write(head.encodeToByteArray())
-        output.write(bytes)
-        output.flush()
+        if (reply.readAcknowledged == null) {
+            output.write(bytes)
+            output.flush()
+        } else {
+            for (byte in bytes) {
+                output.write(byte.toInt())
+                output.flush()
+                check(reply.readAcknowledged.tryAcquire(WAIT_SECONDS, TimeUnit.SECONDS)) { "fragment read timed out" }
+            }
+        }
         check(reply.release?.await(WAIT_SECONDS, TimeUnit.SECONDS) != false) { "fixture release timed out" }
     }
 
     override fun close() {
-        replies.forEach { it.release?.countDown() }
+        replies.forEach {
+            it.release?.countDown()
+            it.readAcknowledged?.release(it.body.encodeToByteArray().size)
+        }
         server.close()
         worker.join(JOIN_MILLIS)
         check(errors.isEmpty()) { "Scripted HTTP fixture failed" }
