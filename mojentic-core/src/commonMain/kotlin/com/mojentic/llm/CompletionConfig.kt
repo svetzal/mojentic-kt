@@ -6,6 +6,7 @@ package com.mojentic.llm
  * Provides a unified, immutable configuration value across providers. Mirrors
  * `mojentic.llm.completion_config.CompletionConfig` in the Python reference.
  *
+ * @property recovery Opt-in ordinary/structured recovery for Ollama and oMLX; null preserves legacy behavior.
  * @property temperature Sampling temperature. Higher values produce more random output.
  * @property numCtx Context window size in tokens.
  * @property maxTokens Maximum tokens to generate in the response.
@@ -23,7 +24,39 @@ public data class CompletionConfig(
     val reasoningEffort: ReasoningEffort? = null,
     val maxToolIterations: Int? = DEFAULT_MAX_TOOL_ITERATIONS,
     val responseFormat: ResponseFormat? = null,
+    val recovery: com.mojentic.llm.recovery.RecoveryPolicy? = null,
 ) {
+    /** Retains the pre-recovery constructor ABI and its default-argument bridge. */
+    public constructor(
+        temperature: Double = DEFAULT_TEMPERATURE,
+        numCtx: Int = DEFAULT_NUM_CTX,
+        maxTokens: Int = DEFAULT_MAX_TOKENS,
+        numPredict: Int = DEFAULT_NUM_PREDICT,
+        reasoningEffort: ReasoningEffort? = null,
+        maxToolIterations: Int? = DEFAULT_MAX_TOOL_ITERATIONS,
+        responseFormat: ResponseFormat? = null,
+    ) : this(temperature, numCtx, maxTokens, numPredict, reasoningEffort, maxToolIterations, responseFormat, null)
+
+    /** Retains the pre-recovery copy ABI; broker depth updates preserve the recovery policy. */
+    public fun copy(
+        temperature: Double = this.temperature,
+        numCtx: Int = this.numCtx,
+        maxTokens: Int = this.maxTokens,
+        numPredict: Int = this.numPredict,
+        reasoningEffort: ReasoningEffort? = this.reasoningEffort,
+        maxToolIterations: Int? = this.maxToolIterations,
+        responseFormat: ResponseFormat? = this.responseFormat,
+    ): CompletionConfig = CompletionConfig(
+        temperature,
+        numCtx,
+        maxTokens,
+        numPredict,
+        reasoningEffort,
+        maxToolIterations,
+        responseFormat,
+        recovery,
+    )
+
     public companion object {
         public const val DEFAULT_TEMPERATURE: Double = 1.0
         public const val DEFAULT_NUM_CTX: Int = 32_768

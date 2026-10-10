@@ -11,6 +11,9 @@ import com.mojentic.llm.LlmMessage
 import com.mojentic.llm.ResponseFormat
 import com.mojentic.llm.StreamErrorReason
 import com.mojentic.llm.StreamEventsGateway
+import com.mojentic.llm.recovery.RecoveryHttp
+import com.mojentic.llm.recovery.RecoveryPolicy
+import com.mojentic.llm.recovery.recoveryHttpClient
 import com.mojentic.llm.tools.LlmTool
 import com.mojentic.openai.OpenAIChatRequest
 import com.mojentic.openai.OpenAIChatResponse
@@ -178,12 +181,15 @@ public class OmlxGateway internal constructor(
     ) : this(OmlxSettings.resolve(host, apiKey, timeout, ::environmentVariable), engine, json)
 
     private val httpClient: HttpClient = buildHttpClient(engine)
+    private val recoveryClientDelegate = lazy { recoveryHttpClient(engine) }
+    private val recoveryClient: HttpClient by recoveryClientDelegate
 
     /**
      * Closes the underlying Ktor client.
      */
     public fun close() {
         httpClient.close()
+        if (recoveryClientDelegate.isInitialized()) recoveryClient.close()
     }
 
     override suspend fun complete(
@@ -193,7 +199,7 @@ public class OmlxGateway internal constructor(
         config: CompletionConfig,
     ): LlmGatewayResponse {
         val request = chatRequest(model, messages, tools, config, stream = false)
-        val (response, warning) = postChat(request, structured = config.responseFormat is ResponseFormat.Json)
+        val (response, warning) = postChat(request, structured = config.responseFormat is ResponseFormat.Json, policy = config.recovery)
         val choice = response.choices.firstOrNull() ?: throw LlmGatewayException("oMLX returned no choices in response")
         val message = choice.message ?: throw LlmGatewayException("oMLX choice missing message")
         return LlmGatewayResponse(
@@ -228,7 +234,7 @@ public class OmlxGateway internal constructor(
             stream = false,
             responseFormat = ResponseFormat.Json(schema).toOpenAIResponseFormat(),
         )
-        val (response, warning) = postChat(request, structured = true)
+        val (response, warning) = postChat(request, structured = true, policy = config.recovery)
         val choice = response.choices.firstOrNull()
         val raw = choice?.message?.content
             ?: throw LlmGatewayException("oMLX returned no content for structured-output request")
@@ -407,7 +413,31 @@ public class OmlxGateway internal constructor(
         }
 
     /** Posts a non-streaming chat request. Returns the parsed body and, for a structured request, any `Warning` header. */
-    private suspend fun postChat(request: OpenAIChatRequest, structured: Boolean): Pair<OpenAIChatResponse, String?> {
+    private suspend fun postChat(
+        request: OpenAIChatRequest,
+        structured: Boolean,
+        policy: RecoveryPolicy?,
+    ): Pair<OpenAIChatResponse, String?> {
+        if (policy != null) {
+            val payload = json.encodeToString(OpenAIChatRequest.serializer(), request)
+            return RecoveryHttp(recoveryClient, "omlx", "${settings.baseUrl}/chat/completions", settings.apiKey).execute(
+                payload,
+                if (structured) "structured" else "complete",
+                policy,
+            ) { body, headers ->
+                val parsed = json.decodeFromString(OpenAIChatResponse.serializer(), body)
+                val message = requireNotNull(parsed.choices.firstOrNull()?.message)
+                if (structured) require(json.parseToJsonElement(requireNotNull(message.content)) is JsonObject)
+                val warning = if (structured) {
+                    headers.entries.firstOrNull {
+                        it.key.equals(HttpHeaders.Warning, ignoreCase = true)
+                    }?.value?.joinToString(", ")
+                } else {
+                    null
+                }
+                parsed to warning
+            }
+        }
         val response = httpClient.post("${settings.baseUrl}/chat/completions") {
             authorize()
             contentType(ContentType.Application.Json)

@@ -92,6 +92,7 @@ kotlin {
         }
         jvmTest {
             dependencies {
+                implementation(project(":mojentic-ollama"))
                 implementation(libs.slf4j.simple)
             }
         }

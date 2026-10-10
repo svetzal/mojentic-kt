@@ -9,6 +9,9 @@ import com.mojentic.llm.LlmGatewayResponse
 import com.mojentic.llm.LlmMessage
 import com.mojentic.llm.StreamErrorReason
 import com.mojentic.llm.StreamEventsGateway
+import com.mojentic.llm.recovery.RecoveryHttp
+import com.mojentic.llm.recovery.RecoveryPolicy
+import com.mojentic.llm.recovery.recoveryHttpClient
 import com.mojentic.llm.tools.LlmTool
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
@@ -57,6 +60,8 @@ public class OllamaGateway(
 ) : LlmGateway,
     StreamEventsGateway {
     private val httpClient: HttpClient = buildHttpClient(engine)
+    private val recoveryClientDelegate = lazy { recoveryHttpClient(engine) }
+    private val recoveryClient: HttpClient by recoveryClientDelegate
 
     /**
      * Closes the underlying Ktor client. Call when you're done with the gateway —
@@ -64,6 +69,7 @@ public class OllamaGateway(
      */
     public fun close() {
         httpClient.close()
+        if (recoveryClientDelegate.isInitialized()) recoveryClient.close()
     }
 
     override suspend fun complete(
@@ -81,7 +87,7 @@ public class OllamaGateway(
             format = config.responseFormat?.toOllamaFormat(),
             think = if (config.reasoningEffort != null) true else null,
         )
-        val response = postChat(request)
+        val response = postChat(request, config.recovery)
         return LlmGatewayResponse(
             content = response.message.content,
             thinking = response.message.thinking,
@@ -114,7 +120,7 @@ public class OllamaGateway(
             format = schema,
             think = if (config.reasoningEffort != null) true else null,
         )
-        val response = postChat(request)
+        val response = postChat(request, config.recovery, structured = true)
         val raw = response.message.content
             ?: throw LlmGatewayException("Ollama returned no content for structured-output request")
         val parsed = runCatching { json.parseToJsonElement(raw) }
@@ -225,7 +231,23 @@ public class OllamaGateway(
         return parsed.models.map { it.model }.sorted()
     }
 
-    private suspend fun postChat(request: OllamaChatRequest): OllamaChatResponse {
+    private suspend fun postChat(
+        request: OllamaChatRequest,
+        policy: RecoveryPolicy?,
+        structured: Boolean = false,
+    ): OllamaChatResponse {
+        if (policy != null) {
+            val payload = json.encodeToString(OllamaChatRequest.serializer(), request)
+            return RecoveryHttp(recoveryClient, "ollama", "$host/api/chat").execute(
+                payload,
+                if (structured) "structured" else "complete",
+                policy,
+            ) { body, _ ->
+                val parsed = json.decodeFromString(OllamaChatResponse.serializer(), body)
+                if (structured) require(json.parseToJsonElement(requireNotNull(parsed.message.content)) is JsonObject)
+                parsed
+            }
+        }
         val response: HttpResponse = httpClient.post("$host/api/chat") {
             contentType(ContentType.Application.Json)
             setBody(json.encodeToString(OllamaChatRequest.serializer(), request))

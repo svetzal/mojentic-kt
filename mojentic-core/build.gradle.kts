@@ -73,6 +73,7 @@ kotlin {
                 api(libs.kotlinx.coroutines.core)
                 api(libs.kotlinx.serialization.json)
                 api(libs.kotlinx.datetime)
+                api(libs.ktor.client.core)
                 api(libs.kotlin.logging)
                 implementation(libs.okio)
             }
@@ -85,6 +86,9 @@ kotlin {
                 implementation(libs.okio.fakefilesystem)
             }
         }
+        jvmMain { dependencies { implementation(libs.ktor.client.okhttp) } }
+        androidMain { dependencies { implementation(libs.ktor.client.okhttp) } }
+        iosMain { dependencies { implementation(libs.ktor.client.darwin) } }
         jvmTest {
             dependencies {
                 implementation(libs.slf4j.simple)
