@@ -1,3 +1,75 @@
+# Ordinary broker/session metadata proof correction
+
+This correction starts at Kotlin `6379173f8a6eceeb48bd22883bf0f764546937cf`,
+with an initially clean working tree and the same locally recorded origin/main.
+Foundry owns Git finalization and forbids ref changes in this worktree; no fetch,
+pull, rebase, commit or push was performed. Foundry must reconcile current main
+before landing. The release coordinator's AGENTS.md is preserved.
+
+The previous `RecoveryMetadataHttpTest` cases named `ordinaryBroker` and
+`ordinarySession` both invoked `broker.stream`. They did not establish ordinary
+broker completion or session send metadata preservation, or send rollback.
+The historical ordinary-path claim below is corrected here. Earlier linked
+`.foundry` artifacts were absent from this checkout and are not evidence for
+this run; earlier validation/security counts remain historical claims only.
+
+The early rejecting HTTP probe captured `stream=true` for `ordinaryBroker`.
+Changing those calls to `LlmBroker.complete` and `ChatSession.send` passed the
+public-boundary probe for Ollama, oMLX and OpenAI. OpenAI-compatible encoders
+omit the false default; assertions accept omission or explicit false and reject
+true. An initial read-only Gradle cache failure and an intermediate assertion
+failure requiring an explicit false field are retained separately, not counted
+as the corrected passing evidence. See [.foundry/proof.json](.foundry/proof.json)
+and its source snapshots, test XML and complete capture logs.
+
+`ordinaryBrokerAndSessionPreserveHttpEvidenceAndRollback` replaces the mislabeled
+coverage with 12 production-transport loopback scenarios (three providers, two
+public callers, permanent and exhausted two-attempt responses). It checks:
+
+- Ordinary request selection, exact ordered roles/content including the submitted
+  user message, model, temperature, token controls, Ollama context/prediction
+  controls, tool descriptor, and absence of streaming/structured controls.
+- Exact validated provider code/request ID, numeric status, raw response bytes
+  and headers, captured request/response identity, original typed HTTP cause
+  identity across private evidence and lifecycle records, ordered failure
+  histories, stable logical identity and distinct numbered attempt identities.
+- A permanent 401 with two attempts configured makes exactly one request and
+  never invokes admission, tool execution or the queued distinct success.
+  Exhausted 503/429 attempts preserve both failures and admit only the retry.
+- Session send first establishes a successful prior turn, submits the next user
+  message, and restores the exact prior history after either failure sequence.
+
+Streaming broker, stream-event and session coverage remains in the original
+boundary test. No production code, dependencies, suppressions, versions or tool
+execution semantics changed. `ChatSession.send` still delegates to
+`broker.complete` and restores its snapshot on failure.
+
+All six configured gates passed together (exit 0, 544 tasks: 127 executed,
+32 from cache, 385 up-to-date). Retained JVM XML contains 404 tests across 69
+suites with zero failures/errors/skips; cached task outcomes are included.
+The full-scope `dependencyCheckAggregate --no-parallel` passed (exit 0), with
+337 entries, zero reported findings and 68 existing suppressed findings retained.
+No dependency or suppression changed. OSS Index lacked credentials; the .NET
+Assembly Analyzer lacked its runtime. The checked NVD modified-feed timestamp
+was `2026-10-10T18:00:07-04:00`. Existing compiler/deprecation and Dokka link
+warnings remain visible in the logs.
+
+Local `publishToMavenLocal` passed (exit 0), using a disposable signing key and
+`/tmp/mojentic-kt-c7-m2`. Inspection retained 36 POMs, 36 Gradle module files,
+their hashes and 54 external coordinates; group/version remain
+`com.vetzal.mojentic` / `2.1.0`. Nothing was remotely published.
+
+Current command outcomes and complete logs are in
+[.foundry/validation.json](.foundry/validation.json); exact source revisions and
+hashes are in [.foundry/source-revisions.json](.foundry/source-revisions.json).
+Linux cannot execute iOS simulator/device tests or Apple framework linking;
+Apple coverage is unexecuted. Consumer security is not established by Linux
+metadata publication or an audit alone. Findings, existing suppressions and
+service limitations are retained in [.foundry/audit-summary.json](.foundry/audit-summary.json).
+Earlier absent artifacts are not used to support these current results.
+
+---
+
 # OpenAI recovery expansion — October 10 correction
 
 The current source change starts from delivered Kotlin
@@ -432,9 +504,10 @@ Assertions cover:
 - Safe formatting, report/lifecycle JSON, metadata-preserving legacy copy and
   JSON round trips; received codes in HTTP-200 JSON/NDJSON/SSE provider errors.
 - Admitted success with exactly two requests and the original failure metadata
-  retained in the success history; broker ordinary/stream/event and session
-  send/stream preserve the same failure object, metadata, raw evidence and
-  rollback behavior.
+  retained in the success history; broker stream/event and session stream
+  preserve the same failure object, metadata, raw evidence and rollback behavior.
+  The original ordinaryBroker/ordinarySession labels both called broker.stream;
+  ordinary complete/send proof is supplied by the correction at the top of this report.
 
 Existing recovery tests also remain in the full suite: cancellation, default
 one attempt, permanent classification, semantic replay vetoes, immutable request

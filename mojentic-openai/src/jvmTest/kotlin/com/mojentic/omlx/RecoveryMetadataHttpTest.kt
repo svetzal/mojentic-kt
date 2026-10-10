@@ -5,6 +5,7 @@ import com.mojentic.llm.CompletionConfig
 import com.mojentic.llm.CompletionStreamEvent
 import com.mojentic.llm.LlmBroker
 import com.mojentic.llm.LlmMessage
+import com.mojentic.llm.MessageRole
 import com.mojentic.llm.StreamErrorReason
 import com.mojentic.llm.StreamEventsGateway
 import com.mojentic.llm.recovery.RecoveryEvent
@@ -17,6 +18,13 @@ import com.mojentic.omlx.RecoveryTestFixtures.Provider
 import com.mojentic.omlx.RecoveryTestFixtures.call
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -202,7 +210,7 @@ class RecoveryMetadataHttpTest {
     @Test
     fun brokerAndSessionPreserveMetadataAndOriginalEvidence(): Unit = runBlocking {
         for (provider in Provider.entries) {
-            for (boundary in listOf("broker", "events", "session", "ordinaryBroker", "ordinarySession")) {
+            for (boundary in listOf("broker", "events", "session")) {
                 val events = mutableListOf<RecoveryEvent>()
                 val response = reply(401, "invalid_api_key", SECOND_ID)
                 RecoveryScriptedServer(listOf(response, provider.success(false))).use { server ->
@@ -236,6 +244,183 @@ class RecoveryMetadataHttpTest {
                 }
             }
         }
+    }
+
+    @Test
+    fun ordinaryBrokerAndSessionPreserveHttpEvidenceAndRollback(): Unit = runBlocking {
+        for (provider in Provider.entries) {
+            for (sessionCall in listOf(false, true)) {
+                for (permanent in listOf(true, false)) {
+                    assertOrdinaryFailure(provider, sessionCall, permanent)
+                }
+            }
+        }
+    }
+
+    private suspend fun assertOrdinaryFailure(provider: Provider, sessionCall: Boolean, permanent: Boolean) {
+        val responses = if (permanent) {
+            listOf(reply(401, "invalid_api_key", SECOND_ID))
+        } else {
+            listOf(reply(503, "server_error", FIRST_ID), reply(429, "rate_limit_exceeded", SECOND_ID))
+        }
+        val events = mutableListOf<RecoveryEvent>()
+        val wires = mutableListOf<RecoveryWire>()
+        val admitted = mutableListOf<RecoveryFailure>()
+        var toolExecutions = 0
+        val tools = listOf(RecoveryTestFixtures.countingTool { toolExecutions++ })
+        val config = ordinaryConfig(permanent, events, wires, admitted)
+        val seed = if (sessionCall) listOf(provider.success(false)) else emptyList()
+        val success = provider.success(false)
+        val sentinel = success.copy(body = success.body.replace("\"ok\"", "\"queued-success-sentinel\""))
+        RecoveryScriptedServer(seed + responses + sentinel).use { server ->
+            provider.gateway(server.url).use { gateway ->
+                val broker = LlmBroker(gateway.value)
+                val session = ChatSession(broker, "test-model", systemPrompt = "system", tools = tools, config = config)
+                if (sessionCall) assertEquals("ok", session.send("prior-user").content)
+                val before = session.messages()
+                events.clear()
+                wires.clear()
+                val submitted = if (sessionCall) before + LlmMessage.user("private-request ⚙️") else RecoveryTestFixtures.messages
+                val error = assertFailsWith<RecoveryException> {
+                    if (sessionCall) {
+                        session.send("private-request ⚙️")
+                    } else {
+                        broker.complete("test-model", submitted, tools, config)
+                    }
+                }
+                val requests = server.requests.drop(seed.size)
+                assertEquals(responses.size, requests.size, "$provider session=$sessionCall permanent=$permanent")
+                requests.forEach { assertOrdinaryRequest(it, provider, submitted) }
+                assertEquals(before, session.messages())
+                assertEquals(0, toolExecutions)
+                assertEquals(responses.size, error.wireAttempts)
+                assertEquals(responses.size, error.failures.size)
+                assertEquals(if (permanent) 0 else 1, admitted.size)
+                if (permanent) {
+                    assertEquals(listOf(RecoveryStage.STARTED, RecoveryStage.FAILED, RecoveryStage.EXHAUSTED), events.map { it.stage })
+                }
+                if (!permanent) {
+                    assertSame(error.failures.first(), admitted.single())
+                    assertContentEquals(requests[0], requests[1])
+                }
+                assertOrdinaryEvidence(error, responses, requests, events, wires)
+            }
+        }
+    }
+
+    private fun ordinaryConfig(
+        permanent: Boolean,
+        events: MutableList<RecoveryEvent>,
+        wires: MutableList<RecoveryWire>,
+        admitted: MutableList<RecoveryFailure>,
+    ): CompletionConfig = CompletionConfig(
+        temperature = 0.37,
+        maxTokens = 29,
+        numCtx = 2048,
+        numPredict = 17,
+        recovery = RecoveryPolicy(
+            maxAttempts = 2,
+            admission = {
+                check(!permanent) { "permanent response must not invoke admission" }
+                admitted += it
+                true
+            },
+            sleep = {},
+            jitter = { it },
+            observer = { events += it },
+            capture = { wires += it },
+        ),
+    )
+
+    private fun assertOrdinaryRequest(bytes: ByteArray, provider: Provider, messages: List<LlmMessage>) {
+        val request = Json.parseToJsonElement(bytes.decodeToString()).jsonObject
+        assertEquals("test-model", request.getValue("model").jsonPrimitive.content)
+        // The OpenAI-compatible encoder omits its false default; true always selects streaming.
+        assertEquals("false", request["stream"]?.jsonPrimitive?.content ?: "false")
+        val submitted = request.getValue("messages").jsonArray.map { it.jsonObject }
+        assertEquals(messages.map { it.role.name.lowercase() }, submitted.map { it.getValue("role").jsonPrimitive.content })
+        messages.zip(submitted).forEach { (message, encoded) ->
+            val content = if (provider != Provider.OLLAMA && message.role == MessageRole.User) {
+                JsonArray(
+                    listOf(
+                        buildJsonObject {
+                            put("type", "text")
+                            put("text", message.content)
+                        },
+                    ),
+                )
+            } else {
+                JsonPrimitive(message.content)
+            }
+            assertEquals(content, encoded.getValue("content"))
+        }
+        assertNull(request["response_format"])
+        assertNull(request["format"])
+        assertNull(request["stream_options"])
+        assertEquals(
+            "count-tool",
+            request.getValue("tools").jsonArray.single().jsonObject.getValue("function").jsonObject.getValue("name").jsonPrimitive.content,
+        )
+        if (provider == Provider.OLLAMA) {
+            val options = request.getValue("options").jsonObject
+            assertEquals("0.37", options.getValue("temperature").jsonPrimitive.content)
+            assertEquals("2048", options.getValue("num_ctx").jsonPrimitive.content)
+            assertEquals("17", options.getValue("num_predict").jsonPrimitive.content)
+        } else {
+            assertEquals("0.37", request.getValue("temperature").jsonPrimitive.content)
+            assertEquals("29", request.getValue("max_tokens").jsonPrimitive.content)
+            assertNull(request["max_completion_tokens"])
+        }
+    }
+
+    private fun assertOrdinaryEvidence(
+        error: RecoveryException,
+        responses: List<ScriptedReply>,
+        requests: List<ByteArray>,
+        events: List<RecoveryEvent>,
+        wires: List<RecoveryWire>,
+    ) {
+        val failures = error.failures
+        assertEquals((1..failures.size).toList(), failures.map { it.identity.attemptNumber })
+        assertEquals(1, failures.map { it.identity.logicalId }.distinct().size)
+        assertEquals(failures.size, failures.map { it.identity.attemptId }.distinct().size)
+        assertEquals(RecoveryStage.EXHAUSTED, events.last().stage)
+        assertSame(failures.last(), events.last().failure)
+        val failedEvents = events.filter { it.stage == RecoveryStage.FAILED }
+        assertEquals(failures.size, failedEvents.size)
+        failures.forEachIndexed { index, failure ->
+            val response = responses[index]
+            assertEquals("complete", failure.operation)
+            assertEquals(response.status, failure.status)
+            val expectedCode = when (response.status) {
+                401 -> "invalid_api_key"
+                503 -> "server_error"
+                else -> "rate_limit_exceeded"
+            }
+            assertEquals(expectedCode, failure.providerCode)
+            assertEquals(response.headers.getValue("X-Request-ID"), failure.providerRequestId)
+            assertEquals(response.status != 401, failure.eligible)
+            assertPrivateEvidence(failure, response)
+            val cause = failure.inspectCause()
+            assertTrue(cause is IllegalStateException)
+            assertEquals("HTTP failure", cause.message)
+            assertSame(cause, failure.inspectBoundaryCause())
+            val event = failedEvents[index]
+            assertEquals(failure.identity, event.identity)
+            assertSame(failure, event.failure)
+            assertSame(cause, event.failure?.inspectCause())
+            assertEquals(failures.take(index + 1), event.failures)
+            event.failures.forEachIndexed { prior, retained -> assertSame(failures[prior], retained) }
+            assertSame(failure, events.last().failures[index])
+            val sent = wires.single { it.identity == failure.identity && it.inspectResponse() == null }
+            assertContentEquals(requests[index], sent.inspectRequest())
+            val received = wires.last { it.identity == failure.identity && it.complete }
+            assertEquals(response.status, received.status)
+            assertContentEquals(response.body.encodeToByteArray(), received.inspectResponse())
+            assertContentEquals(requests[index], received.inspectRequest())
+        }
+        assertEquals(failures.map { it.identity }, events.filter { it.stage == RecoveryStage.STARTED }.map { it.identity })
+        assertEquals(failures.map { it.summary() }, error.summary().failures)
     }
 
     @Test
