@@ -149,6 +149,15 @@ class SecurityFloor(
 val kotlinVersion: String = libs.versions.kotlin.asProvider().get()
 
 val buildToolSecurityFloors: List<SecurityFloor> = listOf(
+    // CVE-2026-53914 audit: align lint-tool runtime artifacts with patched KGP.
+    // Compiler replacement is blocked by ktlint's PSI initialization and
+    // detekt's compiler-version requirement; see RECOVERY-CONFORMANCE.md.
+    SecurityFloor(
+        listOf("ktlint", "detekt", "androidLint"),
+        "org.jetbrains.kotlin",
+        kotlinVersion,
+        onlyModules = setOf("kotlin-stdlib", "kotlin-stdlib-jdk7", "kotlin-stdlib-jdk8", "kotlin-reflect"),
+    ),
     // CVE-2026-54512, CVE-2026-54513: fixed in 2.18.8 (Dokka 2.2.0 brings 2.15.3).
     SecurityFloor(listOf("dokka"), "com.fasterxml.jackson", "2.18.11"),
     // CVE-2026-84939: fixed in 2.3.35 (Dokka 2.2.0 brings 2.3.32).

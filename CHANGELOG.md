@@ -14,6 +14,12 @@ patch versions move independently.
 
 - Kotlin 2.4.21 (patch update from 2.4.20).
 
+- Align Kotlin standard-library, JDK shim and reflection dependencies on ktlint,
+  Detekt and Android lint tool classpaths with Kotlin 2.4.21. Compiler upgrades
+  failed tool compatibility checks; embedded Android dependencies and remaining
+  unfiltered audit findings still block security acceptance. See
+  `RECOVERY-CONFORMANCE.md` for upstream fixes and required owner decisions.
+
 ### Added
 
 - Opt-in Anthropic Messages recovery for ordinary, forced-tool structured and

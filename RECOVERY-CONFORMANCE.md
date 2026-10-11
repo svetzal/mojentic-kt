@@ -810,3 +810,139 @@ verified the behavioral proof and full-gate success, and distinguished that
 approval from landing readiness. The failed unfiltered audit and pending Apple
 validation remain explicit controller requirements. This is focused evidence,
 not a claim that every mission gate or coordinated parity requirement passed.
+
+## Cycle 11: supply-chain correction and remaining owner decisions
+
+This security-only correction starts from clean
+`fa73ac12a89a0a20140943c18cec4bfdf8c57cf9`. Read-only `ls-remote` confirmed
+remote main at that revision. The six retained controller synchronization log
+hashes matched their receipt; its historical Kotlin head was
+`6379173f8a6eceeb48bd22883bf0f764546937cf`. No worker fetch, rebase, commit,
+push, tag or ref mutation was performed. Release preparation and recovery
+alignment remain paused for controller landing of the security change.
+
+The change floors only `kotlin-stdlib`, `kotlin-stdlib-jdk7`,
+`kotlin-stdlib-jdk8` and `kotlin-reflect` to the project's stable Kotlin 2.4.21
+on `ktlint*`, `detekt*` and `androidLint*` configurations. It uses the existing
+build-tool resolution mechanism. Published dependency declarations, production
+recovery sources, public API baselines, fixtures, active suppressions, skipped
+projects and the CVSS 7.0 threshold are unchanged. Runtime alignment is partial
+remediation, not proof that a standard-library CPE match contains vulnerable
+build-cache code or that the unfiltered audit is clean.
+
+Before expanding documentation or running the full suite, an actual Gradle
+resolution probe required the runtime artifacts in ktlint, Detekt and Android
+lint configurations to resolve to 2.4.21 and passed (exit 0). A broader compiler
+floor also resolved successfully but failed execution: ktlint 1.8.0 threw
+`Extensions storage is not registered` during PSI initialization; Detekt 1.23.8
+rejected Kotlin 2.4.21 because it was compiled with 2.0.21. Both rejected
+attempts and their stack traces are retained. The final floor excludes compiler
+replacement, without disabling compatibility checks. Detekt's
+[official dependency guidance](https://detekt.dev/docs/1.23.8/gettingstarted/gradle/)
+and [changelog](https://detekt.dev/changelog/) substantiate that coupling.
+
+### Investigation of all seven blocking CVEs
+
+| Advisory | Exact affected or matched artifact | Primary evidence, assessment and required action |
+| --- | --- | --- |
+| CVE-2026-53914 | `kotlin-compiler-embeddable`, `kotlin-daemon-embeddable`, `kotlin-script-runtime` 2.0.21 (Detekt) and 2.2.21 (ktlint); older Kotlin runtime artifacts | [JetBrains CNA record](https://cveawg.mitre.org/api/cve/CVE-2026-53914) identifies Kotlin before 2.4.20 and unsafe build-cache metadata deserialization. [Maven registry](https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-compiler-embeddable/maven-metadata.xml) confirms stable 2.4.21. Runtime floors apply; compiler replacement failed real tool execution. Owner must select compatible patched tooling or authorize the necessary tooling migration. |
+| CVE-2026-53914: Dokka identity matches and pinned reflection | Dokka 2.2.0 `all-modules-page-plugin`, `analysis-kotlin-symbols`, `analysis-markdown`, `dokka-base`, `dokka-core`, `templating-plugin`; compiler-pinned `kotlin-reflect` 1.6.10 | Dokka artifacts are `org.jetbrains.dokka`, incorrectly inferred as the Kotlin 2.2.0 product by a LOW-confidence CPE. [Dokka registry](https://repo.maven.apache.org/maven2/org/jetbrains/dokka/dokka-core/maven-metadata.xml) lists stable 2.2.0 followed by 2.3.0-Beta. Separate compiler-pinned reflection matches remain reportable; the existing ABI-validation reflection exception was not expanded. Neither an unrelated Dokka version bump nor a new suppression is applied. Scanner applicability needs owner review. |
+| CVE-2022-3171 | `com.android.tools.external.com-intellij:kotlin-compiler:32.4.1`, embedded `protobuf-java:2.6.1` | [Upstream advisory](https://github.com/protocolbuffers/protobuf/security/advisories/GHSA-h4h5-3hr4-j3g2) fixes Java parsing denial of service in 3.16.3, 3.19.6, 3.20.3 and 3.21.7, including regenerated code. Actual relocated `org/jetbrains/kotlin/protobuf/CodedInputStream.class` exists in the containing jar. A separate Protobuf constraint cannot replace those bytes. Owner must obtain a supported fixed containing tool or authorize a supported replacement. |
+| CVE-2024-7254 | Same Android compiler, embedded `protobuf-java:2.6.1` | [Upstream advisory](https://github.com/protocolbuffers/protobuf/security/advisories/GHSA-735f-pc8j-v9w8) fixes nested-group recursion denial of service in 3.25.5, 4.27.5 and 4.28.2. The embedded runtime requires relocation-aware upstream remediation, not a normal dependency floor. Same owner decision as above. |
+| CVE-2026-56740 | Same Android compiler, embedded JLine 3.24.1 including `jline-remote-telnet` | [Upstream advisory](https://github.com/jline/jline3/security/advisories/GHSA-47qp-hqvx-6r3f) fixes unlimited Telnet environment variables in 3.30.14, 4.0.16 and 4.2.1. Actual `TelnetIO` and `ConnectionData` classes are present. Other JLine module CPE matches are overbroad, but the Telnet component is present. No project Telnet-server exposure was observed; the affected code is build tooling. Owner must obtain a fixed containing tool or authorize a replacement. |
+| CVE-2026-56741 | Same Android compiler and JLine 3.24.1 | [Upstream advisory](https://github.com/jline/jline3/security/advisories/GHSA-2r2c-cx56-8933) fixes unbounded Telnet terminal geometry in 3.30.14, 4.0.16 and 4.2.1. The same embedded-code limitation and owner decision apply. |
+| CVE-2008-0986 | `com.android.tools.analytics-library:protos:32.4.1` | LOW-confidence Android SDK CPE identity match. The jar contains analytics Protobuf classes, not native `libsgl.so` BMP parsing. [Google's original SDK fix announcement](https://android-developers.googleblog.com/2008/03/android-sdk-update-m5-rc15-released.html) concerns SDK m5-rc15. This generated analytics jar is unrelated. Documented for scanner/owner review, with no suppression or unrelated upgrade. |
+| CVE-2012-2055 | `io.github.oshai:kotlin-logging-android:8.0.4` AAR | GitHub organization metadata was matched to the GitHub product CPE. The [CNA record](https://cveawg.mitre.org/api/cve/CVE-2012-2055) concerns GitHub Enterprise public-key mass assignment before 20120304. The Kotlin logging artifact is unrelated to that web service; no equivalent web model or route exists in the AAR. Documented for scanner/owner review, without suppressing the finding. |
+
+Component fixes exist for Protobuf and JLine. However, the primary Google
+[compiler registry](https://dl.google.com/dl/android/maven2/com/android/tools/external/com-intellij/kotlin-compiler/maven-metadata.xml)
+and [lint registry](https://dl.google.com/dl/android/maven2/com/android/tools/lint/lint/maven-metadata.xml)
+list 32.4.1 as the latest stable containing releases; newer 32.5.0 versions are
+alpha. Similarly, [Detekt's stable registry](https://repo.maven.apache.org/maven2/io/gitlab/arturbosch/detekt/detekt-cli/maven-metadata.xml)
+ends at 1.23.8, and [ktlint's registry](https://repo.maven.apache.org/maven2/com/pinterest/ktlint/ktlint-cli/maven-metadata.xml)
+ends at 1.8.0. These are supported-tooling blockers, not claims that the
+advisories have no fixed release. No advisory was accepted, ignored or added
+to a suppression list. Landing readiness requires owner resolution of these
+blockers and a passing unfiltered full-scope audit.
+
+### Audit reproduction and retained failures
+
+| Full configured scope | Exit | Dependencies | Active findings | Existing suppressed findings | CVSS >= 7 matches |
+| --- | --- | --- | --- | --- | --- |
+| Fresh baseline, configured policy | 0 | 334 | 0 | 68 | 0 active |
+| Fresh baseline, same scope with suppressions removed diagnostically | 1 | 334 | 68 | 0 | 46 across seven CVEs |
+| Corrected runtime floor, configured policy | 0 | 328 | 0 | 55 | 0 active |
+| Corrected runtime floor, same unfiltered diagnostic | 1 | 328 | 55 | 0 | 37 across the same seven CVEs |
+
+Each audit ran `dependencyCheckAggregate --no-parallel`; the diagnostic init
+script clears suppressions for that execution only. No audit configuration was
+narrowed. The reduced entry count follows consolidation of older runtime
+artifacts, not reduced scan scope. The pre-run NVD modified feed metadata was
+`2026-10-10T20:00:06-04:00`, matching the retained cycle-10 transport baseline.
+Both audit variants warn that .NET assembly analysis could not initialize
+because `dotnet` is unavailable. These results establish neither complete
+assembly analysis nor clean unfiltered security. The original cycle-10 reports
+and all four fresh reports remain retained outside disposable worktrees.
+
+The initial six-gate run with `--rerun-tasks` exited 1: Anthropic's
+`PermanentHttpBoundaryTest.truncatedPermanentAllPublicBoundaries` retained the
+expected body evidence but encountered an `IllegalStateException` where the
+unchanged assertion requires `IOException`. The unchanged isolated real-socket
+test subsequently exited 0. That intermittent failure's cause remains
+unresolved; its original XML and full logs are preserved, not replaced by the
+passing result. No assertion was relaxed and no recovery redesign was applied.
+
+The second full six-gate attempt used `--no-parallel`, in-process Kotlin
+compilation and an external init script forcing JVM/Android test execution
+without recompiling unchanged Native artifacts. It also exited 1: oMLX's
+`PermanentHttpBoundaryTest.truncatedPermanentAllPublicBoundaries` encountered
+the same `IOException`/`IllegalStateException` cause-type assertion mismatch.
+Both failures remain blockers for `build`/`allTests` acceptance. A passing
+focused Anthropic rerun does not establish full-suite success or explain these
+failures. No production or test-source change was made to mask them.
+
+`publishToMavenLocal` passed (exit 0), using a writable temporary local Maven
+repository because the host's normal home repository is read-only. All 36 POMs
+and 36 Gradle module files were inspected and archived with hashes. Coordinates
+remain `com.vetzal.mojentic`, version 2.1.0. The consumer metadata includes
+Kotlin stdlib 2.4.21 and the unchanged public libraries; it contains no audited
+compiler, Dokka, Detekt, Android compiler, Protobuf or JLine tool dependency.
+The kotlin-logging scanner identity mismatch remains separately documented.
+This consumer inspection does not waive build-tool findings or prove Apple
+runtime conformance.
+
+Independent focused review verified the final runtime-only floor's scope,
+primary fix evidence, unsupported compiler replacements, and unchanged
+production-boundary assertions. Existing acceptance suites collectively retain exact request bytes across
+retries, distinct attempt identities, original private causes, lifecycle ordering,
+permanent truncated HTTP failures, real ordinary broker/session calls, and
+completed tools executing once. Adapter coverage was not expanded or newly
+certified. Hash checks confirm all 213 tracked Kotlin source/test/API files and the
+active suppression policy are unchanged. Review approval is for this partial
+security change, not passing mission gates or controller landing readiness.
+
+Apple validation is explicitly pending: Linux disables simulator execution and
+framework linking. Native compilation and local publication do not replace
+macOS/iOS runtime validation. No release, PR, sibling edit, live inference,
+experiment restart or worker Git finalization occurred.
+
+Original and corrected audit reports, complete capture stdout/stderr, command
+and exit-code manifests, resolved artifact/configuration paths, primary upstream
+snapshots, controller receipts, source revisions, source/report SHA-256 hashes,
+failed and passing test evidence, direct dependency-resolution proof and review
+records are retained outside disposable worktrees. Suppression evidence was not
+copied into worktree evidence directories. Foundry must resolve the security,
+full-suite and Apple blockers before landing the focused security change on
+main and resuming recovery alignment.
+
+| Final validation | Actual result |
+| --- | --- |
+| `ktlintCheck detekt apiCheck dokkaGenerate --no-parallel` | Exit 0 after the final runtime-only floor |
+| `ktlintCheck detekt build allTests apiCheck dokkaGenerate --rerun-tasks` | Exit 1, Anthropic permanent-response cause-type assertion |
+| Same six gates, serialized with fresh JVM/Android tests | Exit 1, oMLX permanent-response cause-type assertion |
+| Runtime dependency-resolution acceptance | Exit 0; actual ktlint/Detekt/Android lint runtime artifacts resolve to 2.4.21 |
+| Configured / unfiltered full-scope audit | Exit 0 / exit 1; details above |
+| `publishToMavenLocal` and consumer metadata inspection | Exit 0; 36 POMs and 36 module files inspected |
+
+The correction is reviewable but incomplete: unfiltered security, full-suite
+success and Apple validation remain required before controller landing.
