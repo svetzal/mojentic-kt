@@ -28,6 +28,7 @@ internal data class ScriptedReply(
 internal class RecoveryScriptedServer(private val replies: List<ScriptedReply>) : AutoCloseable {
     private val server = ServerSocket(0)
     val url = "http://127.0.0.1:${server.localPort}"
+    val requestLines: MutableList<String> = Collections.synchronizedList(mutableListOf())
     val requests: MutableList<ByteArray> = Collections.synchronizedList(mutableListOf())
     val errors: MutableList<Throwable> = Collections.synchronizedList(mutableListOf())
     private val worker = thread(isDaemon = true) {
@@ -35,6 +36,7 @@ internal class RecoveryScriptedServer(private val replies: List<ScriptedReply>) 
             while (!server.isClosed) {
                 server.accept().use { socket ->
                     val input = socket.getInputStream().buffered()
+                    requestLines += input.line()
                     var length = 0
                     while (true) {
                         val line = input.line()

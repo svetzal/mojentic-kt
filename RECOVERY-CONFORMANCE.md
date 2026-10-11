@@ -171,8 +171,9 @@ The current source change starts from delivered Kotlin
 `a1cd3e9515e9282c53ec9e9ec2ccb8a5d0263d44`. A read-only `git ls-remote`
 confirmed origin/main at that same revision. Foundry prohibits ref mutation, so
 fetch/pull/rebase and Git finalization were not performed. The checked-in contract,
-request and October 10 requirements in the correction plan govern this slice;
-no separate supplement file was present. Package versions and release guidance
+request and October 10 requirements in the correction plan govern this slice.
+The supplement is present in the controller receipt's Kotlin decision output;
+no standalone supplement file was supplied. Package versions and release guidance
 are preserved. No sibling or harness files are edited.
 
 The current behavioral proof is [.foundry/proof.json](.foundry/proof.json).
@@ -572,7 +573,8 @@ This slice starts at delivered Kotlin
 `b8139728d77cabd02f3b58e99252e4381d308236`. It implements the public error/privacy
 contract and the task-supplied October 10 supplement; provenance is recorded in
 [.foundry/OCTOBER-10-SUPPLEMENT.md](.foundry/OCTOBER-10-SUPPLEMENT.md).
-No separate external supplement was present. Git finalization belongs to Foundry;
+The controller receipt's Kotlin decision output contains the supplement;
+a standalone external supplement file was not supplied. Git finalization belongs to Foundry;
 no fetch, rebase, commit, push, tag, release, dependency or version mutation occurred.
 
 The early public HTTP proof is [.foundry/proof.json](.foundry/proof.json): the
@@ -713,8 +715,98 @@ client IDs do not make inference idempotent. No new provider generation feature,
 embedding/realtime recovery, tool replay, total generation timeout, release,
 live inference or coordinated parity claim is included.
 
-A separately named October 10 supplement and controller synchronization receipt
-were not present in the supplied worktree. The latest task's explicit acceptance
-requirements were applied; final supplement reconciliation and synchronization
-receipts remain controller work. HEAD was verified read-only and no worker ref
-mutations occurred. Foundry owns review/finalization; no landed SHA is claimed.
+The October 10 supplement is in the controller synchronization receipt's Kotlin
+decision output. The receipt records ancestor
+`6379173f8a6eceeb48bd22883bf0f764546937cf`, not this delivered HEAD. The receipt
+and its six Kotlin log hashes were verified read-only again for the correction
+below. Worker ref mutations remain prohibited. Foundry owns review/finalization;
+no landed SHA is claimed.
+
+
+# Truncated permanent HTTP public boundaries — October 10 correction
+
+This evidence extends delivered Kotlin `196db84b842bf4a1e4940411fed6c65dd9b7293e`.
+Production behavior remains unchanged. The permanent-status exclusion in
+`ResponseEvidence.httpReason` already satisfies the October 10 requirement.
+
+`PermanentHttpBoundaryTest.truncatedPermanentAllPublicBoundaries` in the OpenAI
+and Anthropic JVM test trees exercises default production transport against a
+loopback server with truncated UTF-8 bodies for **400, 401 and 403**. Every policy
+explicitly selects these statuses, enables transport retries, and supplies an
+allowing admission hook. A distinguishable second response makes an unauthorized
+resend observable. The fixtures record request method/path and exact body bytes.
+
+| Adapter | Actual public entrypoints |
+| --- | --- |
+| Ollama, oMLX, OpenAI | `complete`, `completeJson`, `completeJsonResponse`, `stream`, `streamEvents`; broker `complete`, `generateResponse`, `completeJson<T>`, `stream`, `generateStreamEvents`; session `send`, `stream` |
+| Anthropic | `complete`, `completeJson`, inherited `completeJsonResponse`, `stream`; broker `complete`, `generateResponse`, `completeJson<T>`, `stream`; session `send`, `stream` |
+
+The matrix has 138 cases: 108 for the three local/OpenAI adapters and 30 for
+Anthropic. Each checks exact operation and frozen expected request bytes, including
+structured schema and Anthropic forced-tool encoding, HTTP category, numeric
+status, ineligibility, permanent reason, exact received headers, UTF-8 partial
+bytes, exact raw progress, and zero semantic observation/delivery. The original
+body-read `IOException` remains identical through private boundary inspection,
+FAILED and terminal event failures and the single history entry; the public
+recovery exception has no cause chain. Safe summaries/events/captures do not
+expose the private response. Capture/lifecycle/failure identities agree. There is
+one wire attempt, no success/admission scheduling, no admission invocation, no
+tool execution, and no second request. Failed sessions roll back history.
+
+An early real-boundary proof substituted Anthropic `stream` for structured
+completion and failed on `structured` versus `stream`; restoring `completeJson`
+passed with exact forced-tool bytes. A separate deliberate mutation removed
+permanent-status exclusion and was rejected after unauthorized resend produced
+multiple failures. Restoring the original production source passed. These were
+negative controls, not production defects. Historical setup/fixture assertion
+failures remain retained separately from those controls.
+
+Rust was inspected read-only at `4ca1ed279c02eab37827a1ed07c30e961155ecf3`,
+especially `tests/recovery.rs::truncated_permanent_http_bodies_never_retry_all_public_completion_apis`.
+The Kotlin matrix checks its permanent-status, operation, private partial-body,
+progress, one-history-entry, no-semantic-delivery and no-resend assertions, and
+adds Anthropic, exact headers/request bytes and public broker/session callers.
+Kotlin records STARTED, FAILED, EXHAUSTED; Rust records AttemptStarted and
+AttemptFailed. This preserves characterized lifecycle differences.
+
+Anthropic does not implement `StreamEventsGateway`, so `streamEvents` and broker
+`generateStreamEvents` are unsupported there. Linux does not establish Apple
+execution or Native transport guarantees: macOS/iOS validation remains explicitly
+pending controller execution. Existing unrelated recovery exclusions remain.
+
+Complete captures, negative-control snapshots/results, proof JSON, receipt/log
+verification, exact revisions and source hashes are retained in the external
+Foundry evidence archive
+[/home/svetzal/.foundry/tool-logs/mojentic-kt-c10-196db84-evidence](/home/svetzal/.foundry/tool-logs/mojentic-kt-c10-196db84-evidence).
+The suppression snapshot is outside worktree evidence. Git finalization remains
+Foundry's responsibility; no worker ref mutations occurred.
+
+
+Current Linux validation ran
+`./gradlew ktlintCheck detekt build allTests apiCheck dokkaGenerate` with writable
+copies of the host Gradle/Kotlin Native caches and in-process Kotlin compilation.
+All six gates passed (exit 0); the changed modules ran 218 tests with zero
+failures/errors. Existing realtime compiler and Dokka unresolved-link warnings
+remain in the complete captures. The initial read-only global-cache failure is
+retained as a host setup failure, not a source defect.
+
+| Audit | Actual result |
+| --- | --- |
+| Configured `dependencyCheckAggregate --no-parallel` | Exit 0; 337 dependency entries; 0 unsuppressed findings; 68 existing suppressed findings |
+| Unfiltered same full scope, diagnostic init removing suppressions | Exit 1; 337 dependency entries; 68 findings; 0 suppressions; 46 artifact/advisory findings at CVSS >= 7 across 7 distinct CVEs |
+
+The unfiltered threshold failures are CVE-2008-0986, CVE-2012-2055,
+CVE-2022-3171, CVE-2024-7254, CVE-2026-53914, CVE-2026-56740 and
+CVE-2026-56741. Both runs also warn that the .NET assembly analyzer could not
+initialize because `dotnet` is unavailable for scanned tool assets. Therefore
+these reports do not establish clean unfiltered security or complete assembly
+analysis. Audit feeds were checked before execution: the NVD modified feed
+reported `2026-10-10T20:00:06-04:00`; reports record the same modified timestamp.
+No dependencies, suppression rules, audit scope, severity thresholds, runtime
+pins, package versions, release files or production behavior were changed.
+
+The independent focused reviewer approved the corrected source and assertions,
+verified the behavioral proof and full-gate success, and distinguished that
+approval from landing readiness. The failed unfiltered audit and pending Apple
+validation remain explicit controller requirements. This is focused evidence,
+not a claim that every mission gate or coordinated parity requirement passed.
