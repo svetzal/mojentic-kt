@@ -16,6 +16,12 @@ public class RecoveryStreamException(private val evidence: Any? = null) : Runtim
     public fun inspectEvidence(): Any? = evidence
 }
 
+/** Provider-declared stream failure. The provider document remains private to explicit inspection. */
+public class RecoveryProviderResponseException(private val evidence: Any? = null) : RuntimeException("Provider response failed") {
+    /** May contain provider content; callers own privacy when inspecting this value. */
+    public fun inspectEvidence(): Any? = evidence
+}
+
 /** EOF is transport evidence only; it does not prove remote inference ended. */
 public class RecoveryStreamClosedException : IOException("Stream closed without terminal evidence")
 

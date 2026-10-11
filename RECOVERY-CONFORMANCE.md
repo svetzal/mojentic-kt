@@ -653,3 +653,68 @@ logging facade. See the [NVD advisory](https://nvd.nist.gov/vuln/detail/CVE-2012
 for applicability review. No clean unfiltered consumer-security claim is made.
 Consumer hashes, coordinates and findings are in `.foundry/consumer-inspection.json`;
 final command outcomes and evidence/source hashes are in `.foundry/validation.json`.
+
+## Anthropic public completion recovery (October 10, 2026)
+
+This slice starts at delivered Kotlin
+`241ad4c4179b9e331f4ad759b7f29ecc9bf32b4d` and compares exact Rust
+`4ca1ed279c02eab37827a1ed07c30e961155ecf3`. Rust blob hashes and the comparison
+are in `.foundry/rust-comparison.json`. Its generic transport design is reused
+through Kotlin's existing recovery machinery; ordinary Anthropic calls retain
+ordinary Messages HTTP and structured calls retain their forced synthetic tool.
+Rust's delegated event-stream path is not a basis for claiming Anthropic event
+recovery: Kotlin Anthropic has no separate `streamEvents` API.
+
+The early public-boundary proof is `.foundry/proof.json`. On the delivered source,
+an actual scripted production-HTTP stream with escaped Unicode reasoning returned
+normally because it ignored recovery/capture. The corrected probe retains the
+capture exception and observed reasoning byte count, with zero delivered bytes,
+zero admission calls and exactly one wire request. Full red/green logs are durable;
+no marker toggle or private-helper substitute is used.
+
+| Assertion-bearing test | What it establishes |
+| --- | --- |
+| `ordinaryBrokerAndSessionRecoverWithoutStreamingSubstitution` | Actual gateway.complete, broker.complete and session.send each recover 503 in exactly two ordinary requests; exact bytes/controls, API key/version headers, stable logical ID, distinct attempt IDs, ordered lifecycle/history and original usage/model/finish/reasoning |
+| `structuredRecoveryKeepsForcedToolSchemaAndDoesNotReplayTools` | Forced respond_in_json tool/schema survives 503; identical bytes and no streaming substitution |
+| `defaultAndPermanentTruncatedErrorsNeverResend` | Default one attempt and truncated 400/401/403/504 retain numeric status, headers, IOException and exact partial bytes; permanent statuses veto admission |
+| `persistent504HasOrderedBoundedHistory` | Two-attempt exhaustion preserves ordered final history without a third request |
+| `retryAfterSecondsDatesAndInvalid` / `retryAfterMinimumRefusesCeilingOrBudget` | Seconds, future/past dates, invalid value, delay ceiling and recovery budget; observed wall clock and deterministic sleeper/jitter |
+| `redirectsAndOverflowingRetryAfterNeverCreateHiddenAttempts` | Production recovery transport refuses redirect replay; overflowed minimum is refused, one wire request |
+| `pendingAdmissionWaitsForExplicitPermissionAndBudgetBoundsIt` | A pending hook creates no new request; explicit allow resumes; pending recovery budget expires as failure |
+| `admissionRejectsWithoutAnotherWireRequest` | Explicit rejection makes exactly one wire request |
+| `keepaliveOnlyCanRecoverButContentReasoningAndToolFragmentsInterrupt` | Keepalive-only EOF retains raw progress and may recover; content, thinking and tool fragments each interrupt after one attempt |
+| `malformedFramesAndMalformedStructuredRepliesStayIneligible` | Malformed JSON, unknown events/reasons and missing ordinary content are terminal, with no replay |
+| `cancellationWinsInRequestAdmissionBackoffAndPausedToolDelivery` | Cancellation wins in active read, pending admission, delay, paused completed-tool delivery and terminal complete capture; failed history precedes one cancellation event, with no success or resend |
+| `brokerToolsExecuteOnceAcrossFollowupRecovery` | Actual session.send/broker.complete execute one completed tool once; only followup completion retries; tool results remain in identical ordinary requests |
+| `streamingBrokerAndSessionCompleteToolsOnce` | Actual broker.stream and session.stream execute a completed tool once across followup 503 recovery, with exact followup bytes |
+| `safeSummariesWithholdCredentialPayloadAndHeaderEchoes` | request-id, error.type, body and x-api-key credential/payload echoes remain absent from safe fields/events; exact evidence requires explicit inspection |
+| `providerErrorsKeepTypedCauseAndValidatedMetadata` | Provider error SSE has PROVIDER_RESPONSE category, typed original cause, validated request-id/type, one attempt and no admission |
+| `captureFailureRetainsOrdinaryToolTextAndReasoningEvidence` | Ordinary capture failure retains exact Unicode text/thinking counts and completed tool evidence, zero delivery, no replay |
+| `interruptedCompletedToolsKeepCumulativeCountsAndActualTelemetry` | Two completed tools remain observed-only on EOF; actual model, max_tokens and input/output usage remain privately inspectable |
+| `documentedTerminalReasonsKeepLegacyStreamingResults` | Successful documented stop reasons, including max_tokens, compare identical Unicode events with the actual legacy transport |
+
+The separate read-only review in `.foundry/independent-review.md` approves this
+source slice after correcting its findings. Gates are implementation-run evidence,
+not independently rerun by that reviewer. Current outcomes and source/evidence
+hashes are recorded in `.foundry/validation.json`; historical failed probes,
+compilation, formatting and first full-gate failures are retained.
+
+The configured full-scope audit has 335 entries, zero unsuppressed findings and
+68 existing suppressed findings. The unfiltered full-scope audit has 335 entries,
+68 findings and zero suppressions, and fails the CVSS >= 7 gate. Reports are in
+`.foundry/audit-configured/` and `.foundry/audit-unfiltered/`. This does not certify
+clean unfiltered security. No dependencies, audit scope, thresholds, suppression
+files or allowlists were changed. Earlier historical findings above remain intact.
+
+Linux evidence does not establish Apple execution or Native transport guarantees.
+Apple validation remains pending. Supplied engines must independently disable
+hidden retries/redirects. Remote termination and idempotency are not established;
+client IDs do not make inference idempotent. No new provider generation feature,
+embedding/realtime recovery, tool replay, total generation timeout, release,
+live inference or coordinated parity claim is included.
+
+A separately named October 10 supplement and controller synchronization receipt
+were not present in the supplied worktree. The latest task's explicit acceptance
+requirements were applied; final supplement reconciliation and synchronization
+receipts remain controller work. HEAD was verified read-only and no worker ref
+mutations occurred. Foundry owns review/finalization; no landed SHA is claimed.

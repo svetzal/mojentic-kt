@@ -60,11 +60,12 @@ public enum class RecoveryReason {
     PROVIDER_MINIMUM,
     CANCELLATION,
     POLICY_FAILED,
+    PROVIDER_RESPONSE,
 }
 
 /** Category of the original failed request. */
 @Serializable
-public enum class RecoveryCategory { HTTP, TRANSPORT, PROTOCOL, CLIENT_TIMEOUT, CANCELLATION }
+public enum class RecoveryCategory { HTTP, TRANSPORT, PROTOCOL, CLIENT_TIMEOUT, CANCELLATION, PROVIDER_RESPONSE }
 
 /** Progress observed at the response boundary, before capture or decoding. */
 @Serializable
@@ -163,7 +164,7 @@ public class RecoveryFailure internal constructor(
     /** Recognized provider code, omitted when malformed, unknown or echoed from the request. */
     public val providerCode: String? get() = details.providerCode
 
-    /** Valid UUID request ID, omitted when it echoes credentials or request contents. */
+    /** Validated UUID or Anthropic request ID, omitted when it echoes credentials or request contents. */
     public val providerRequestId: String? get() = details.providerRequestId
 
     /** Safe serializable snapshot without raw bytes, headers or Throwable objects. */

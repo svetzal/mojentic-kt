@@ -1,8 +1,8 @@
 # Opt-in completion recovery
 
-Ordinary, structured and streaming OpenAI/Ollama/oMLX completions can recover one provider request.
+Ordinary, structured and streaming OpenAI/Ollama/oMLX/Anthropic completions can recover one provider request.
 Configure the existing `CompletionConfig`; `LlmBroker` and `ChatSession` pass it
-through. Anthropic, embeddings and realtime do not use this policy.
+through. Embeddings and realtime do not use this policy.
 
 ```kotlin
 val gateway = OllamaGateway()
@@ -182,7 +182,7 @@ for scripted boundary assertions and pending Apple validation.
 | OpenAI Chat Completions | Opt-in on all four paths; event stream remains tool-free | No endpoint-specific facility established; unknown for custom hosts |
 | Ollama | Opt-in on all four paths | Ownership and termination unknown; caller admission required |
 | oMLX | Opt-in on all four paths | Ownership and termination unknown; caller admission required |
-| Anthropic | Policy not implemented | Not investigated in this slice |
+| Anthropic Messages | Opt-in ordinary / forced-tool structured / stream; no separate streamEvents API | No endpoint-specific cancellation, status or idempotency facility established; caller admission required |
 | Embeddings / realtime / model management | Outside completion recovery | Not investigated in this slice |
 
 OpenAI uses its existing model registry: supported reasoning models omit temperature
@@ -223,3 +223,39 @@ Provider codes in JSON, NDJSON and SSE error objects are projected conservativel
 missing, ambiguous or unknown values remain absent. Realtime and embeddings are
 outside this completion metadata correction. Native execution remains pending
 Apple validation; no stronger Linux-only capability claim is made.
+
+## Anthropic migration
+
+Use `AnthropicGateway(apiKey = yourApiKey)` with the same `CompletionConfig`
+shown above. `gateway.complete`, `broker.complete` and `session.send` continue
+using ordinary Messages HTTP requests. `completeJson` retains the synthetic
+`respond_in_json` tool and schema; it does not introduce `response_format`.
+`gateway.stream`, `broker.stream` and `session.stream` retain their existing
+content, thinking and completed-tool events. The provider's existing message
+adaptation, max tokens and temperature controls remain unchanged. Unsupported
+`reasoningEffort` stays unsupported; recovery adds no new generation control.
+
+With `recovery = null`, Anthropic keeps its legacy errors and permissive stream
+handling. With a recovery policy, malformed frames, missing terminal evidence
+and semantic interruption fail explicitly. Content-block starts and deltas are
+observed before caller capture. Reasoning, text, tool fragments and completed
+calls veto resending even if nothing reached the consumer. Keepalive-only EOF
+can recover after explicit admission. Completed tools are delivered only after
+valid `message_delta` / `message_stop` evidence and run in the existing broker.
+Cancellation while the consumer is paused prevents attempt success.
+
+The Anthropic transport sends `x-api-key` and `anthropic-version`; it sends no
+invented idempotency header. Safe metadata accepts only validated provider
+codes/request IDs and withholds payload or credential echoes. Inspecting raw
+headers (including echoed `x-api-key`), bytes or causes is explicitly sensitive.
+Anthropic documents `request-id` and `error.type` in its
+[API errors reference](https://platform.claude.com/docs/en/api/errors).
+Provider-declared streaming errors use category `PROVIDER_RESPONSE` and remain
+ineligible; malformed protocol is also ineligible. Ordinary telemetry is returned
+unchanged. Validated stream model, usage and finish reason are available privately
+through `inspectCompletionEvidence()` on failure; missing telemetry stays absent.
+No new progress/metrics stream events are invented for Anthropic.
+
+Linux production-transport scripts establish JVM behavior. Apple runtime and
+Native transport validation remain pending; injected engines must independently
+disable retries and redirects. Remote inference termination remains unknown.

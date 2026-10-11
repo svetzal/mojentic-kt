@@ -39,8 +39,17 @@ public class RecoveryHttp(
     private val client: HttpClient,
     private val provider: String,
     private val url: String,
-    private val apiKey: String? = null,
+    private val apiKey: String?,
+    private val requestHeaders: Map<String, String>,
 ) {
+    /** Existing bearer-auth boundary remains compatible. */
+    public constructor(
+        client: HttpClient,
+        provider: String,
+        url: String,
+        apiKey: String? = null,
+    ) : this(client, provider, url, apiKey, emptyMap())
+
     /** Decode is inside the recovery boundary so malformed replies have bounded, private failure evidence. */
     public suspend fun <T> execute(
         payload: String,
@@ -174,7 +183,8 @@ public class RecoveryHttp(
         evidence.sent = true
         val result = client.preparePost(url) {
             contentType(ContentType.Application.Json)
-            apiKey?.let { header("Authorization", "Bearer $it") }
+            if (requestHeaders.isEmpty()) apiKey?.let { header("Authorization", "Bearer $it") }
+            requestHeaders.forEach { (name, value) -> header(name, value) }
             setBody(payload)
         }.execute { response ->
             if (consume != null && response.status.value in SUCCESS_RANGE) {
@@ -415,6 +425,7 @@ internal class ResponseEvidence(private val payload: String = "", private val ap
         capture -> RecoveryReason.CAPTURE
         observation -> RecoveryReason.POLICY_FAILED
         partialStreaming() -> RecoveryReason.PARTIAL_SUCCESS
+        cause is RecoveryProviderResponseException -> RecoveryReason.PROVIDER_RESPONSE
         cause is RecoveryStreamException -> RecoveryReason.PROTOCOL
         decoding -> RecoveryReason.PROTOCOL
         partialOrdinary() -> RecoveryReason.PARTIAL_SUCCESS
@@ -434,6 +445,7 @@ internal class ResponseEvidence(private val payload: String = "", private val ap
 
     private fun category(cause: Throwable?): RecoveryCategory = when {
         cause is CancellationException -> RecoveryCategory.CANCELLATION
+        cause is RecoveryProviderResponseException -> RecoveryCategory.PROVIDER_RESPONSE
         decoding -> RecoveryCategory.PROTOCOL
         status != null && (!streaming || status !in SUCCESS_RANGE) -> RecoveryCategory.HTTP
         streaming && cause is RecoveryStreamException -> RecoveryCategory.PROTOCOL

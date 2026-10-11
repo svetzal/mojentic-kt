@@ -16,15 +16,22 @@ internal object RecoveryMetadata {
         "model_not_found",
         "insufficient_quota",
         "overloaded_error",
+        "authentication_error",
+        "permission_error",
+        "not_found_error",
+        "request_too_large",
+        "rate_limit_error",
+        "api_error",
     )
     private val uuid = Regex("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}")
     private val compactUuid = Regex("[0-9a-fA-F]{32}")
 
     fun requestId(headers: Map<String, List<String>>, payload: String, apiKey: String?): String? {
-        val value = headers.entries.filter { it.key.equals("x-request-id", ignoreCase = true) }
-            .flatMap { it.value }.singleOrNull() ?: return null
+        val value =
+            headers.entries.filter { it.key.equals("x-request-id", ignoreCase = true) || it.key.equals("request-id", ignoreCase = true) }
+                .flatMap { it.value }.singleOrNull() ?: return null
         val unprefixed = value.removePrefix("req_")
-        val valid = uuid.matches(unprefixed) || compactUuid.matches(unprefixed) ||
+        val valid = Regex("req_[A-Za-z0-9]{20,80}").matches(value) || uuid.matches(unprefixed) || compactUuid.matches(unprefixed) ||
             (unprefixed.startsWith("urn:uuid:") && uuid.matches(unprefixed.removePrefix("urn:uuid:"))) ||
             (unprefixed.startsWith("{") && unprefixed.endsWith("}") && uuid.matches(unprefixed.substring(1, unprefixed.lastIndex)))
         if (!valid) return null
@@ -39,18 +46,24 @@ internal object RecoveryMetadata {
         val documents = listOf(body) + body.lineSequence().map { it.removePrefix("data:").trim() }.toList()
         val received = documents.mapNotNull { document ->
             val error = (parse(document) as? JsonObject)?.get("error") as? JsonObject
-            (error?.get("code") as? JsonPrimitive)?.takeIf { it.isString }?.content
+            ((error?.get("code") ?: error?.get("type")) as? JsonPrimitive)?.takeIf { it.isString }?.content
         }.distinct()
         return received.singleOrNull()?.takeIf { it in codes && !echoes(it, payload, apiKey) }
     }
 
     private fun echoes(value: String, payload: String, apiKey: String?): Boolean =
-        payload.contains(value) || apiKey?.contains(value) == true || contains(parse(payload), value)
+        payload.contains(value) || apiKey?.takeIf { it.isNotEmpty() }?.let { it.contains(value) || value.contains(it) } == true ||
+            contains(parse(payload), value)
 
     private fun contains(element: JsonElement?, value: String): Boolean = when (element) {
-        is JsonPrimitive -> element.isString && element.content.contains(value)
+        is JsonPrimitive ->
+            element.isString &&
+                (element.content.contains(value) || (element.content.isNotEmpty() && value.contains(element.content)))
+
         is JsonObject -> element.any { (key, child) -> key.contains(value) || contains(child, value) }
+
         is JsonArray -> element.any { contains(it, value) }
+
         else -> false
     }
 

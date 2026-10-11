@@ -16,6 +16,9 @@ import com.mojentic.llm.LlmGateway
 import com.mojentic.llm.LlmGatewayResponse
 import com.mojentic.llm.LlmMessage
 import com.mojentic.llm.LlmToolCall
+import com.mojentic.llm.recovery.RecoveryHttp
+import com.mojentic.llm.recovery.RecoveryPolicy
+import com.mojentic.llm.recovery.recoveryHttpClient
 import com.mojentic.llm.tools.LlmTool
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
@@ -39,7 +42,9 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -71,6 +76,13 @@ internal const val STRUCTURED_RESPONSE_TOOL_NAME: String = "respond_in_json"
  * with Kotlin idioms (suspend, structured concurrency, Flow streaming) and the
  * Kotlin-specific shape of the [LlmGateway] interface.
  *
+ * Recovery is opt-in through [CompletionConfig.recovery] for ordinary, forced-tool
+ * structured and streaming requests. Encoded requests are frozen across attempts.
+ * The default JVM/Android recovery transport disables retries and redirects;
+ * injected engines must supply those guarantees. Native validation is pending.
+ * Streams fail explicitly after semantic observation or delivery and require valid
+ * terminal evidence. Raw evidence is available only through explicit inspection.
+ *
  * @param apiKey API key sent in the `x-api-key` header. Required.
  * @param host Base URL of the Anthropic HTTP API. Override for Anthropic-compatible
  *             endpoints (e.g. AWS Bedrock proxies that speak the Anthropic protocol).
@@ -86,12 +98,15 @@ public class AnthropicGateway(
     private val json: Json = DEFAULT_JSON,
 ) : LlmGateway {
     private val httpClient: HttpClient = buildHttpClient(engine)
+    private val recoveryClientDelegate = lazy { recoveryHttpClient(engine) }
+    private val recoveryClient: HttpClient by recoveryClientDelegate
 
     /**
      * Closes the underlying Ktor client.
      */
     public fun close() {
         httpClient.close()
+        if (recoveryClientDelegate.isInitialized()) recoveryClient.close()
     }
 
     override suspend fun complete(
@@ -108,7 +123,7 @@ public class AnthropicGateway(
             config = config,
             stream = false,
         )
-        val response = postMessages(request)
+        val response = postMessages(request, config.recovery, "complete")
         return response.toGatewayResponse()
     }
 
@@ -131,7 +146,15 @@ public class AnthropicGateway(
             config = config,
             stream = false,
         )
-        val response = postMessages(request)
+        if (config.recovery != null) {
+            return recoveryBoundary().execute(encode(request), "structured", requireNotNull(config.recovery)) { body, _ ->
+                structuredOutput(decodeRecoveryResponse(body))
+            }
+        }
+        return structuredOutput(postMessages(request))
+    }
+
+    private fun structuredOutput(response: AnthropicMessagesResponse): JsonObject {
         val toolUse = response.content
             .filterIsInstance<AnthropicResponseContent.ToolUse>()
             .firstOrNull { it.name == STRUCTURED_RESPONSE_TOOL_NAME }
@@ -142,6 +165,17 @@ public class AnthropicGateway(
     }
 
     override fun stream(
+        model: String,
+        messages: List<LlmMessage>,
+        tools: List<LlmTool>?,
+        config: CompletionConfig,
+    ): Flow<GatewayStreamEvent> = if (config.recovery != null) {
+        recoveryStream(model, messages, tools, config)
+    } else {
+        legacyStream(model, messages, tools, config)
+    }
+
+    private fun legacyStream(
         model: String,
         messages: List<LlmMessage>,
         tools: List<LlmTool>?,
@@ -174,6 +208,35 @@ public class AnthropicGateway(
         }
     }.buffer(Channel.RENDEZVOUS)
 
+    private fun recoveryBoundary(): RecoveryHttp = RecoveryHttp(
+        recoveryClient,
+        "anthropic",
+        "$host/v1/messages",
+        apiKey,
+        mapOf("x-api-key" to apiKey, "anthropic-version" to anthropicVersion),
+    )
+
+    private fun decodeRecoveryResponse(body: String): AnthropicMessagesResponse {
+        val root = json.parseToJsonElement(body) as JsonObject
+        require(root["content"] is JsonArray) { "Missing Anthropic response content" }
+        return json.decodeFromJsonElement(AnthropicMessagesResponse.serializer(), root)
+    }
+
+    private fun encode(request: AnthropicMessagesRequest): String =
+        json.encodeToString(AnthropicMessagesRequest.serializer(), request)
+
+    private fun recoveryStream(
+        model: String,
+        messages: List<LlmMessage>,
+        tools: List<LlmTool>?,
+        config: CompletionConfig,
+    ): Flow<GatewayStreamEvent> = flow {
+        val payload = encode(buildMessagesRequest(model, messages, tools?.toAnthropicTools(), null, config, true))
+        recoveryBoundary().executeStream(payload, "stream", requireNotNull(config.recovery)) { stream ->
+            AnthropicRecoveryStreamParser(json).consume(stream) { emit(it) }
+        }
+    }
+
     private suspend fun handleSseLine(
         line: String,
         accumulator: AnthropicStreamAccumulator,
@@ -201,7 +264,16 @@ public class AnthropicGateway(
         return parsed.data.map { it.id }.sorted()
     }
 
-    private suspend fun postMessages(request: AnthropicMessagesRequest): AnthropicMessagesResponse {
+    private suspend fun postMessages(
+        request: AnthropicMessagesRequest,
+        policy: RecoveryPolicy? = null,
+        operation: String = "complete",
+    ): AnthropicMessagesResponse {
+        if (policy != null) {
+            return recoveryBoundary().execute(encode(request), operation, policy) { body, _ ->
+                decodeRecoveryResponse(body)
+            }
+        }
         val response: HttpResponse = httpClient.post("$host/v1/messages") {
             applyMessagesHeaders()
             contentType(ContentType.Application.Json)

@@ -16,6 +16,12 @@ patch versions move independently.
 
 ### Added
 
+- Opt-in Anthropic Messages recovery for ordinary, forced-tool structured and
+  streaming completions through existing broker/session configuration. Requests
+  retain exact encoded bytes across admitted attempts; failures keep private
+  transport/provider evidence and observed/delivered progress. Semantic output,
+  malformed protocol and cancellation block replay. Legacy defaults are unchanged.
+
 - Opt-in OpenAI Chat Completions recovery for ordinary, structured, streaming
   and tool-free event requests, with immutable request bytes, bounded attempts,
   caller admission, private failure evidence and exact caller-owned capture.

@@ -850,6 +850,7 @@ public final class com/mojentic/llm/recovery/RecoveryCategory : java/lang/Enum {
 	public static final field Companion Lcom/mojentic/llm/recovery/RecoveryCategory$Companion;
 	public static final field HTTP Lcom/mojentic/llm/recovery/RecoveryCategory;
 	public static final field PROTOCOL Lcom/mojentic/llm/recovery/RecoveryCategory;
+	public static final field PROVIDER_RESPONSE Lcom/mojentic/llm/recovery/RecoveryCategory;
 	public static final field TRANSPORT Lcom/mojentic/llm/recovery/RecoveryCategory;
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lcom/mojentic/llm/recovery/RecoveryCategory;
@@ -996,6 +997,7 @@ public final class com/mojentic/llm/recovery/RecoveryHttp {
 	public static final field MAX_EXPONENT I
 	public fun <init> (Lio/ktor/client/HttpClient;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 	public synthetic fun <init> (Lio/ktor/client/HttpClient;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lio/ktor/client/HttpClient;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
 	public final fun execute (Ljava/lang/String;Ljava/lang/String;Lcom/mojentic/llm/recovery/RecoveryPolicy;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun executeStream (Ljava/lang/String;Ljava/lang/String;Lcom/mojentic/llm/recovery/RecoveryPolicy;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
@@ -1164,6 +1166,13 @@ public final class com/mojentic/llm/recovery/RecoveryProgress$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
+public final class com/mojentic/llm/recovery/RecoveryProviderResponseException : java/lang/RuntimeException {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/Object;)V
+	public synthetic fun <init> (Ljava/lang/Object;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun inspectEvidence ()Ljava/lang/Object;
+}
+
 public final class com/mojentic/llm/recovery/RecoveryReason : java/lang/Enum {
 	public static final field ADMISSION_REJECTED Lcom/mojentic/llm/recovery/RecoveryReason;
 	public static final field ADMISSION_REQUIRED Lcom/mojentic/llm/recovery/RecoveryReason;
@@ -1178,6 +1187,7 @@ public final class com/mojentic/llm/recovery/RecoveryReason : java/lang/Enum {
 	public static final field POLICY_FAILED Lcom/mojentic/llm/recovery/RecoveryReason;
 	public static final field PROTOCOL Lcom/mojentic/llm/recovery/RecoveryReason;
 	public static final field PROVIDER_MINIMUM Lcom/mojentic/llm/recovery/RecoveryReason;
+	public static final field PROVIDER_RESPONSE Lcom/mojentic/llm/recovery/RecoveryReason;
 	public static final field TRANSPORT Lcom/mojentic/llm/recovery/RecoveryReason;
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lcom/mojentic/llm/recovery/RecoveryReason;
