@@ -111,8 +111,8 @@ Do not serialize explicit inspection results into ordinary application logs.
 
 Default JVM/Android recovery clients disable OkHttp connection retries and all
 redirects. Caller-supplied engines own their internal retry/redirect settings and
-must meet the same contract. Native transport conformance is pending Apple
-controller validation; see [RECOVERY-CONFORMANCE.md](../../RECOVERY-CONFORMANCE.md).
+must meet the same contract; see
+[RECOVERY-CONFORMANCE.md](../../RECOVERY-CONFORMANCE.md).
 The legacy oMLX timeout still applies outside the dedicated recovery client.
 No provider ownership, termination or idempotency facility is claimed by this slice.
 
@@ -173,7 +173,7 @@ content or reasoning byte counts. A capture hook that fails before delivery
 retains observed progress and its original private cause, with zero delivered
 progress. Completed-tool evidence survives later wire reads. Consult
 [the conformance packet](../../RECOVERY-CONFORMANCE.md#semantic-replay-correction)
-for scripted boundary assertions and pending Apple validation.
+for scripted boundary assertions.
 
 ## Completion adapter capabilities
 
@@ -215,14 +215,12 @@ as coroutine cancellation through both gateway and broker event paths.
 Validated metadata uses the shared transport for all three completion adapters.
 Provider codes in JSON, NDJSON and SSE error objects are projected conservatively;
 missing, ambiguous or unknown values remain absent. Realtime and embeddings are
-outside this completion metadata correction. Native execution remains pending
-Apple validation; no stronger Linux-only capability claim is made.
+outside this completion metadata correction.
 
 Validated metadata uses the shared transport for all three completion adapters.
 Provider codes in JSON, NDJSON and SSE error objects are projected conservatively;
 missing, ambiguous or unknown values remain absent. Realtime and embeddings are
-outside this completion metadata correction. Native execution remains pending
-Apple validation; no stronger Linux-only capability claim is made.
+outside this completion metadata correction.
 
 ## Anthropic migration
 
@@ -256,6 +254,6 @@ unchanged. Validated stream model, usage and finish reason are available private
 through `inspectCompletionEvidence()` on failure; missing telemetry stays absent.
 No new progress/metrics stream events are invented for Anthropic.
 
-Linux production-transport scripts establish JVM behavior. Apple runtime and
-Native transport validation remain pending; injected engines must independently
-disable retries and redirects. Remote inference termination remains unknown.
+Linux production-transport scripts establish JVM behavior. Injected engines
+must independently disable retries and redirects. Remote inference termination
+remains unknown.

@@ -2,7 +2,7 @@
 
 Mojentic is a multi-layered framework that aims to provide a simple and flexible way to perform low-level operations with LLMs, apply simple agents to intermediate tasks, or assemble teams of agents to solve complex problems.
 
-The Kotlin port is a Kotlin Multiplatform library targeting JVM, Android, and iOS. It is API-aligned with the Python reference implementation — see [`PARITY.md`](https://github.com/svetzal/mojentic-unify/blob/main/PARITY.md) for the live status across all supported languages.
+The Kotlin port is a Kotlin Multiplatform library targeting JVM and Android. It is API-aligned with the Python reference implementation — see [`PARITY.md`](https://github.com/svetzal/mojentic-unify/blob/main/PARITY.md) for the live status across all supported languages.
 
 ## Design goals
 
@@ -51,7 +51,7 @@ Depend only on the gateway modules you need — `mojentic-core` is a transitive 
 
 ## Quality gates
 
-`./gradlew ktlintCheck detekt build allTests apiCheck` is the canonical "did I break anything" command. CI runs the same on every commit across JVM, Android-host, and iOS-simulator targets.
+`./gradlew ktlintCheck detekt build allTests apiCheck` is the canonical "did I break anything" command. CI runs the same on every commit across JVM and Android-host targets.
 
 ## Status
 

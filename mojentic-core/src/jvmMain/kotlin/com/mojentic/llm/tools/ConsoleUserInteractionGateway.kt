@@ -4,7 +4,7 @@ package com.mojentic.llm.tools
  * [UserInteractionGateway] backed by the host console (stdin / stdout).
  *
  * JVM-only — `readlnOrNull()` is multiplatform but stdin / stdout are
- * meaningful on JVM/Android-host CLI runs. iOS / Native consumers
+ * meaningful on JVM/Android-host CLI runs. Android app consumers
  * inject their own platform-appropriate gateway.
  *
  * The implementation is intentionally trivial: print on `tell`, prompt

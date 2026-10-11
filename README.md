@@ -2,11 +2,11 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Kotlin 2.3+](https://img.shields.io/badge/Kotlin-2.3%2B-purple)](https://kotlinlang.org)
-[![Platforms](https://img.shields.io/badge/platforms-JVM%20%7C%20Android%20%7C%20iOS-blue)](settings.gradle.kts)
+[![Platforms](https://img.shields.io/badge/platforms-JVM%20%7C%20Android-blue)](settings.gradle.kts)
 
 A modern LLM integration framework for Kotlin Multiplatform (KMP) targeting
-JVM, Android, and iOS — with the same library, same API, and same semantics
-on every platform.
+JVM servers, JVM desktop applications, and Android — with the same library,
+same API, and same semantics on both targets.
 
 Mojentic provides a clean abstraction over multiple LLM providers with tool
 support, structured output, streaming, an event-driven agent system, and
@@ -45,7 +45,6 @@ realtime voice — all built natively on Kotlin coroutines and `Flow`.
   Gradle daemon
 - **Android**: `compileSdk` 37 or later (Ktor 3.6 brings OkHttp 5.5, which
   requires it), minimum API 24 (Android 7.0). The build uses AGP 9.4.
-- **iOS**: minimum deployment target iOS 14
 - **Gradle**: 9.8+ (managed via the wrapper)
 
 ## Building Locally
@@ -77,9 +76,6 @@ dependencies {
     // implementation("com.vetzal.mojentic:mojentic-openai:<version>")
 }
 ```
-
-For iOS consumption via Swift Package Manager, an XCFramework + `Package.swift`
-manifest will be published alongside each tagged release.
 
 ## Documentation
 

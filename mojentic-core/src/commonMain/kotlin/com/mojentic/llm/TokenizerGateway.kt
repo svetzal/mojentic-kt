@@ -6,7 +6,7 @@ package com.mojentic.llm
  * Tokenization is provider- and model-specific and there is no single
  * cross-platform Kotlin library that covers every encoding. The gateway
  * pattern lets callers supply whichever implementation suits their target:
- * the OpenAI port ships a JVM-only jtokkit-backed implementation; Kotlin/Native
+ * the OpenAI port ships a JVM-only jtokkit-backed implementation; Android
  * consumers can plug in their own or skip token counting entirely.
  *
  * Implementations must be safe to call from any coroutine.

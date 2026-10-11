@@ -162,9 +162,6 @@ val buildToolSecurityFloors: List<SecurityFloor> = listOf(
     SecurityFloor(listOf("dokka"), "com.fasterxml.jackson", "2.18.11"),
     // CVE-2026-84939: fixed in 2.3.35 (Dokka 2.2.0 brings 2.3.32).
     SecurityFloor(listOf("dokka"), "org.freemarker", "2.3.35"),
-    // CVE-2026-39883 names OpenTelemetry-Go 1.15.0 to 1.42.0; the Java API
-    // 1.41.0 matches the same CPE. Kotlin's Swift-export tooling brings 1.41.0.
-    SecurityFloor(listOf("swiftExport"), "io.opentelemetry", "1.66.0"),
     // CVE-2026-53914 CPE match, fixed in Kotlin 2.4.20: Dokka's generator
     // runtime resolves kotlin-stdlib and kotlin-reflect 2.0.21 and the 1.8.20
     // stdlib-jdk7/jdk8 shims. The standard library is backward compatible.

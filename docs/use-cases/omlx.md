@@ -48,8 +48,7 @@ environment variable, then from the default.
 - Do not put `/v1` in the host. The gateway adds `/v1` to every path.
 - With an API key, each request has the header `Authorization: Bearer <key>`.
   Without a key, or with a blank key, requests have no authorization header.
-- The gateway reads environment variables on the JVM only. On Android and
-  iOS, give explicit values.
+- The gateway reads environment variables on the JVM only. On Android, give explicit values.
 - One timeout applies to every request, including a model load. It limits the
   connection and each wait for data. Local models are slow: a 16384-token
   reply at 16 tokens a second takes 17 minutes. Thus the default is longer

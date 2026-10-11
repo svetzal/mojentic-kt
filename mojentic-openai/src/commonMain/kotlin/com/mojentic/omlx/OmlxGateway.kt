@@ -91,7 +91,7 @@ private const val RESPONSE_FORMAT_WARNING = "response_format_warning"
  *
  * Each setting resolves as: the constructor argument, then the environment
  * variable, then the default. Environment variables are read on the JVM only.
- * On Android and iOS, pass explicit values.
+ * On Android, pass explicit values.
  *
  * | Setting | Argument | Environment | Default |
  * |---|---|---|---|

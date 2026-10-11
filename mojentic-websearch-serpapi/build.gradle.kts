@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
-
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.kotlin.serialization)
@@ -59,14 +57,6 @@ kotlin {
         withHostTest {}
     }
 
-    val xcf = XCFramework("MojenticWebSearchSerpApi")
-    listOf(iosX64(), iosArm64(), iosSimulatorArm64()).forEach { target ->
-        target.binaries.framework {
-            baseName = "MojenticWebSearchSerpApi"
-            xcf.add(this)
-        }
-    }
-
     sourceSets {
         commonMain {
             dependencies {
@@ -101,11 +91,6 @@ kotlin {
         androidMain {
             dependencies {
                 implementation(libs.ktor.client.okhttp)
-            }
-        }
-        iosMain {
-            dependencies {
-                implementation(libs.ktor.client.darwin)
             }
         }
     }

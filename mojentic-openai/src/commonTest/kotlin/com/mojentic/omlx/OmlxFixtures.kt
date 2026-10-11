@@ -12,7 +12,7 @@ package com.mojentic.omlx
  * Silicon) serving `Qwen3.8-27B-MLX-8bit`, and are unedited. Response headers
  * were not captured, so tests that need one supply it. The fixtures are
  * Kotlin strings rather than resource files because `commonTest` has no
- * resource loading that works on every target, including iOS.
+ * resource loading that works on JVM and Android.
  *
  * Each constant is named after its source file. Every stream starts with a
  * keep-alive frame whose `model` is `keepalive`.

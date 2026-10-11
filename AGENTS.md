@@ -66,8 +66,8 @@ for the cross-port feature matrix.
   android { ... } }` block — there is no separate `android { ... }`
   extension block at module scope.
 - **Targets**: `jvm()`, `android { ... }` inside the kotlin extension
-  (minSdk 24, compileSdk 37), `iosX64()`, `iosArm64()`, `iosSimulatorArm64()`.
-  macOS / Linux / JS / wasmJs are post-MVP and opportunistic.
+  (minSdk 24, compileSdk 37). Kotlin serves JVM servers, JVM desktop
+  applications, and Android; native Apple apps use `mojentic-sw`.
 
 ## Mandatory Quality Gate
 
@@ -85,12 +85,7 @@ Foundry's Kotlin audit runs it separately.
 
 - The Android SDK comes from `ANDROID_HOME` or from a gitignored
   `local.properties` with `sdk.dir=...`.
-- `gradle.properties` gives the daemon an 8 GB heap, because the iOS
-  framework link needs it.
-- On Apple Silicon, Gradle skips `iosX64Test` with a warning. On Linux, every
-  iOS task is disabled with a warning, and the macOS CI job covers iOS. Do
-  not set `kotlin.native.ignoreDisabledTargets=true`: the warning is the only
-  sign that a Mac without Xcode has silently skipped iOS.
+- `gradle.properties` gives the daemon a 2 GB heap for JVM and Android builds.
 
 | Concern              | Tool                                  | Command                                |
 |----------------------|---------------------------------------|----------------------------------------|
@@ -175,8 +170,8 @@ Inherit from the monorepo `AGENTS.md`. Kotlin-specific applications:
 - Stateful coordinators (broker, tracer event store, working memory,
   dispatcher, router, realtime session) are plain classes that protect mutable
   state with `Mutex.withLock { … }` or `MutableStateFlow` / `MutableSharedFlow`
-  where reactive semantics fit. We do **not** use Java `synchronized` (won't
-  work on Native) or deprecated coroutine actor builders.
+  where reactive semantics fit. We do **not** use Java `synchronized` (use
+  coroutine-aware locking) or deprecated coroutine actor builders.
 
 ### Compose over inherit
 

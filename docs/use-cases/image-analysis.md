@@ -61,7 +61,7 @@ Two-part user message: text prompt + base64-encoded image. The gateway wraps the
 val imageBytes = FileSystem.SYSTEM.read("./sample.jpg".toPath()) { readByteArray() }
 ```
 
-`okio` is Mojentic's preferred I/O abstraction — works on JVM, Android, and iOS without a special case. Mojentic does not expose it to your code, so add `com.squareup.okio:okio` to your own dependencies to use it. Anywhere you can produce a `ByteArray`, you can base64-encode it with `kotlin.io.encoding.Base64` and produce an `ImageContent`.
+`okio` is Mojentic's preferred I/O abstraction — works on JVM and Android without a special case. Mojentic does not expose it to your code, so add `com.squareup.okio:okio` to your own dependencies to use it. Anywhere you can produce a `ByteArray`, you can base64-encode it with `kotlin.io.encoding.Base64` and produce an `ImageContent`.
 
 For images coming from HTTP, decode the response body into a `ByteArray` directly. For Android camera input, route the bitmap through `ByteArrayOutputStream`.
 

@@ -10,6 +10,12 @@ patch versions move independently.
 
 ## [Unreleased]
 
+### Removed
+
+- iOS targets and XCFramework distribution. This is a breaking change for
+  consumers of the 2.1.0 iOS klibs. Native Apple apps should use `mojentic-sw`;
+  Kotlin continues to support JVM and Android.
+
 ### Changed
 
 - Kotlin 2.4.21 (patch update from 2.4.20).

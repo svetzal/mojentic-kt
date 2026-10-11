@@ -22,7 +22,7 @@ import kotlinx.io.IOException
 
 /**
  * Dedicated completion client. Default JVM/Android engines disable retries and redirects.
- * Supplied engines require caller configuration; Native conformance awaits Apple validation.
+ * Supplied engines require caller retry and redirect configuration.
  * Caller must close the client.
  */
 public expect fun recoveryHttpClient(engine: HttpClientEngine? = null): HttpClient

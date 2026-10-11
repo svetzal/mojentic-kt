@@ -6,10 +6,8 @@ Mojentic-kt is the Kotlin Multiplatform (KMP) implementation of the Mojentic
 LLM integration framework. It provides a Kotlin-idiomatic, coroutine-first
 abstraction over multiple LLM providers (Ollama, OpenAI, Anthropic) with tool
 calling, structured output, streaming, an event-driven agent system, and
-realtime voice support. It exists to give Kotlin developers — particularly
-cross-platform mobile teams shipping the *same* product to Android and iOS,
-and Kotlin server-side / desktop teams — a single production-ready LLM
-library that runs identically across all targets.
+realtime voice support. It exists to give Android app teams and JVM server-side
+/ desktop teams a production-ready LLM library that serves the Kotlin ecosystem.
 
 ## Goals
 
@@ -30,15 +28,14 @@ library that runs identically across all targets.
 - Ship as a first-class Kotlin Multiplatform library:
   - **JVM / Android** → Maven Central (`com.vetzal.mojentic:mojentic-core:<v>`,
     plus per-gateway modules).
-  - **iOS** → XCFramework + Swift Package Manager (preferred) and CocoaPods
-    (fallback).
 - Include comprehensive Dokka documentation, handwritten use-case guides, and
   runnable examples so the library is learnable without external guidance.
 
 ## Non-Goals
 
 - Being a standalone AI application or end-user product — this is a library.
-- Android-only or JVM-only. iOS support is a requirement, not an afterthought.
+- Supporting platforms outside JVM and Android. Native Apple apps use
+  `mojentic-sw`.
 - Compose / Android UI helpers. Mojentic is a library; UI concerns stay in
   consumer apps.
 - Bundling provider SDKs. We talk to provider HTTP APIs directly through
@@ -49,11 +46,9 @@ library that runs identically across all targets.
 ## Target Users
 
 Kotlin developers building:
-- Cross-platform mobile apps (KMP) that need LLM features identical on
-  Android and iOS.
-- Android-only apps wanting an idiomatic Kotlin LLM library.
+- Android apps wanting an idiomatic Kotlin LLM library.
 - Kotlin server-side services (Ktor, Spring Boot, Micronaut).
-- Desktop apps (Compose Multiplatform, JavaFX).
+- JVM desktop apps (Compose Desktop, JavaFX).
 
 Especially developers who already use Mojentic on another stack and want
 consistent semantics.

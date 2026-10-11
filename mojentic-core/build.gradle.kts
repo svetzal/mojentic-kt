@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
-
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.kotlin.serialization)
@@ -59,14 +57,6 @@ kotlin {
         withHostTest {}
     }
 
-    val xcf = XCFramework("MojenticCore")
-    listOf(iosX64(), iosArm64(), iosSimulatorArm64()).forEach { target ->
-        target.binaries.framework {
-            baseName = "MojenticCore"
-            xcf.add(this)
-        }
-    }
-
     sourceSets {
         commonMain {
             dependencies {
@@ -88,7 +78,6 @@ kotlin {
         }
         jvmMain { dependencies { implementation(libs.ktor.client.okhttp) } }
         androidMain { dependencies { implementation(libs.ktor.client.okhttp) } }
-        iosMain { dependencies { implementation(libs.ktor.client.darwin) } }
         jvmTest {
             dependencies {
                 implementation(libs.slf4j.simple)
@@ -111,7 +100,7 @@ detekt {
 }
 
 // The KMP detekt plugin (1.23.x) creates per-target detekt tasks (detektJvmMain,
-// detektIosArm64Main, …) but the umbrella `detekt` task doesn't depend on them
+// detektAndroidMain, …) but the umbrella `detekt` task doesn't depend on them
 // out of the box — it reports NO-SOURCE. Wire them up so `./gradlew detekt`
 // actually scans every source set.
 tasks.named("detekt").configure {
