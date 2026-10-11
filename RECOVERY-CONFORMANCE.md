@@ -1,3 +1,98 @@
+# Preserved ordinary broker/session correction — controller reconciliation
+
+The preserved correction is `fb69c7ae17bde5b4675f9e876867f9e3ad2cde91`;
+its parent is controller trunk `6379173f8a6eceeb48bd22883bf0f764546937cf`.
+The controller synchronization receipt is
+[/home/svetzal/.foundry/operations/mojentic-port-alignment-20261010/status-recovery/receipt.json](/home/svetzal/.foundry/operations/mojentic-port-alignment-20261010/status-recovery/receipt.json).
+Its Kotlin entry records successful canonical-clone fetch and pull --rebase,
+clean status, and matching HEAD, origin/main and remote main. This worker checked
+the receipt's log SHA-256 values and retained copies; it performed no ref mutations.
+Foundry owns landing. The release coordinator's AGENTS.md remains unchanged.
+
+Fresh durable evidence for this reconciliation is retained outside the disposable
+worktree at
+[/home/svetzal/.foundry/tool-logs/mojentic-kt-c8-fb69c7-evidence](/home/svetzal/.foundry/tool-logs/mojentic-kt-c8-fb69c7-evidence).
+The prior `.foundry` artifacts were absent here. Their historical results below
+are not current validation evidence; historical failures and missing-artifact
+disclosures remain preserved.
+
+Before documentation or the full suite, the real loopback boundary probe
+substituted `broker.stream(...).collect {}` for the ordinary broker call. It
+failed with `expected false, actual true` at the request assertion (exit 1).
+Restoring the preserved `LlmBroker.complete` and `ChatSession.send` cases passed
+(exit 0). The rejecting source snapshot, XML and complete capture logs are
+retained, including the Kotlin daemon read-only failure and successful compiler
+fallback. The corrected run uses in-process compilation. See
+[.foundry/proof.json](.foundry/proof.json) and the durable `proof.json`.
+The 12 cases execute production transports for Ollama, oMLX and OpenAI with
+permanent 401 or exhausted 503/429 responses through both public callers.
+Assertions cover exact submitted messages and controls, reject streaming,
+compare immutable retry bytes, preserve provider codes/request IDs/statuses,
+original cause identity/private evidence, and ordered attempt histories. They
+verify single-send permanent failure without admission or queued sentinel
+consumption, zero tool executions and exact prior-session rollback.
+The tool assertion checks the submitted function name, rather than the entire
+descriptor. The preserved assertions and production implementation were not rebuilt.
+
+`unchanged-inputs.json` verifies 103 production/protected files against both
+revisions, including dependencies, runtime pins, versions, APIs, AGENTS.md and
+active suppressions. Suppression snapshots exist only in durable
+`suppression-provenance/`, with source revision and hashes; none were copied into
+worktree evidence. Audit scope and severity thresholds remain unchanged.
+
+The six configured gates passed together (exit 0; 544 tasks: 328 executed,
+209 from cache, 7 up-to-date). Retained XML has 743 test executions in 127 suites
+across target result directories, with zero failures/errors/skips. This is not
+a count of unique tests. Complete warnings and cached outcomes remain in
+`quality-gates.log` and `test-results.json`.
+
+The full configured `dependencyCheckAggregate --no-parallel` passed (exit 0):
+337 entries, zero reported findings and 68 existing suppressed findings.
+The same full-scope audit with suppression filtering disabled via a retained
+external diagnostic init script failed (exit 1): 68 findings in 38 artifacts,
+including 46 findings at CVSS >= 7.0 in 35 artifacts. Blocking IDs are
+CVE-2026-53914 (22), CVE-2026-56740 (10), CVE-2026-56741 (10), CVE-2024-7254 (1),
+CVE-2022-3171 (1), CVE-2012-2055 (1) and CVE-2008-0986 (1).
+These are current scanner findings, not newly verified advisory applicability
+or accepted advisories. No suppression, dependency or policy change was made.
+The unfiltered audit failure blocks a claim that all applicable audits pass;
+this correction is not security-clean and landing requires controller assessment.
+Both JSON/HTML reports and complete capture logs are retained in separate
+`configured-audit/` and `unfiltered-audit/` directories. OSS Index credentials
+and the .NET Assembly Analyzer runtime were unavailable. The checked NVD feed
+metadata timestamp was `2026-10-10T18:00:07-04:00`; the existing feed transport
+was retained without changing scope or the CVSS 7.0 threshold.
+
+`publishToMavenLocal` passed (exit 0), using the existing disposable local signing
+key and a fresh `/tmp/mojentic-kt-c8-m2` destination. Nothing was remotely
+published. Inspection passed as an inventory/coverage probe (exit 0): 36 POMs,
+36 Gradle module files and 54 external coordinates; 42 exact audit matches and
+12 same-version KMP family matches, with no unmatched coordinates. Group/version
+remain `com.vetzal.mojentic` / `2.1.0`. The unfiltered report matches the published
+`kotlin-logging-android:8.0.4` coordinate to CVE-2012-2055 and therefore also flags
+the Kotlin logging family during conservative family comparison. This is a
+scanner match requiring assessment, not an independent applicability conclusion;
+consumer security is not established. Exact Native binary coverage remains
+pending. Metadata copies, hashes and matches are retained in
+`consumer-metadata/` and `consumer-inspection-summary.json`.
+An inspection accidentally started before publication completed found no
+metadata and exited 1; its log is retained as `premature-consumer-inspection.log`
+and is excluded from passing consumer evidence.
+
+Independent focused review is retained as `independent-review.md`. It found no
+blocking source defect and verified receipt hashes, unchanged inputs and the
+rejecting/passing boundary evidence. The configured gates passed, but the
+unfiltered audit findings still block an all-gates landing claim. Current
+command results are in [.foundry/validation.json](.foundry/validation.json),
+with durable copies and source hashes in `source-revisions.json` and `hashes.json`.
+Foundry must assess the audit blocker before controller landing.
+Apple validation remains pending; Linux cannot establish Apple target coverage.
+No release, live inference or remote publication was performed.
+
+---
+
+# Historical preserved fb69c7ae report (not current-run evidence)
+
 # Ordinary broker/session metadata proof correction
 
 This correction starts at Kotlin `6379173f8a6eceeb48bd22883bf0f764546937cf`,
