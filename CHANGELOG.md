@@ -16,9 +16,17 @@ patch versions move independently.
 
 - Align Kotlin standard-library, JDK shim and reflection dependencies on ktlint,
   Detekt and Android lint tool classpaths with Kotlin 2.4.21. Compiler upgrades
-  failed tool compatibility checks; embedded Android dependencies and remaining
-  unfiltered audit findings still block security acceptance. See
-  `RECOVERY-CONFORMANCE.md` for upstream fixes and required owner decisions.
+  failed tool compatibility checks. Under Stacey's October 11 audit decision,
+  the unchanged configured audit is authoritative; unfiltered output is
+  informational, with historical failures preserved in `RECOVERY-CONFORMANCE.md`.
+
+### Fixed
+
+- Preserve the original typed body-read cause when a truncated HTTP response
+  channel closes before the next read. Permanent numeric statuses retain private
+  partial bytes and headers without admission, resend, semantic delivery or tool
+  execution; failed sessions roll back. Deterministic real HTTP regression tests
+  retain cause identity across private inspection, history and events.
 
 ### Added
 

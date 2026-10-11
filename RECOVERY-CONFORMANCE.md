@@ -1,3 +1,98 @@
+# October 11 correction — current controller acceptance
+
+The candidate starts at preserved cycle-11
+`a24961de2f1e9b9d7783920d493f6a56c7596c9e`. Its runtime security floors,
+active suppressions, audit scope and threshold, target exclusions and disabled
+transport retries are retained. Foundry owns landing directly on main; this
+worker performs no fetch, rebase, commit, push, tag or other ref mutation.
+Security preparation in the preserved commit and this focused recovery
+correction remain separately scoped.
+
+Stacey's October 11 audit decision makes the unchanged configured
+`dependencyCheckAggregate --no-parallel` authoritative. Unfiltered diagnostic
+output is informational. Historical failures and component-fix evidence below
+remain preserved; the older unfiltered landing requirements describe historical
+assessment and are superseded by this decision. No suppression or dependency
+policy is changed or newly authorized here.
+
+The retained Anthropic and oMLX failures are production cause loss, not weakened
+fixture expectations: Ktor's `readAvailable` can return negative EOF when a
+channel is already closed for reading, without throwing its failure. The shared
+reader then generated `IllegalStateException("HTTP failure")`, losing the
+truncation `IOException`. The correction checks cancellation first and throws
+the channel's failure before accepting EOF. Existing clean EOF and numeric HTTP
+classification remain intact.
+
+Before documentation or full gates, the public Anthropic socket matrix rejected
+the original reader (exit 1, `IOException` expected / `IllegalStateException`
+actual) and passed with the correction (exit 0). A test-only engine observer
+inspects the actual post-transformation response channel without replacing
+bytes, failures or transport execution. Capture releases the scripted socket
+only after every partial UTF-8 byte has been read, then waits for failed closure
+before the next boundary read. This establishes the failing timing without
+fixed sleeps. Original type and private cause-identity assertions remain intact.
+Ktor may copy its closure exception on separate accessor calls; the identity
+contract tested is the original boundary failure preserved in inspection,
+boundary cause, immutable history and lifecycle events.
+
+The permanent matrix covers ordinary, structured, streaming and supported event
+APIs for all four adapters and applicable broker/session callers. It asserts
+exact immutable request bytes, numeric 400/401/403, partial UTF-8 bytes/headers,
+original typed private cause identity, ordered terminal events, one request,
+zero semantic delivery, zero admission/resend/tool execution and rollback.
+Complete capture logs, rejecting/corrected source and XML, exact revisions,
+hashes and review are retained outside disposable worktrees at
+[/home/svetzal/.foundry/tool-logs/mojentic-kt-c12-recovery](/home/svetzal/.foundry/tool-logs/mojentic-kt-c12-recovery).
+Cycle-11 failing full-suite XML and logs remain in the separate cycle-11 archive.
+
+Migration and capability limits remain documented in
+[completion recovery](docs/use-cases/completion-recovery.md). Supported encoded
+message/tool history is frozen across attempts; no provider-native signed
+thinking-history representation or broader native-history parity is introduced.
+Independent whole-mission review compares the actual public assertions with both
+normative files and exact Rust `4ca1ed279c02eab37827a1ed07c30e961155ecf3`.
+
+Apple controller validation is explicitly pending: run the final candidate's
+macOS/iOS CI, including Native runtime cancellation, streaming/backpressure and
+framework linking, before asserting Apple conformance. Linux-disabled tasks and
+Native compilation/publication do not certify these capabilities.
+
+All six required gates passed together on the corrected candidate (exit 0).
+Fresh JVM/Android results contain 765 test executions in 132 suites with zero
+failures, errors or skips; these are execution counts, not unique tests.
+The deterministic permanent matrices include 138 provider/status/caller cases.
+
+The unchanged configured audit passed (exit 0): 328 dependency entries, zero
+active findings and 55 existing suppressed findings. Two earlier attempts
+failed because NVD's gzip endpoint returned a truncated feed. Its ZIP copy's
+complete JSON matched the origin metadata size and SHA-256. The supported local
+feed transport used verified modified and all annual 2002–2026 JSON feeds,
+repacked as valid gzip; no CVE filtering, skipped scope or policy change was
+introduced. The incomplete mirror setup failure is retained too. Existing OSS
+Index credential and .NET runtime limitations remain visible in complete logs.
+No clean unfiltered-security claim is made.
+
+Local `publishToMavenLocal` and consumer metadata inspection passed (exit 0).
+All 36 POMs and 36 Gradle module files were read, archived and hashed; their
+consumer dependencies match the preserved cycle-11 metadata. Group/version
+remain `com.vetzal.mojentic` / `2.1.0`, with no audited build-tool/compiler/shaded
+dependency published. Nothing was remotely published.
+
+Read-only checks verified historical controller receipt hashes and a clean
+canonical clone with matching HEAD, origin/main and remote main
+`fa73ac12a89a0a20140943c18cec4bfdf8c57cf9`. The worker retains cycle-11 HEAD;
+controller reconciliation and final-candidate Apple validation remain pending.
+Complete command results and exact source/report hashes are recorded in the
+durable validation manifest.
+
+---
+
+# Historical cycle-8 through cycle-11 reports
+
+The following reports preserve earlier observations and decisions. Their
+validation claims, unresolved blockers and disposable scratch artifact names
+are historical, not current candidate acceptance or committed artifact links.
+
 # Preserved ordinary broker/session correction — controller reconciliation
 
 The preserved correction is `fb69c7ae17bde5b4675f9e876867f9e3ad2cde91`;
@@ -23,7 +118,7 @@ Restoring the preserved `LlmBroker.complete` and `ChatSession.send` cases passed
 (exit 0). The rejecting source snapshot, XML and complete capture logs are
 retained, including the Kotlin daemon read-only failure and successful compiler
 fallback. The corrected run uses in-process compilation. See
-[.foundry/proof.json](.foundry/proof.json) and the durable `proof.json`.
+`historical scratch: proof.json` and the durable `proof.json`.
 The 12 cases execute production transports for Ollama, oMLX and OpenAI with
 permanent 401 or exhausted 503/429 responses through both public callers.
 Assertions cover exact submitted messages and controls, reject streaming,
@@ -83,7 +178,7 @@ Independent focused review is retained as `independent-review.md`. It found no
 blocking source defect and verified receipt hashes, unchanged inputs and the
 rejecting/passing boundary evidence. The configured gates passed, but the
 unfiltered audit findings still block an all-gates landing claim. Current
-command results are in [.foundry/validation.json](.foundry/validation.json),
+command results are in `historical scratch: validation.json`,
 with durable copies and source hashes in `source-revisions.json` and `hashes.json`.
 Foundry must assess the audit blocker before controller landing.
 Apple validation remains pending; Linux cannot establish Apple target coverage.
@@ -114,7 +209,7 @@ public-boundary probe for Ollama, oMLX and OpenAI. OpenAI-compatible encoders
 omit the false default; assertions accept omission or explicit false and reject
 true. An initial read-only Gradle cache failure and an intermediate assertion
 failure requiring an explicit false field are retained separately, not counted
-as the corrected passing evidence. See [.foundry/proof.json](.foundry/proof.json)
+as the corrected passing evidence. See `historical scratch: proof.json`
 and its source snapshots, test XML and complete capture logs.
 
 `ordinaryBrokerAndSessionPreserveHttpEvidenceAndRollback` replaces the mislabeled
@@ -155,12 +250,12 @@ their hashes and 54 external coordinates; group/version remain
 `com.vetzal.mojentic` / `2.1.0`. Nothing was remotely published.
 
 Current command outcomes and complete logs are in
-[.foundry/validation.json](.foundry/validation.json); exact source revisions and
-hashes are in [.foundry/source-revisions.json](.foundry/source-revisions.json).
+`historical scratch: validation.json`; exact source revisions and
+hashes are in `historical scratch: source-revisions.json`.
 Linux cannot execute iOS simulator/device tests or Apple framework linking;
 Apple coverage is unexecuted. Consumer security is not established by Linux
 metadata publication or an audit alone. Findings, existing suppressions and
-service limitations are retained in [.foundry/audit-summary.json](.foundry/audit-summary.json).
+service limitations are retained in `historical scratch: audit-summary.json`.
 Earlier absent artifacts are not used to support these current results.
 
 ---
@@ -176,7 +271,7 @@ The supplement is present in the controller receipt's Kotlin decision output;
 no standalone supplement file was supplied. Package versions and release guidance
 are preserved. No sibling or harness files are edited.
 
-The current behavioral proof is [.foundry/proof.json](.foundry/proof.json).
+The current behavioral proof is `historical scratch: proof.json`.
 `OpenAIRecoveryProofTest.escapedSemanticOutputInterruptsAtRealOpenAIBoundary`
 rejected unchanged OpenAI source (exit 1): escaped UTF-8 content followed by EOF
 completed successfully instead of throwing. The corrected public gateway probe
@@ -498,7 +593,7 @@ push or ref modification was performed.
 ## Semantic replay correction
 
 The current behavioral proof is
-[.foundry/proof.json](.foundry/proof.json). With unchanged source,
+`historical scratch: proof.json`. With unchanged source,
 `escapedSemanticKeysPreventReplayAtHttpBoundary` failed because escaped
 content was delivered and EOF triggered a second request that produced
 `ok-é` and successful completion. The same probe passed after correction
@@ -572,12 +667,12 @@ No Git finalization or remote publication was performed.
 This slice starts at delivered Kotlin
 `b8139728d77cabd02f3b58e99252e4381d308236`. It implements the public error/privacy
 contract and the task-supplied October 10 supplement; provenance is recorded in
-[.foundry/OCTOBER-10-SUPPLEMENT.md](.foundry/OCTOBER-10-SUPPLEMENT.md).
+`historical scratch: OCTOBER-10-SUPPLEMENT.md`.
 The controller receipt's Kotlin decision output contains the supplement;
 a standalone external supplement file was not supplied. Git finalization belongs to Foundry;
 no fetch, rebase, commit, push, tag, release, dependency or version mutation occurred.
 
-The early public HTTP proof is [.foundry/proof.json](.foundry/proof.json): the
+The early public HTTP proof is `historical scratch: proof.json`: the
 unchanged transport failed with expected `server_error`, actual null. After the
 source correction the same production OpenAI boundary retained that exact code
 and `req_123e4567-e89b-12d3-a456-426614174000`, with one request despite a queued

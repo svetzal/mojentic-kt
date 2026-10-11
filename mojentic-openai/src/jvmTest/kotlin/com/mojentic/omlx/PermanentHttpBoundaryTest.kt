@@ -17,6 +17,7 @@ import com.mojentic.llm.recovery.RecoveryReason
 import com.mojentic.llm.recovery.RecoverySemanticProgress
 import com.mojentic.llm.recovery.RecoveryStage
 import com.mojentic.llm.recovery.RecoveryWire
+import com.mojentic.llm.recovery.recoveryHttpClient
 import com.mojentic.llm.tools.LlmTool
 import com.mojentic.llm.tools.ToolDescriptor
 import com.mojentic.omlx.RecoveryTestFixtures.Provider
@@ -115,6 +116,7 @@ class PermanentHttpBoundaryTest {
         status: Int,
         release: CountDownLatch,
         expected: String,
+        engine: TruncatedResponseEngine,
     ) {
         val events = mutableListOf<RecoveryEvent>()
         val wires = mutableListOf<RecoveryWire>()
@@ -140,7 +142,10 @@ class PermanentHttpBoundaryTest {
             observer = { events += it },
             capture = {
                 wires += it
-                if (it.inspectResponse()?.size == bytes.size) release.countDown()
+                if (it.inspectResponse()?.size == bytes.size && !it.complete) {
+                    release.countDown()
+                    engine.awaitFailure()
+                }
             },
         )
         val failure = assertFailsWith<RecoveryException> {
@@ -242,9 +247,11 @@ class PermanentHttpBoundaryTest {
                             ScriptedReply(200, "distinguishable-unauthorized-resend"),
                         ),
                     ).use { server ->
-                        provider.gateway(server.url).use { gateway ->
+                        val client = recoveryHttpClient()
+                        val engine = TruncatedResponseEngine(client.engine)
+                        provider.gateway(server.url, engine = engine).use { gateway ->
                             try {
-                                check(gateway.value, server, caller, status, release, expected(provider, caller))
+                                check(gateway.value, server, caller, status, release, expected(provider, caller), engine)
                                 val path = when (provider) {
                                     Provider.OLLAMA -> "/api/chat"
                                     Provider.OMLX -> "/v1/chat/completions"
@@ -253,6 +260,7 @@ class PermanentHttpBoundaryTest {
                                 assertEquals(listOf("POST $path HTTP/1.1"), server.requestLines)
                             } finally {
                                 release.countDown()
+                                client.close()
                             }
                         }
                     }

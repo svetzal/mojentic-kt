@@ -67,14 +67,18 @@ internal object RecoveryTestFixtures {
         OPENAI,
         ;
 
-        fun gateway(url: String, timeout: Duration? = null): OwnedGateway = if (this == OLLAMA) {
-            val gateway = OllamaGateway(url)
+        fun gateway(
+            url: String,
+            timeout: Duration? = null,
+            engine: io.ktor.client.engine.HttpClientEngine? = null,
+        ): OwnedGateway = if (this == OLLAMA) {
+            val gateway = OllamaGateway(url, engine = engine)
             OwnedGateway(gateway, gateway::close)
         } else if (this == OPENAI) {
-            val gateway = OpenAIGateway("credential-secret", url)
+            val gateway = OpenAIGateway("credential-secret", url, engine = engine)
             OwnedGateway(gateway, gateway::close)
         } else {
-            val gateway = OmlxGateway(url, apiKey = "credential-secret", timeout = timeout)
+            val gateway = OmlxGateway(url, apiKey = "credential-secret", timeout = timeout, engine = engine)
             OwnedGateway(gateway, gateway::close)
         }
 

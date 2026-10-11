@@ -14,6 +14,7 @@ import com.mojentic.llm.recovery.RecoveryReason
 import com.mojentic.llm.recovery.RecoverySemanticProgress
 import com.mojentic.llm.recovery.RecoveryStage
 import com.mojentic.llm.recovery.RecoveryWire
+import com.mojentic.llm.recovery.recoveryHttpClient
 import com.mojentic.llm.tools.LlmTool
 import com.mojentic.llm.tools.ToolDescriptor
 import kotlinx.coroutines.runBlocking
@@ -88,6 +89,7 @@ class PermanentHttpBoundaryTest {
         status: Int,
         release: CountDownLatch,
         expected: String,
+        engine: TruncatedResponseEngine,
     ) {
         val events = mutableListOf<RecoveryEvent>()
         val wires = mutableListOf<RecoveryWire>()
@@ -113,7 +115,10 @@ class PermanentHttpBoundaryTest {
             observer = { events += it },
             capture = {
                 wires += it
-                if (it.inspectResponse()?.size == bytes.size) release.countDown()
+                if (it.inspectResponse()?.size == bytes.size && !it.complete) {
+                    release.countDown()
+                    engine.awaitFailure()
+                }
             },
         )
         val failure = assertFailsWith<RecoveryException> {
@@ -209,12 +214,15 @@ class PermanentHttpBoundaryTest {
                         ScriptedReply(200, "distinguishable-unauthorized-resend"),
                     ),
                 ).use { server ->
-                    val gateway = AnthropicGateway("key", server.url)
+                    val client = recoveryHttpClient()
+                    val engine = TruncatedResponseEngine(client.engine)
+                    val gateway = AnthropicGateway("key", server.url, engine = engine)
                     try {
-                        check(gateway, server, caller, status, release, expected(caller))
+                        check(gateway, server, caller, status, release, expected(caller), engine)
                     } finally {
                         release.countDown()
                         gateway.close()
+                        client.close()
                     }
                 }
             }

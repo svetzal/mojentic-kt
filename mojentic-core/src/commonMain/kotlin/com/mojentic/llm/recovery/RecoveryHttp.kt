@@ -243,7 +243,12 @@ public class RecoveryHttp(
         val buffer = ByteArray(BUFFER_SIZE)
         while (true) {
             val count = channel.readAvailable(buffer)
-            if (count < 0) break
+            if (count < 0) {
+                currentCoroutineContext().ensureActive()
+                // A channel closed before readAvailable can report EOF without throwing its failure.
+                channel.closedCause?.let { throw it }
+                break
+            }
             if (count > 0) {
                 evidence.bytes.addAll(buffer.copyOf(count).toList())
                 evidence.captureResponse(policy, identity, payload, complete = false)
