@@ -1,3 +1,11 @@
+# Supported targets (2026-10-11)
+
+Mojentic Kotlin supports the JVM and Android only. iOS targets were removed in
+`e4462c2`: each Mojentic port serves its own ecosystem, and native Apple apps use
+`mojentic-sw`. Recovery conformance is established on JVM and Android. Every
+statement below that Apple, macOS/iOS or Kotlin/Native validation is "pending"
+or "required" is historical and no longer applies.
+
 # October 11 correction — current controller acceptance
 
 The candidate starts at preserved cycle-11
@@ -52,10 +60,8 @@ thinking-history representation or broader native-history parity is introduced.
 Independent whole-mission review compares the actual public assertions with both
 normative files and exact Rust `4ca1ed279c02eab37827a1ed07c30e961155ecf3`.
 
-Apple controller validation is explicitly pending: run the final candidate's
-macOS/iOS CI, including Native runtime cancellation, streaming/backpressure and
-framework linking, before asserting Apple conformance. Linux-disabled tasks and
-Native compilation/publication do not certify these capabilities.
+Apple and Kotlin/Native validation no longer applies: the port has no iOS
+targets after `e4462c2`. Conformance is claimed for JVM and Android only.
 
 All six required gates passed together on the corrected candidate (exit 0).
 Fresh JVM/Android results contain 765 test executions in 132 suites with zero
@@ -81,7 +87,7 @@ dependency published. Nothing was remotely published.
 Read-only checks verified historical controller receipt hashes and a clean
 canonical clone with matching HEAD, origin/main and remote main
 `fa73ac12a89a0a20140943c18cec4bfdf8c57cf9`. The worker retains cycle-11 HEAD;
-controller reconciliation and final-candidate Apple validation remain pending.
+controller reconciliation was pending at the time of this record.
 Complete command results and exact source/report hashes are recorded in the
 durable validation manifest.
 
