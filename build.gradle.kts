@@ -160,6 +160,16 @@ val buildToolSecurityFloors: List<SecurityFloor> = listOf(
     // runtime resolves kotlin-stdlib and kotlin-reflect 2.0.21 and the 1.8.20
     // stdlib-jdk7/jdk8 shims. The standard library is backward compatible.
     SecurityFloor(listOf("dokka"), "org.jetbrains.kotlin", kotlinVersion),
+    // Keep the linters and Android lint on the project's patched Kotlin runtime.
+    // Their compiler/reflect artifacts are tool-owned and cannot be upgraded
+    // independently. CVE-2026-53914 is a KAPT cache issue, so lifting the stdlib
+    // does not repair the shaded compiler or clear every product-wide CPE match.
+    SecurityFloor(
+        listOf("detekt", "ktlint", "androidLint"),
+        "org.jetbrains.kotlin",
+        kotlinVersion,
+        onlyModules = setOf("kotlin-stdlib", "kotlin-stdlib-jdk7", "kotlin-stdlib-jdk8"),
+    ),
     // CVE-2026-53914, fixed in Kotlin 2.4.20: KGP's ABI-validation compat
     // classpath asks for the 2.4.0 build tools while every other Kotlin tool
     // classpath uses the project's Kotlin version. Lift it to match.
