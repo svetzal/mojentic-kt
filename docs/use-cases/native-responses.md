@@ -52,3 +52,5 @@ metadata.
 Gateways fill structured-output evidence through
 `LlmGateway.completeJsonResponse`. A custom gateway that does not override it
 reports no evidence for structured output.
+
+See [Native reasoning](native-reasoning.md) for explicit controls and opt-in assistant history.

@@ -12,7 +12,14 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 
-internal fun List<LlmMessage>.toOpenAIMessages(): List<OpenAIMessage> = flatMap { it.toOpenAIMessages() }
+internal fun List<LlmMessage>.toOpenAIMessages(includeReasoning: Boolean = false): List<OpenAIMessage> = flatMap { message ->
+    if (!includeReasoning && message.reasoningContent != null) {
+        throw com.mojentic.errors.LlmGatewayException("OpenAI does not support native reasoning history")
+    }
+    message.toOpenAIMessages().map { wire ->
+        if (includeReasoning && message.role == MessageRole.Assistant) wire.copy(reasoningContent = message.reasoningContent) else wire
+    }
+}
 
 internal fun LlmMessage.toOpenAIMessages(): List<OpenAIMessage> = when (role) {
     MessageRole.Tool -> {

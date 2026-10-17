@@ -300,9 +300,10 @@ public final class com/mojentic/llm/CompletionConfig {
 	public fun <init> ()V
 	public fun <init> (DIIILcom/mojentic/llm/ReasoningEffort;Ljava/lang/Integer;Lcom/mojentic/llm/ResponseFormat;)V
 	public synthetic fun <init> (DIIILcom/mojentic/llm/ReasoningEffort;Ljava/lang/Integer;Lcom/mojentic/llm/ResponseFormat;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun <init> (DIIILcom/mojentic/llm/ReasoningEffort;Ljava/lang/Integer;Lcom/mojentic/llm/ResponseFormat;Lcom/mojentic/llm/recovery/RecoveryPolicy;)V
-	public synthetic fun <init> (DIIILcom/mojentic/llm/ReasoningEffort;Ljava/lang/Integer;Lcom/mojentic/llm/ResponseFormat;Lcom/mojentic/llm/recovery/RecoveryPolicy;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (DIIILcom/mojentic/llm/ReasoningEffort;Ljava/lang/Integer;Lcom/mojentic/llm/ResponseFormat;Lcom/mojentic/llm/recovery/RecoveryPolicy;Lcom/mojentic/llm/ReasoningProfile;Z)V
+	public synthetic fun <init> (DIIILcom/mojentic/llm/ReasoningEffort;Ljava/lang/Integer;Lcom/mojentic/llm/ResponseFormat;Lcom/mojentic/llm/recovery/RecoveryPolicy;Lcom/mojentic/llm/ReasoningProfile;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()D
+	public final fun component10 ()Z
 	public final fun component2 ()I
 	public final fun component3 ()I
 	public final fun component4 ()I
@@ -310,16 +311,19 @@ public final class com/mojentic/llm/CompletionConfig {
 	public final fun component6 ()Ljava/lang/Integer;
 	public final fun component7 ()Lcom/mojentic/llm/ResponseFormat;
 	public final fun component8 ()Lcom/mojentic/llm/recovery/RecoveryPolicy;
+	public final fun component9 ()Lcom/mojentic/llm/ReasoningProfile;
 	public final fun copy (DIIILcom/mojentic/llm/ReasoningEffort;Ljava/lang/Integer;Lcom/mojentic/llm/ResponseFormat;)Lcom/mojentic/llm/CompletionConfig;
-	public final fun copy (DIIILcom/mojentic/llm/ReasoningEffort;Ljava/lang/Integer;Lcom/mojentic/llm/ResponseFormat;Lcom/mojentic/llm/recovery/RecoveryPolicy;)Lcom/mojentic/llm/CompletionConfig;
+	public final fun copy (DIIILcom/mojentic/llm/ReasoningEffort;Ljava/lang/Integer;Lcom/mojentic/llm/ResponseFormat;Lcom/mojentic/llm/recovery/RecoveryPolicy;Lcom/mojentic/llm/ReasoningProfile;Z)Lcom/mojentic/llm/CompletionConfig;
 	public static synthetic fun copy$default (Lcom/mojentic/llm/CompletionConfig;DIIILcom/mojentic/llm/ReasoningEffort;Ljava/lang/Integer;Lcom/mojentic/llm/ResponseFormat;ILjava/lang/Object;)Lcom/mojentic/llm/CompletionConfig;
-	public static synthetic fun copy$default (Lcom/mojentic/llm/CompletionConfig;DIIILcom/mojentic/llm/ReasoningEffort;Ljava/lang/Integer;Lcom/mojentic/llm/ResponseFormat;Lcom/mojentic/llm/recovery/RecoveryPolicy;ILjava/lang/Object;)Lcom/mojentic/llm/CompletionConfig;
+	public static synthetic fun copy$default (Lcom/mojentic/llm/CompletionConfig;DIIILcom/mojentic/llm/ReasoningEffort;Ljava/lang/Integer;Lcom/mojentic/llm/ResponseFormat;Lcom/mojentic/llm/recovery/RecoveryPolicy;Lcom/mojentic/llm/ReasoningProfile;ZILjava/lang/Object;)Lcom/mojentic/llm/CompletionConfig;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getMaxTokens ()I
 	public final fun getMaxToolIterations ()Ljava/lang/Integer;
 	public final fun getNumCtx ()I
 	public final fun getNumPredict ()I
+	public final fun getPreserveReasoning ()Z
 	public final fun getReasoningEffort ()Lcom/mojentic/llm/ReasoningEffort;
+	public final fun getReasoningProfile ()Lcom/mojentic/llm/ReasoningProfile;
 	public final fun getRecovery ()Lcom/mojentic/llm/recovery/RecoveryPolicy;
 	public final fun getResponseFormat ()Lcom/mojentic/llm/ResponseFormat;
 	public final fun getTemperature ()D
@@ -540,17 +544,19 @@ public final class com/mojentic/llm/LlmGatewayResponse {
 public final class com/mojentic/llm/LlmMessage {
 	public static final field Companion Lcom/mojentic/llm/LlmMessage$Companion;
 	public fun <init> ()V
-	public fun <init> (Lcom/mojentic/llm/MessageRole;Ljava/lang/String;Ljava/util/List;Ljava/util/List;)V
-	public synthetic fun <init> (Lcom/mojentic/llm/MessageRole;Ljava/lang/String;Ljava/util/List;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lcom/mojentic/llm/MessageRole;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Ljava/lang/String;)V
+	public synthetic fun <init> (Lcom/mojentic/llm/MessageRole;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Lcom/mojentic/llm/MessageRole;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()Ljava/util/List;
 	public final fun component4 ()Ljava/util/List;
-	public final fun copy (Lcom/mojentic/llm/MessageRole;Ljava/lang/String;Ljava/util/List;Ljava/util/List;)Lcom/mojentic/llm/LlmMessage;
-	public static synthetic fun copy$default (Lcom/mojentic/llm/LlmMessage;Lcom/mojentic/llm/MessageRole;Ljava/lang/String;Ljava/util/List;Ljava/util/List;ILjava/lang/Object;)Lcom/mojentic/llm/LlmMessage;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun copy (Lcom/mojentic/llm/MessageRole;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Ljava/lang/String;)Lcom/mojentic/llm/LlmMessage;
+	public static synthetic fun copy$default (Lcom/mojentic/llm/LlmMessage;Lcom/mojentic/llm/MessageRole;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Ljava/lang/String;ILjava/lang/Object;)Lcom/mojentic/llm/LlmMessage;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getContent ()Ljava/lang/String;
 	public final fun getContentParts ()Ljava/util/List;
+	public final fun getReasoningContent ()Ljava/lang/String;
 	public final fun getRole ()Lcom/mojentic/llm/MessageRole;
 	public final fun getToolCalls ()Ljava/util/List;
 	public fun hashCode ()I
@@ -655,13 +661,43 @@ public final class com/mojentic/llm/ModelContextWindow {
 }
 
 public final class com/mojentic/llm/ReasoningEffort : java/lang/Enum {
+	public static final field DISABLED Lcom/mojentic/llm/ReasoningEffort;
+	public static final field ENABLED Lcom/mojentic/llm/ReasoningEffort;
 	public static final field HIGH Lcom/mojentic/llm/ReasoningEffort;
 	public static final field LOW Lcom/mojentic/llm/ReasoningEffort;
 	public static final field MEDIUM Lcom/mojentic/llm/ReasoningEffort;
+	public static final field XHIGH Lcom/mojentic/llm/ReasoningEffort;
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public final fun getWireValue ()Ljava/lang/String;
 	public static fun valueOf (Ljava/lang/String;)Lcom/mojentic/llm/ReasoningEffort;
 	public static fun values ()[Lcom/mojentic/llm/ReasoningEffort;
+}
+
+public final class com/mojentic/llm/ReasoningProfile {
+	public static final field Companion Lcom/mojentic/llm/ReasoningProfile$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/util/Set;Z)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/Set;
+	public final fun component3 ()Z
+	public final fun copy (Ljava/lang/String;Ljava/util/Set;Z)Lcom/mojentic/llm/ReasoningProfile;
+	public static synthetic fun copy$default (Lcom/mojentic/llm/ReasoningProfile;Ljava/lang/String;Ljava/util/Set;ZILjava/lang/Object;)Lcom/mojentic/llm/ReasoningProfile;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getName ()Ljava/lang/String;
+	public final fun getSupportedEfforts ()Ljava/util/Set;
+	public final fun getSupportsReasoningHistory ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+	public final fun validate (Lcom/mojentic/llm/ReasoningEffort;Z)V
+}
+
+public final class com/mojentic/llm/ReasoningProfile$Companion {
+	public final fun qwen38 ()Lcom/mojentic/llm/ReasoningProfile;
+}
+
+public final class com/mojentic/llm/ReasoningProfileKt {
+	public static final fun rejectNewReasoningControls (Lcom/mojentic/llm/CompletionConfig;Ljava/lang/String;)V
+	public static final fun validateReasoning (Lcom/mojentic/llm/CompletionConfig;Z)V
+	public static synthetic fun validateReasoning$default (Lcom/mojentic/llm/CompletionConfig;ZILjava/lang/Object;)V
 }
 
 public abstract interface class com/mojentic/llm/ResponseFormat {

@@ -19,6 +19,10 @@ import kotlinx.coroutines.sync.withLock
  * - [stream] — cold `Flow` of [StreamEvent]; history is updated atomically
  *   once the flow completes.
  *
+ * With [CompletionConfig.preserveReasoning], completed assistant/tool transcripts
+ * retain native reasoning for subsequent user turns. Failed or cancelled turns
+ * roll back without adding native history.
+ *
  * The session is the Kotlin analogue of the Python reference's `ChatSession`.
  *
  * Recovery configuration is validated when [com.mojentic.llm.recovery.RecoveryPolicy]
@@ -41,9 +45,9 @@ public class ChatSession(
      * Send a user message and return the assistant's response.
      *
      * History is updated atomically: the user message is appended before the
-     * broker call, the assistant message (and any tool-call/result pairs the
-     * broker handled internally) are appended on success. On failure the
-     * session is reset to the state before the call.
+     * broker call and the assistant is appended on success. When native retention
+     * is selected, the completed assistant/tool transcript is appended instead.
+     * On failure the session is reset to the state before the call.
      */
     public suspend fun send(message: String): LlmGatewayResponse {
         val (snapshot, conversation) = mutex.withLock {
@@ -52,9 +56,14 @@ public class ChatSession(
             before to history.toList()
         }
         return try {
-            val response = broker.complete(model, conversation, tools, config)
+            var completed: List<LlmMessage>? = null
+            val response = broker.completeConversation(model, conversation, tools, config, null) { completed = it }
             mutex.withLock {
-                history += LlmMessage.assistant(content = response.content, toolCalls = response.toolCalls.takeIf { it.isNotEmpty() })
+                if (config.preserveReasoning) {
+                    history += completed.orEmpty().drop(conversation.size)
+                } else {
+                    history += LlmMessage.assistant(content = response.content, toolCalls = response.toolCalls.takeIf { it.isNotEmpty() })
+                }
             }
             response
         } catch (t: Throwable) {
@@ -82,7 +91,8 @@ public class ChatSession(
         val contentBuilder = StringBuilder()
         val toolCalls = mutableListOf<LlmToolCall>()
         try {
-            broker.stream(model, conversation, tools, config).collect { event ->
+            var completed: List<LlmMessage>? = null
+            broker.streamConversation(model, conversation, tools, config, null) { completed = it }.collect { event ->
                 when (event) {
                     is StreamEvent.TextChunk -> contentBuilder.append(event.text)
                     is StreamEvent.ToolCall -> toolCalls += event.call
@@ -91,10 +101,14 @@ public class ChatSession(
                 emit(event)
             }
             mutex.withLock {
-                history += LlmMessage.assistant(
-                    content = contentBuilder.toString().ifEmpty { null },
-                    toolCalls = toolCalls.takeIf { it.isNotEmpty() },
-                )
+                if (config.preserveReasoning) {
+                    history += completed.orEmpty().drop(conversation.size)
+                } else {
+                    history += LlmMessage.assistant(
+                        content = contentBuilder.toString().ifEmpty { null },
+                        toolCalls = toolCalls.takeIf { it.isNotEmpty() },
+                    )
+                }
             }
         } catch (t: Throwable) {
             mutex.withLock {

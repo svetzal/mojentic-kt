@@ -43,6 +43,9 @@ private val logger = KotlinLogging.logger {}
  * - Dispatches tool calls through a [ToolRunner] (serial by default) and
  *   recursively re-prompts the LLM with the tool results.
  * - Honours [CompletionConfig.maxToolIterations] as a hard recursion ceiling.
+ * - Retains completed native assistant reasoning with its tool calls only when
+ *   [CompletionConfig.preserveReasoning] is selected. Failed/cancelled streams
+ *   never produce a completed native transcript.
  * - Records observability hooks to a [Tracer] (no-op by default).
  *
  * The broker is stateless from the caller's point of view: each call carries
@@ -65,21 +68,35 @@ public class LlmBroker(
         tools: List<LlmTool> = emptyList(),
         config: CompletionConfig = CompletionConfig(),
         correlationId: String? = null,
+    ): LlmGatewayResponse = completeConversation(model, messages, tools, config, correlationId) {}
+
+    internal suspend fun completeConversation(
+        model: String,
+        messages: List<LlmMessage>,
+        tools: List<LlmTool>,
+        config: CompletionConfig,
+        correlationId: String?,
+        onCompleted: suspend (List<LlmMessage>) -> Unit,
     ): LlmGatewayResponse {
+        config.validateReasoning(messages.any { it.reasoningContent != null })
         ensureBudget(config, model)
         val cid = correlationId ?: newCorrelationId()
         val response = generateResponse(model, messages, tools, config, cid)
 
-        if (response.toolCalls.isEmpty()) return response
+        if (response.toolCalls.isEmpty()) {
+            onCompleted(messages + response.asHistory(config))
+            return response
+        }
         val outcomes = dispatchTools(response.toolCalls, tools, cid)
         if (outcomes.isEmpty()) return response
-        val nextMessages = messages + toolMessagesFor(outcomes)
-        return complete(
+        val nextMessages = messages + toolMessagesFor(outcomes, response, config)
+        return completeConversation(
             model = model,
             messages = nextMessages,
             tools = tools,
             config = config.copy(maxToolIterations = config.maxToolIterations?.minus(1)),
             correlationId = cid,
+            onCompleted = onCompleted,
         )
     }
 
@@ -91,6 +108,7 @@ public class LlmBroker(
         config: CompletionConfig = CompletionConfig(),
         correlationId: String? = null,
     ): LlmGatewayResponse {
+        config.validateReasoning(messages.any { it.reasoningContent != null })
         val cid = correlationId ?: newCorrelationId()
         tracer.recordLlmCall(model, messages, config.temperature, toolNames(tools), cid)
         val mark = TimeSource.Monotonic.markNow()
@@ -120,6 +138,7 @@ public class LlmBroker(
         config: CompletionConfig,
         correlationId: String?,
     ): JsonObject {
+        config.validateReasoning(messages.any { it.reasoningContent != null })
         val cid = correlationId ?: newCorrelationId()
         tracer.recordLlmCall(model, messages, config.temperature, tools = null, correlationId = cid)
         val mark = TimeSource.Monotonic.markNow()
@@ -156,12 +175,23 @@ public class LlmBroker(
         tools: List<LlmTool> = emptyList(),
         config: CompletionConfig = CompletionConfig(),
         correlationId: String? = null,
+    ): Flow<StreamEvent> = streamConversation(model, messages, tools, config, correlationId) {}
+
+    internal fun streamConversation(
+        model: String,
+        messages: List<LlmMessage>,
+        tools: List<LlmTool>,
+        config: CompletionConfig,
+        correlationId: String?,
+        onCompleted: suspend (List<LlmMessage>) -> Unit,
     ): Flow<StreamEvent> = flow {
+        config.validateReasoning(messages.any { it.reasoningContent != null })
         ensureBudget(config, model)
         val cid = correlationId ?: newCorrelationId()
         tracer.recordLlmCall(model, messages, config.temperature, toolNames(tools), cid)
         val accumulatedToolCalls = mutableListOf<LlmToolCall>()
         val contentBuilder = StringBuilder()
+        val reasoningBuilder = StringBuilder()
         val mark = TimeSource.Monotonic.markNow()
         gateway.stream(model, messages, tools.takeIf { it.isNotEmpty() }, config).collect { event ->
             when (event) {
@@ -170,21 +200,26 @@ public class LlmBroker(
                     emit(StreamEvent.TextChunk(event.text))
                 }
 
-                is GatewayStreamEvent.Thinking -> emit(StreamEvent.ThinkingChunk(event.text))
+                is GatewayStreamEvent.Thinking -> {
+                    if (config.preserveReasoning) reasoningBuilder.append(event.text)
+                    emit(StreamEvent.ThinkingChunk(event.text))
+                }
 
                 is GatewayStreamEvent.ToolCalls -> accumulatedToolCalls += event.calls
 
                 is GatewayStreamEvent.Raw -> { /* no-op by default */ }
             }
         }
-        tracer.recordLlmResponse(
-            model = model,
+        val response = LlmGatewayResponse(
             content = contentBuilder.toString().ifEmpty { null },
-            toolCalls = accumulatedToolCalls.takeIf { it.isNotEmpty() },
-            callDuration = mark.elapsedNow(),
-            correlationId = cid,
+            thinking = reasoningBuilder.toString().ifEmpty { null },
+            toolCalls = accumulatedToolCalls,
         )
-        if (accumulatedToolCalls.isEmpty()) return@flow
+        recordResponse(model, response, response.content, mark.elapsedNow(), cid)
+        if (accumulatedToolCalls.isEmpty()) {
+            onCompleted(messages + response.asHistory(config))
+            return@flow
+        }
         val outcomes = dispatchTools(accumulatedToolCalls, tools, cid)
         if (outcomes.isEmpty()) return@flow
         for (outcome in outcomes) {
@@ -197,14 +232,15 @@ public class LlmBroker(
                 ),
             )
         }
-        val nextMessages = messages + toolMessagesFor(outcomes)
+        val nextMessages = messages + toolMessagesFor(outcomes, response, config)
         emitAll(
-            stream(
+            streamConversation(
                 model = model,
                 messages = nextMessages,
                 tools = tools,
                 config = config.copy(maxToolIterations = config.maxToolIterations?.minus(1)),
                 correlationId = cid,
+                onCompleted = onCompleted,
             ),
         )
     }
@@ -298,15 +334,30 @@ public class LlmBroker(
         return outcomes
     }
 
-    private fun toolMessagesFor(outcomes: List<ToolOutcome>): List<LlmMessage> = outcomes.flatMap { outcome ->
-        listOf(
-            LlmMessage.assistant(toolCalls = listOf(outcome.call)),
-            LlmMessage.tool(
-                content = outcome.result ?: errorJson(outcome.error),
-                toolCall = outcome.call,
+    private fun toolMessagesFor(
+        outcomes: List<ToolOutcome>,
+        response: LlmGatewayResponse,
+        config: CompletionConfig,
+    ): List<LlmMessage> {
+        if (!config.preserveReasoning) {
+            return outcomes.flatMap { outcome ->
+                listOf(LlmMessage.assistant(toolCalls = listOf(outcome.call)), toolMessage(outcome))
+            }
+        }
+        return listOf(
+            LlmMessage(
+                role = MessageRole.Assistant,
+                content = response.content,
+                toolCalls = response.toolCalls,
+                reasoningContent = response.thinking,
             ),
-        )
+        ) + outcomes.map { toolMessage(it) }
     }
+
+    private fun toolMessage(outcome: ToolOutcome): LlmMessage = LlmMessage.tool(
+        content = outcome.result ?: errorJson(outcome.error),
+        toolCall = outcome.call,
+    )
 
     private fun ensureBudget(config: CompletionConfig, model: String) {
         if (config.maxToolIterations != null && config.maxToolIterations <= 0) {
@@ -348,3 +399,10 @@ private val CompletionStreamEvent.evidence: CompletionEvidence?
 
         is CompletionStreamEvent.Content -> null
     }
+
+private fun LlmGatewayResponse.asHistory(config: CompletionConfig): LlmMessage = LlmMessage(
+    role = MessageRole.Assistant,
+    content = content,
+    toolCalls = toolCalls.takeIf { it.isNotEmpty() },
+    reasoningContent = thinking.takeIf { config.preserveReasoning },
+)

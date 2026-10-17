@@ -71,7 +71,7 @@ class CompletionRecoveryHttpTest {
                 provider.gateway(server.url).use { gateway ->
                     val response = call(gateway.value, structured, policy(events, wires, sleeps))
                     assertEquals(if (structured) "{\"value\":\"ok\"}" else "ok", response.content)
-                    assertEquals(if (structured && provider == Provider.OLLAMA) null else "native-reasoning", response.thinking)
+                    assertEquals("native-reasoning", response.thinking)
                     assertEquals("stop", response.finishReason)
                     assertEquals("test-model", response.providerModel)
                     assertNotNull(response.usage)
@@ -442,7 +442,7 @@ class CompletionRecoveryHttpTest {
             RecoveryScriptedServer(listOf(provider.success(structured))).use { server ->
                 provider.gateway(server.url).use { gateway ->
                     val legacy = call(gateway.value, structured, null)
-                    assertEquals(if (structured && provider != Provider.OMLX) null else "native-reasoning", legacy.thinking)
+                    assertEquals(if (structured && provider == Provider.OPENAI) null else "native-reasoning", legacy.thinking)
                     assertEquals(1, server.requests.size)
                 }
             }

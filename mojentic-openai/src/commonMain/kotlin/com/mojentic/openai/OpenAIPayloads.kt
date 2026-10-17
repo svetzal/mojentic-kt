@@ -20,6 +20,8 @@ internal data class OpenAIChatRequest(
     @SerialName("tool_choice") val toolChoice: String? = null,
     @SerialName("response_format") val responseFormat: OpenAIResponseFormat? = null,
     @SerialName("reasoning_effort") val reasoningEffort: String? = null,
+    @SerialName("enable_thinking") val enableThinking: Boolean? = null,
+    @SerialName("chat_template_kwargs") val chatTemplateKwargs: JsonObject? = null,
     @SerialName("stream_options") val streamOptions: OpenAIStreamOptions? = null,
 )
 
@@ -61,6 +63,7 @@ internal data class OpenAIMessage(
     val name: String? = null,
     @SerialName("tool_calls") val toolCalls: List<OpenAIToolCall>? = null,
     @SerialName("tool_call_id") val toolCallId: String? = null,
+    @SerialName("reasoning_content") val reasoningContent: String? = null,
 )
 
 // `type` is required on the wire, so it is encoded even though it is the default.

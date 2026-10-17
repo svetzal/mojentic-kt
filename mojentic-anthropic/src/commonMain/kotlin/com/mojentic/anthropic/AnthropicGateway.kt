@@ -22,6 +22,7 @@ import com.mojentic.llm.recovery.RecoveryOperation
 import com.mojentic.llm.recovery.RecoveryPolicy
 import com.mojentic.llm.recovery.RecoveryProvider
 import com.mojentic.llm.recovery.recoveryHttpClient
+import com.mojentic.llm.rejectNewReasoningControls
 import com.mojentic.llm.tools.LlmTool
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
@@ -305,6 +306,10 @@ public class AnthropicGateway(
         config: CompletionConfig,
         stream: Boolean,
     ): AnthropicMessagesRequest {
+        config.rejectNewReasoningControls("Anthropic")
+        if (messages.any { it.reasoningContent != null }) {
+            throw LlmGatewayException("Anthropic does not support native reasoning history")
+        }
         if (config.reasoningEffort != null) {
             logger.warn {
                 "AnthropicGateway does not yet support reasoning_effort=${config.reasoningEffort}; ignoring."

@@ -56,6 +56,7 @@ public data class LlmToolCall(val id: String? = null, val name: String, val argu
  * Use the companion factories ([system], [user], [assistant], [tool]) for the
  * common shapes; construct directly for advanced cases.
  *
+ * @property reasoningContent Native assistant reasoning, separate from visible text and tool results.
  * @property role Speaker role.
  * @property content Plain text content, when the message is a single text part.
  * @property contentParts Rich content parts (text + images), when present.
@@ -68,6 +69,7 @@ public data class LlmMessage(
     val content: String? = null,
     val contentParts: List<MessageContent>? = null,
     val toolCalls: List<LlmToolCall>? = null,
+    val reasoningContent: String? = null,
 ) {
     public companion object {
         public fun system(content: String): LlmMessage = LlmMessage(role = MessageRole.System, content = content)

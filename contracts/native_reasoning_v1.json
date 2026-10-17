@@ -1,0 +1,80 @@
+{
+  "version": "native-reasoning-v1",
+  "controls": [
+    {
+      "effort": null,
+      "ollama": {},
+      "omlx": {}
+    },
+    {
+      "effort": "disabled",
+      "ollama": {
+        "think": false
+      },
+      "omlx": {
+        "enable_thinking": false
+      }
+    },
+    {
+      "effort": "enabled",
+      "ollama": {
+        "think": true
+      },
+      "omlx": {
+        "enable_thinking": true
+      }
+    },
+    {
+      "effort": "low",
+      "ollama": {
+        "think": "low"
+      },
+      "omlx": {
+        "reasoning_effort": "low"
+      }
+    },
+    {
+      "effort": "medium",
+      "ollama": {
+        "think": "medium"
+      },
+      "omlx": {
+        "reasoning_effort": "medium"
+      }
+    },
+    {
+      "effort": "high",
+      "ollama": {
+        "think": "high"
+      },
+      "omlx": {
+        "reasoning_effort": "high"
+      }
+    },
+    {
+      "effort": "xhigh",
+      "ollama": {
+        "think": "xhigh"
+      },
+      "omlx": {
+        "reasoning_effort": "xhigh"
+      }
+    }
+  ],
+  "providers": {
+    "ollama": {
+      "ordinary_tool": "{\"message\": {\"role\": \"assistant\", \"content\": \"visible-before-tools\", \"thinking\": \"native-before-tools\", \"tool_calls\": [{\"function\": {\"name\": \"lookup\", \"arguments\": {\"key\": \"alpha\"}}}, {\"function\": {\"name\": \"lookup\", \"arguments\": {\"key\": \"beta\"}}}]}, \"done\": true, \"done_reason\": \"stop\"}",
+      "ordinary_final": "{\"message\": {\"role\": \"assistant\", \"content\": \"final-answer\", \"thinking\": \"native-final\"}, \"done\": true, \"done_reason\": \"stop\"}",
+      "stream_tool": "{\"message\": {\"role\": \"assistant\", \"content\": \"visible-before-tools\", \"thinking\": \"native-before-tools\", \"tool_calls\": [{\"function\": {\"name\": \"lookup\", \"arguments\": {\"key\": \"alpha\"}}}, {\"function\": {\"name\": \"lookup\", \"arguments\": {\"key\": \"beta\"}}}]}, \"done\": true, \"done_reason\": \"stop\"}\n",
+      "stream_final": "{\"message\": {\"role\": \"assistant\", \"content\": \"final-answer\", \"thinking\": \"native-final\"}, \"done\": true, \"done_reason\": \"stop\"}\n",
+      "structured": "{\"message\": {\"role\": \"assistant\", \"content\": \"{\\\"answer\\\":\\\"structured\\\"}\", \"thinking\": \"native-structured\"}, \"done\": true, \"done_reason\": \"stop\"}"
+    },
+    "omlx": {
+      "ordinary_tool": "{\"choices\": [{\"message\": {\"role\": \"assistant\", \"content\": \"visible-before-tools\", \"reasoning_content\": \"native-before-tools\", \"tool_calls\": [{\"id\": \"call-alpha\", \"type\": \"function\", \"function\": {\"name\": \"lookup\", \"arguments\": \"{\\\"key\\\": \\\"alpha\\\"}\"}}, {\"id\": \"call-beta\", \"type\": \"function\", \"function\": {\"name\": \"lookup\", \"arguments\": \"{\\\"key\\\": \\\"beta\\\"}\"}}]}, \"finish_reason\": \"tool_calls\"}]}",
+      "ordinary_final": "{\"choices\": [{\"message\": {\"role\": \"assistant\", \"content\": \"final-answer\", \"reasoning_content\": \"native-final\"}, \"finish_reason\": \"stop\"}]}",
+      "stream_tool": "data: {\"choices\": [{\"delta\": {\"role\": \"assistant\", \"content\": \"visible-before-tools\", \"reasoning_content\": \"native-before-tools\", \"tool_calls\": [{\"id\": \"call-alpha\", \"type\": \"function\", \"function\": {\"name\": \"lookup\", \"arguments\": \"{\\\"key\\\": \\\"alpha\\\"}\"}, \"index\": 0}, {\"id\": \"call-beta\", \"type\": \"function\", \"function\": {\"name\": \"lookup\", \"arguments\": \"{\\\"key\\\": \\\"beta\\\"}\"}, \"index\": 1}]}, \"finish_reason\": \"tool_calls\"}]}\n\ndata: [DONE]\n\n",
+      "stream_final": "data: {\"choices\": [{\"delta\": {\"role\": \"assistant\", \"content\": \"final-answer\", \"reasoning_content\": \"native-final\"}, \"finish_reason\": \"stop\"}]}\n\ndata: [DONE]\n\n",
+      "structured": "{\"choices\": [{\"message\": {\"role\": \"assistant\", \"content\": \"{\\\"answer\\\":\\\"structured\\\"}\", \"reasoning_content\": \"native-structured\"}, \"finish_reason\": \"stop\"}]}"
+    }
+  }
+}

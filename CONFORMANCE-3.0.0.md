@@ -694,3 +694,122 @@ advisory acceptance or dependency change
 was introduced. This configured-audit pass does not establish the absence of
 all vulnerabilities. Publication/install checks were not run because publishing
 is outside this correction's authorization.
+
+## Native reasoning (release part 2)
+
+Binding source: `REASONING-PROTOTYPE-2026-10.md`, SHA-256
+`0a40f3ad45c593bc779411021e45db569e73d3ecce86c99b201e7f8ebb656809`.
+The initiative brief was verified against the supplied SHA-256
+`ea6a0efa56bfb3cd74b5ce728f80cc33c6fbd853114bec94b8aabe79f5d28e6e`.
+Reference source inspected: Rust `8ac38ea134af7816c6fdd02e07a420ed3be1a2f4`
+(`llm/reasoning.rs`, `gateway.rs`, broker and provider adapters), following the
+contract's prototype reference `67791b7`. Kotlin base tested:
+`7ac5f6c27e111e9f5662dae443d9feeb564f2726` plus the uncommitted reasoning
+changes identified by `contracts/native_reasoning_v1.kotlin.manifest.sha256`
+(manifest SHA-256 `cb8ec8fdc576946095a79fadbc8fd02d79051ea089f8efa381bbcfca637b1385`).
+No other repository was changed.
+
+The existing JSON-artifact and loopback HTTP contract mechanism is reused as
+**native-reasoning-v1**, at `contracts/native_reasoning_v1.json` (SHA-256
+`d5539eb334b69e0f8b698e8cd2c1402772dfabd09af92c652e1d1dc35f34e127`). Its identity is
+asserted by `NativeReasoningControlsTest.contractIdentity`; the source/test
+manifest identifies the executable cases and implementation. Scripted peers in
+`NativeReasoningCases` derive their replies from this artifact. These are Kotlin
+consumer verification cases, not independently provider-verified doubles.
+
+| Decision | Named executable tests |
+| --- | --- |
+| Distinct six controls, exact boolean/string types, omission stays unknown; misleading names never select a profile | `NativeReasoningControlsTest.everyEffortAndOmissionHasExactWireTypeAcrossCompletionModes` (Ollama/oMLX, ordinary/structured/streaming, recovery on/off) |
+| Exact Qwen3.8 set; unsupported effort/history rejected before HTTP | `NativeReasoningControlsTest.profilesValidateExactQwenSetAndHistoryBeforeHttpAcrossModes` |
+| Native assistant reasoning separate from visible content and tool results | `NativeReasoningProofTest.ordinaryToolContinuationRetainsNativeAssistantAtHttpBoundary`; `NativeReasoningContinuityTest.ordinaryAndStreamedToolsPreserveAssistantAssociationOnlyWhenSelected` |
+| Ordinary/streamed completed tools retain one assistant with all calls; exact oMLX IDs remain associated with results | `NativeReasoningContinuityTest.ordinaryAndStreamedToolsPreserveAssistantAssociationOnlyWhenSelected` (two tools, ordinary/streamed, retention on/off, recovery on/off) |
+| Session retention reaches the next user message | `NativeReasoningHttpProofTest.completedAssistantReasoningSurvivesToolAndNextSessionTurn`; the continuity matrix checks both session entrypoints |
+| oMLX requests `chat_template_kwargs.preserve_thinking` only with retention | Continuity matrix above; `NativeReasoningStructuredTest.structuredBrokerPreservesSeparateNativeHistoryAndTemplateRequest` |
+| Structured requests share controls/history; native thinking remains separate in structured responses | Control matrix and structured broker test above |
+| OpenAI rejects the oMLX history extension and unsupported new controls | `NativeReasoningControlsTest.openaiRejectsNewControlsAndOmlxHistoryExtensionBeforeHttp` |
+| Anthropic explicitly rejects unsupported new controls, keeping legacy effort handling | `NativeReasoningUnsupportedTest.newControlsAndNativeHistoryFailBeforeHttp`; existing Anthropic gateway/recovery tests |
+| Partial native delivery cannot replay or enter history, even with an admission hook; retries before delivery retain only completed native history | `NativeReasoningRetryTest.partialNativeStreamCannotBeRetriedOrRetainedEvenWithAdmission`; `admittedRetryBeforeDeliveryKeepsCompletedNativeHistoryAndToolCounts` |
+| Cancellation never stores native deltas or executes pending tools | `NativeReasoningFailureTest.cancellationOnNativeDeltaRollsBackSessionAndNeverExecutesTools` |
+| Failed/unfinished streams never become completed history | `NativeReasoningFailureTest.incompleteNativeStreamAndProviderFailureNeverBecomeCompletedHistory`; `unfinishedOrdinaryNativeResponsesNeverReachTools` |
+| Failure after tools rolls back the session without replaying executed tools | `NativeReasoningFailureTest.failedOrdinaryContinuationRollsBackNativeHistoryWithoutReplayingTools` |
+| Existing recovery admission, identities, tool counts, recursion, context discovery and legacy provider behavior | Existing full suites, including `CompletionRecoveryHttpTest`, `StreamingRecoveryHttpTest`, `AdmissionAmendmentHttpTest`, `ContextWindowContractTest`, broker/session and OpenAI/Anthropic tests |
+
+Before changing gateway behavior, inspection and the rejecting HTTP probe
+established that Ollama collapsed named efforts to boolean true and broker
+continuations substituted assistant stubs without native reasoning. A separate
+original-source characterization executes Low/Medium/High and omission against
+both providers at the base revision, checking exact fields and the legacy
+assistant/tool/assistant/tool layout. The new continuity matrix also keeps that
+layout when retention is disabled. Existing recovery tests change only their
+expectations for Ollama structured `thinking`, which is now preserved; OpenAI
+structured behavior stays unchanged. Changing Ollama named efforts and opting into
+native transcripts are licensed reasoning changes; sampling defaults, output
+limits, request fidelity and first-token timing are outside this correction.
+
+The behavioral proof exercises the actual HTTP client against loopback sockets:
+executing the original committed broker, session and Ollama adapter produces the missing native sentinel;
+correcting the source preserves it with its tool call and visible content, then
+preserves the completed transcript on the next session turn. Recovery behavior
+is unchanged; no new provider cancellation/status or admission guarantee is
+claimed. oMLX server-forced template settings can override the retention request.
+
+### Counterpart verification finding
+
+**Open initiative gap:** no provider repository or other port has verified
+`native-reasoning-v1` at an identified commit. No provider verification command
+has been run or claimed, and no live model/server conformance or benchmark is
+claimed. The Rust source is a behavioral reference, not paired verification of
+this artifact. Coordinate provider-side execution of these exact versioned
+cases and record provider commits, commands and results before declaring paired
+boundary conformance. Other repository changes remain outside this task.
+
+### Local reasoning verification
+
+Commands use a writable copied Gradle cache (`GRADLE_USER_HOME`), the installed
+Android SDK (`ANDROID_HOME`), writable `ANDROID_USER_HOME`, and
+`-Pkotlin.compiler.execution.strategy=in-process` because the host Gradle/Kotlin
+cache locations are read-only in the task sandbox. These are execution settings,
+not dependency or build-policy changes. Required gates and applicable JVM/Android
+CI tasks are recorded below after execution.
+
+Final local gate run, 2026-10-17 (each command includes the common execution
+flags described above):
+
+| Required command | Exit | Result |
+| --- | --- | --- |
+| `./gradlew ktlintCheck` | 0 | Pass |
+| `./gradlew detekt` | 0 | Pass; no new suppressions |
+| `./gradlew build` | 0 | Pass |
+| `./gradlew allTests` | 0 | Pass |
+| `./gradlew apiCheck` | 0 | Pass against the updated 3.0 API snapshot |
+| `./gradlew dokkaGenerate` | 0 | Pass |
+
+Local CI-equivalent verification also passed (exit 0):
+`./gradlew javaToolchains jvmJar assembleAndroidMain jvmTest testAndroidHostTest apiCheck --no-daemon --stacktrace`.
+Gradle detects both JDK 17 and JDK 21. The full run contains **514 JVM tests and
+375 Android host tests**, with zero failures, errors or skipped tests. No hosted
+GitHub Actions run or device/emulator test is claimed. Existing Gradle deprecation
+messages remain; no new compiler or static-analysis warning is accepted.
+
+Baseline characterization passed (exit 0) by temporarily executing original
+committed gateway/broker/session source with a Low/Medium/High/omission HTTP
+characterization harness, then restoring the corrected files. The exact local
+wrapper command is archived in execution evidence. The final
+ordinary/session HTTP proof executes
+`./gradlew :mojentic-openai:jvmTest --tests '*NativeReasoningHttpProofTest*'`:
+original committed source rejects the native sentinel (exit 1); corrected source
+preserves its exact assistant/tool association and the next session turn (exit 0).
+The proof's actual commands, exit codes and complete logs are retained as Foundry
+execution evidence. The main source manifest and contract artifact are normal
+repository files; execution logs are scratch and are not release artifacts.
+
+The applicable CI dependency audit passed (exit 0):
+`./gradlew dependencyCheckAggregate --no-parallel -PdependencyCheckDataDirectory=/tmp/mojentic-reasoning-audit-data`.
+The writable audit database was copied from the host cache; no analysis
+configuration, dependency, allowlist or suppression file was changed. The JSON
+report scans 305 dependencies and reports zero unsuppressed vulnerabilities;
+52 suppression entries remain under the repository's pre-existing policy. This
+run adds no suppression and does not claim those inherited entries were newly
+revalidated. NVD bulk-feed `modified.meta` was checked before the audit and
+reported `lastModifiedDate: 2026-10-16T18:00:09-04:00`; feed transport retains the
+existing audit scope and CVSS threshold. No fresh Maven publication was made.

@@ -9,6 +9,7 @@ import com.mojentic.llm.LlmGatewayResponse
 import com.mojentic.llm.LlmMessage
 import com.mojentic.llm.LlmToolCall
 import com.mojentic.llm.ModelContextWindow
+import com.mojentic.llm.ReasoningEffort
 import com.mojentic.llm.StreamErrorReason
 import com.mojentic.llm.StreamEventsGateway
 import com.mojentic.llm.recovery.RecoveryCapabilities
@@ -20,6 +21,7 @@ import com.mojentic.llm.recovery.RecoveryStreamClosedException
 import com.mojentic.llm.recovery.RecoveryStreamException
 import com.mojentic.llm.recovery.recoveryHttpClient
 import com.mojentic.llm.tools.LlmTool
+import com.mojentic.llm.validateReasoning
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
@@ -47,6 +49,7 @@ import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 
@@ -106,9 +109,9 @@ public class OllamaGateway(
             stream = false,
             tools = tools?.toOllamaTools(),
             format = config.responseFormat?.toOllamaFormat(),
-            think = if (config.reasoningEffort != null) true else null,
+            think = thinkFor(config, messages),
         )
-        val response = postChat(request, config.recovery)
+        val response = postChat(request, config.recovery, nativeHistory = config.preserveReasoning)
         return LlmGatewayResponse(
             content = response.message.content,
             thinking = response.message.thinking,
@@ -139,9 +142,9 @@ public class OllamaGateway(
             options = optionsFor(config),
             stream = false,
             format = schema,
-            think = if (config.reasoningEffort != null) true else null,
+            think = thinkFor(config, messages),
         )
-        val response = postChat(request, config.recovery, structured = true)
+        val response = postChat(request, config.recovery, structured = true, nativeHistory = config.preserveReasoning)
         val raw = response.message.content
             ?: throw LlmGatewayException("Ollama returned no content for structured-output request")
         val parsed = runCatching { json.parseToJsonElement(raw) }
@@ -151,6 +154,7 @@ public class OllamaGateway(
         return LlmGatewayResponse(
             content = raw,
             structuredJson = structured,
+            thinking = response.message.thinking,
             usage = response.reportedUsage,
             providerModel = response.model,
             finishReason = response.doneReason,
@@ -174,7 +178,7 @@ public class OllamaGateway(
                 stream = true,
                 tools = tools?.toOllamaTools(),
                 format = config.responseFormat?.toOllamaFormat(),
-                think = if (config.reasoningEffort != null) true else null,
+                think = thinkFor(config, messages),
             )
 
             val statement = httpClient.preparePost("$host/api/chat") {
@@ -184,26 +188,30 @@ public class OllamaGateway(
             statement.execute { httpResponse ->
                 ensureSuccess(httpResponse)
                 val channel = httpResponse.bodyAsChannel()
+                var completed = false
                 while (true) {
                     val line = channel.readLine() ?: break
                     if (line.isBlank()) continue
-                    val chunk = runCatching { json.decodeFromString(OllamaChatResponse.serializer(), line) }
-                        .getOrElse {
-                            logger.warn { "Skipping malformed Ollama stream chunk: $line" }
-                            continue
-                        }
-                    chunk.message.content?.takeIf { it.isNotEmpty() }?.let {
-                        send(GatewayStreamEvent.Content(it))
-                    }
-                    chunk.message.thinking?.takeIf { it.isNotEmpty() }?.let {
-                        send(GatewayStreamEvent.Thinking(it))
-                    }
-                    chunk.message.toolCalls?.takeIf { it.isNotEmpty() }?.let { calls ->
-                        send(GatewayStreamEvent.ToolCalls(calls.map { it.toLlmToolCall() }))
-                    }
+                    val chunk = decodeLegacyStreamChunk(line, config.preserveReasoning) ?: continue
+                    if (chunk.done) completed = true
+                    chunk.toLegacyStreamEvents().forEach { send(it) }
                 }
+                if (config.preserveReasoning && !completed) throw LlmGatewayException("Incomplete native reasoning stream")
             }
         }.buffer(Channel.RENDEZVOUS)
+    }
+
+    private fun decodeLegacyStreamChunk(line: String, nativeHistory: Boolean): OllamaChatResponse? {
+        val chunk = runCatching { json.decodeFromString(OllamaChatResponse.serializer(), line) }
+            .getOrElse {
+                if (nativeHistory) throw LlmGatewayException("Invalid native reasoning stream", it)
+                logger.warn { "Skipping malformed Ollama stream chunk: $line" }
+                return null
+            }
+        if (nativeHistory && chunk.done && chunk.doneReason !in setOf(null, "stop", "tool_calls")) {
+            throw LlmGatewayException("Incomplete native reasoning stream")
+        }
+        return chunk
     }
 
     /**
@@ -228,7 +236,7 @@ public class OllamaGateway(
                 options = optionsFor(config),
                 stream = true,
                 format = config.responseFormat?.toOllamaFormat(),
-                think = if (config.reasoningEffort != null) true else null,
+                think = thinkFor(config, messages),
             )
 
             val statement = httpClient.preparePost("$host/api/chat") {
@@ -266,7 +274,7 @@ public class OllamaGateway(
             stream = true,
             tools = tools?.toOllamaTools(),
             format = config.responseFormat?.toOllamaFormat(),
-            think = if (config.reasoningEffort != null) true else null,
+            think = thinkFor(config, messages),
         )
 
         RecoveryHttp(recoveryClient, RecoveryProvider.OLLAMA, "$host/api/chat").executeStream(
@@ -310,7 +318,7 @@ public class OllamaGateway(
             options = optionsFor(config),
             stream = true,
             format = config.responseFormat?.toOllamaFormat(),
-            think = if (config.reasoningEffort != null) true else null,
+            think = thinkFor(config, messages),
         )
 
         var completed: CompletionStreamEvent.Completed? = null
@@ -383,6 +391,7 @@ public class OllamaGateway(
         request: OllamaChatRequest,
         policy: RecoveryPolicy?,
         structured: Boolean = false,
+        nativeHistory: Boolean = false,
     ): OllamaChatResponse {
         if (policy != null) {
             val payload = json.encodeToString(OllamaChatRequest.serializer(), request)
@@ -391,7 +400,7 @@ public class OllamaGateway(
                 if (structured) RecoveryOperation.STRUCTURED else RecoveryOperation.COMPLETE,
                 policy,
             ) { body, _ ->
-                val parsed = json.decodeFromString(OllamaChatResponse.serializer(), body)
+                val parsed = decodeChat(body, nativeHistory)
                 if (structured) require(json.parseToJsonElement(requireNotNull(parsed.message.content)) is JsonObject)
                 parsed
             }
@@ -402,8 +411,16 @@ public class OllamaGateway(
         }
         ensureSuccess(response)
         val body = response.bodyAsText()
-        return runCatching { json.decodeFromString(OllamaChatResponse.serializer(), body) }
+        return runCatching { decodeChat(body, nativeHistory) }
             .getOrElse { throw LlmGatewayException("Failed to parse Ollama chat response: $body", it) }
+    }
+
+    private fun decodeChat(body: String, nativeHistory: Boolean): OllamaChatResponse {
+        val parsed = json.decodeFromString(OllamaChatResponse.serializer(), body)
+        if (nativeHistory && (!parsed.done || parsed.doneReason !in setOf(null, "stop", "tool_calls"))) {
+            throw LlmGatewayException("Incomplete native reasoning response")
+        }
+        return parsed
     }
 
     private suspend fun ensureSuccess(response: HttpResponse) {
@@ -437,5 +454,15 @@ public class OllamaGateway(
             encodeDefaults = false
             explicitNulls = false
         }
+    }
+}
+
+private fun thinkFor(config: CompletionConfig, messages: List<LlmMessage>): JsonPrimitive? {
+    config.validateReasoning(messages.any { it.reasoningContent != null })
+    return when (val effort = config.reasoningEffort) {
+        null -> null
+        ReasoningEffort.DISABLED -> JsonPrimitive(false)
+        ReasoningEffort.ENABLED -> JsonPrimitive(true)
+        else -> JsonPrimitive(effort.wireValue)
     }
 }

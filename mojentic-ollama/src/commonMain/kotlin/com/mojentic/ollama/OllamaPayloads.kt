@@ -15,7 +15,7 @@ internal data class OllamaChatRequest(
     val options: OllamaOptions? = null,
     val tools: List<OllamaToolWire>? = null,
     val format: JsonElement? = null,
-    val think: Boolean? = null,
+    val think: JsonElement? = null,
 )
 
 /** Ollama's `format` field: omitted for text, `"json"` for JSON mode, or the schema itself. */

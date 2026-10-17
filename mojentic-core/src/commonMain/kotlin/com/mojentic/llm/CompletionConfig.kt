@@ -13,7 +13,9 @@ package com.mojentic.llm
  * @property numCtx Context window size in tokens.
  * @property maxTokens Maximum tokens to generate in the response.
  * @property numPredict Tokens to predict, `-1` for no limit. Ollama-specific knob.
- * @property reasoningEffort Optional reasoning effort for thinking-capable models.
+ * @property reasoningEffort Optional native control; null leaves provider defaults unknown.
+ * @property reasoningProfile Caller-selected capability contract, never inferred from a model name.
+ * @property preserveReasoning Opt-in retention of completed native assistant reasoning in tool history.
  * @property maxToolIterations Optional ceiling on broker tool-recursion depth; null is unlimited.
  * @property responseFormat Optional output format forwarded by gateways in streaming and
  *           non-streaming requests. Null keeps the provider default. See [ResponseFormat].
@@ -27,6 +29,8 @@ public data class CompletionConfig(
     val maxToolIterations: Int? = DEFAULT_MAX_TOOL_ITERATIONS,
     val responseFormat: ResponseFormat? = null,
     val recovery: com.mojentic.llm.recovery.RecoveryPolicy? = null,
+    val reasoningProfile: ReasoningProfile? = null,
+    val preserveReasoning: Boolean = false,
 ) {
     /** Retains the pre-recovery constructor ABI and its default-argument bridge. */
     public constructor(
@@ -57,6 +61,8 @@ public data class CompletionConfig(
         maxToolIterations,
         responseFormat,
         recovery,
+        reasoningProfile,
+        preserveReasoning,
     )
 
     public companion object {

@@ -10,6 +10,28 @@ patch versions move independently.
 
 ## [Unreleased]
 
+### Breaking changes: native reasoning
+
+- Expose distinct Disabled, Enabled, Low, Medium, High and XHigh controls with
+  caller-selected `ReasoningProfile` validation; omitted effort stays unknown.
+  Qwen3.8 accepts exactly Disabled/Low/Medium/XHigh and native history.
+- Ollama named efforts now send exact strings instead of collapsing to boolean
+  true. Use Enabled for prior boolean enablement. oMLX uses `enable_thinking`
+  for booleans and exact `reasoning_effort` for named levels. Unsupported new
+  controls fail explicitly on OpenAI and Anthropic; legacy efforts keep their
+  behavior.
+- Add `LlmMessage.reasoningContent` and opt-in `preserveReasoning`. Completed
+  ordinary and streamed tool continuations preserve one assistant with its
+  reasoning, visible content and tool calls; sessions retain completed native
+  transcripts for subsequent turns. Failed/cancelled turns roll back.
+- Serialize assistant history as Ollama `thinking` or oMLX `reasoning_content`;
+  retention requests oMLX `chat_template_kwargs.preserve_thinking`. Structured
+  requests share these controls, and Ollama structured responses expose thinking.
+  OpenAI rejects the oMLX history extension.
+- Recompile callers for new data-class fields and exhaustive enum cases. See
+  `docs/use-cases/native-reasoning.md` for wire mappings and migration details.
+
+
 ### Model context-window discovery
 
 - Add `LlmGateway.modelContextWindow(model)` and immutable `ModelContextWindow`

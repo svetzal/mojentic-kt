@@ -18,8 +18,18 @@ internal class OpenAILegacyStreamParser(private val json: Json) {
     private val accumulator = StreamingToolCallAccumulator(json)
 
     /** True once the `data: [DONE]` marker has arrived. */
+    var finishReason: String? = null
+        private set
+
+    var malformed: Boolean = false
+        private set
+
     var isDone: Boolean = false
         private set
+
+    /** Complete native history requires both a normal finish and the SSE terminal marker. */
+    val hasNativeCompletion: Boolean
+        get() = isDone && !malformed && finishReason in setOf("stop", "tool_calls")
 
     fun accept(line: String): List<GatewayStreamEvent> {
         val payload = ssePayload(line) ?: return emptyList()
@@ -42,9 +52,11 @@ internal class OpenAILegacyStreamParser(private val json: Json) {
     private fun parseDelta(payload: String): OpenAIResponseMessage? {
         val chunk = runCatching { json.decodeFromString(OpenAIChatResponse.serializer(), payload) }
             .getOrElse {
+                malformed = true
                 logger.warn { "Skipping malformed OpenAI SSE chunk: $payload" }
                 null
             }
+        chunk?.choices?.firstOrNull()?.finishReason?.let { finishReason = it }
         return chunk?.choices?.firstOrNull()?.delta
     }
 

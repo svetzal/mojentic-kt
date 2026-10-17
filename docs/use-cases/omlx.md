@@ -63,10 +63,19 @@ when you set them. It never sends `max_completion_tokens`. It does not send
 
 ## Thinking
 
-`reasoningEffort` goes to oMLX as `low`, `medium` or `high`. oMLX gives it to
-the chat template of the model, so the effect depends on the model. When
-`reasoningEffort` is `null`, the model uses its default. Qwen 3 models think
-by default.
+Named `reasoningEffort` values send exact `reasoning_effort` strings: `low`,
+`medium`, `high` or `xhigh`. Disabled and Enabled send boolean `enable_thinking`
+instead. An omitted effort sends neither field and leaves the model default
+unknown. Caller-selected profiles validate the exact supported effort set and
+native-history capability before HTTP; model names never select a profile.
+
+With `preserveReasoning = true`, the broker and session retain completed native
+assistant reasoning separately from visible text and tool results. oMLX history
+uses `reasoning_content`, and the gateway requests
+`chat_template_kwargs: {"preserve_thinking": true}`. Server-forced settings can
+override that request. Ordinary, streaming and structured requests share these
+controls. See [Native reasoning and migration](native-reasoning.md) for the exact
+Qwen3.8 profile and changes from 2.1.
 
 The reasoning of the model is in `LlmGatewayResponse.thinking`. The legacy
 `stream()` API emits it as `ThinkingChunk` events. `generateStreamEvents` emits
@@ -80,7 +89,8 @@ puts the partial reasoning in `content`. Then `thinking` is `null` and
 in the reasoning deltas. The gateway does not move text between the fields.
 
 `content` is an answer only when `finishReason` is `stop`. Examine the finish
-reason before you use the content.
+reason before you use the content. With native retention selected, unfinished
+ordinary or streamed completions fail instead of becoming completed history.
 
 ## Structured output
 

@@ -16,6 +16,7 @@ import com.mojentic.llm.recovery.RecoveryOperation
 import com.mojentic.llm.recovery.RecoveryPolicy
 import com.mojentic.llm.recovery.RecoveryProvider
 import com.mojentic.llm.recovery.recoveryHttpClient
+import com.mojentic.llm.rejectNewReasoningControls
 import com.mojentic.llm.tools.LlmTool
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
@@ -317,6 +318,7 @@ public class OpenAIGateway(
         stream: Boolean,
         responseFormat: OpenAIResponseFormat?,
     ): OpenAIChatRequest {
+        config.rejectNewReasoningControls("OpenAI")
         val reasoning = OpenAIModelRegistry.supportsReasoningEffort(model)
         return OpenAIChatRequest(
             model = model,

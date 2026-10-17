@@ -9,6 +9,7 @@ import com.mojentic.llm.LlmGateway
 import com.mojentic.llm.LlmGatewayResponse
 import com.mojentic.llm.LlmMessage
 import com.mojentic.llm.ModelContextWindow
+import com.mojentic.llm.ReasoningEffort
 import com.mojentic.llm.ResponseFormat
 import com.mojentic.llm.StreamErrorReason
 import com.mojentic.llm.StreamEventsGateway
@@ -19,6 +20,7 @@ import com.mojentic.llm.recovery.RecoveryPolicy
 import com.mojentic.llm.recovery.RecoveryProvider
 import com.mojentic.llm.recovery.recoveryHttpClient
 import com.mojentic.llm.tools.LlmTool
+import com.mojentic.llm.validateReasoning
 import com.mojentic.openai.OpenAIChatRequest
 import com.mojentic.openai.OpenAIChatResponse
 import com.mojentic.openai.OpenAIEmbeddingsResponse
@@ -122,9 +124,11 @@ private const val RESPONSE_FORMAT_WARNING = "response_format_warning"
  * [CompletionConfig.numPredict] are not sent, because oMLX sets the context
  * length per model.
  *
- * `reasoning_effort` is sent as `low`, `medium` or `high`. It goes to the
- * model's chat template, so its effect depends on the model. A null [CompletionConfig.reasoningEffort] leaves the model's
- * default, and Qwen 3 models think by default. The model's reasoning arrives
+ * Disabled and Enabled send boolean `enable_thinking`; named efforts send exact
+ * `reasoning_effort` strings (including `xhigh`). Explicit caller-selected profiles validate
+ * capabilities before HTTP. Retention requests `chat_template_kwargs.preserve_thinking`;
+ * server-forced settings can override that request. A null [CompletionConfig.reasoningEffort]
+ * leaves the provider default unknown. The model's reasoning arrives
  * in [LlmGatewayResponse.thinking].
  *
  * ## Truncation
@@ -213,7 +217,12 @@ public class OmlxGateway internal constructor(
         config: CompletionConfig,
     ): LlmGatewayResponse {
         val request = chatRequest(model, messages, tools, config, stream = false)
-        val (response, warning) = postChat(request, structured = config.responseFormat is ResponseFormat.Json, policy = config.recovery)
+        val (response, warning) = postChat(
+            request,
+            structured = config.responseFormat is ResponseFormat.Json,
+            policy = config.recovery,
+            nativeHistory = config.preserveReasoning,
+        )
         val choice = response.choices.firstOrNull() ?: throw LlmGatewayException("oMLX returned no choices in response")
         val message = choice.message ?: throw LlmGatewayException("oMLX choice missing message")
         return LlmGatewayResponse(
@@ -248,7 +257,7 @@ public class OmlxGateway internal constructor(
             stream = false,
             responseFormat = ResponseFormat.Json(schema).toOpenAIResponseFormat(),
         )
-        val (response, warning) = postChat(request, structured = true, policy = config.recovery)
+        val (response, warning) = postChat(request, structured = true, policy = config.recovery, nativeHistory = config.preserveReasoning)
         val choice = response.choices.firstOrNull()
         val raw = choice?.message?.content
             ?: throw LlmGatewayException("oMLX returned no content for structured-output request")
@@ -284,6 +293,9 @@ public class OmlxGateway internal constructor(
                     val line = channel.readLine() ?: break
                     if (isKeepAliveFrame(line, json)) continue
                     parser.accept(line).forEach { send(it) }
+                }
+                if (config.preserveReasoning && !parser.hasNativeCompletion) {
+                    throw LlmGatewayException("Incomplete native reasoning stream")
                 }
                 parser.finish().forEach { send(it) }
             }
@@ -473,16 +485,27 @@ public class OmlxGateway internal constructor(
         config: CompletionConfig,
         stream: Boolean,
         responseFormat: OpenAIResponseFormat? = config.responseFormat?.toOpenAIResponseFormat(),
-    ): OpenAIChatRequest = OpenAIChatRequest(
-        model = model,
-        messages = messages.toOpenAIMessages(),
-        temperature = config.temperature,
-        maxTokens = config.maxTokens,
-        stream = stream,
-        tools = tools?.toOpenAITools(),
-        responseFormat = responseFormat,
-        reasoningEffort = config.reasoningEffort?.wireValue,
-    )
+    ): OpenAIChatRequest {
+        config.validateReasoning(messages.any { it.reasoningContent != null })
+        return OpenAIChatRequest(
+            model = model,
+            messages = messages.toOpenAIMessages(includeReasoning = true),
+            temperature = config.temperature,
+            maxTokens = config.maxTokens,
+            stream = stream,
+            tools = tools?.toOpenAITools(),
+            responseFormat = responseFormat,
+            reasoningEffort = config.reasoningEffort?.takeUnless {
+                it == ReasoningEffort.DISABLED || it == ReasoningEffort.ENABLED
+            }?.wireValue,
+            enableThinking = when (config.reasoningEffort) {
+                ReasoningEffort.DISABLED -> false
+                ReasoningEffort.ENABLED -> true
+                else -> null
+            },
+            chatTemplateKwargs = if (config.preserveReasoning) JsonObject(mapOf("preserve_thinking" to JsonPrimitive(true))) else null,
+        )
+    }
 
     private suspend fun chatStatement(request: OpenAIChatRequest): HttpStatement =
         httpClient.preparePost("${settings.baseUrl}/chat/completions") {
@@ -496,6 +519,7 @@ public class OmlxGateway internal constructor(
         request: OpenAIChatRequest,
         structured: Boolean,
         policy: RecoveryPolicy?,
+        nativeHistory: Boolean = false,
     ): Pair<OpenAIChatResponse, String?> {
         if (policy != null) {
             val payload = json.encodeToString(OpenAIChatRequest.serializer(), request)
@@ -504,7 +528,7 @@ public class OmlxGateway internal constructor(
                 if (structured) RecoveryOperation.STRUCTURED else RecoveryOperation.COMPLETE,
                 policy,
             ) { body, headers ->
-                val parsed = json.decodeFromString(OpenAIChatResponse.serializer(), body)
+                val parsed = decodeChat(body, nativeHistory)
                 val message = requireNotNull(parsed.choices.firstOrNull()?.message)
                 if (structured) require(json.parseToJsonElement(requireNotNull(message.content)) is JsonObject)
                 val warning = if (structured) {
@@ -524,11 +548,19 @@ public class OmlxGateway internal constructor(
         }
         ensureSuccess(response)
         val body = response.bodyAsText()
-        val parsed = runCatching { json.decodeFromString(OpenAIChatResponse.serializer(), body) }
+        val parsed = runCatching { decodeChat(body, nativeHistory) }
             .getOrElse { throw LlmGatewayException("Failed to parse oMLX chat response: $body", it) }
         val warning = if (structured) response.headers.getAll(HttpHeaders.Warning)?.joinToString(", ") else null
         warning?.let { logger.warn { "oMLX did not enforce the requested response format: $it" } }
         return parsed to warning
+    }
+
+    private fun decodeChat(body: String, nativeHistory: Boolean): OpenAIChatResponse {
+        val parsed = json.decodeFromString(OpenAIChatResponse.serializer(), body)
+        if (nativeHistory && parsed.choices.firstOrNull()?.finishReason !in setOf("stop", "tool_calls")) {
+            throw LlmGatewayException("Incomplete native reasoning response")
+        }
+        return parsed
     }
 
     private suspend fun postModelAction(model: String, action: String) {

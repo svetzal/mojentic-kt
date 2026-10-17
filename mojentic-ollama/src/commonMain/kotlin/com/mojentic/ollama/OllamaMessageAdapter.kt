@@ -1,5 +1,6 @@
 package com.mojentic.ollama
 
+import com.mojentic.llm.GatewayStreamEvent
 import com.mojentic.llm.ImageContent
 import com.mojentic.llm.LlmMessage
 import com.mojentic.llm.LlmToolCall
@@ -23,6 +24,7 @@ internal fun LlmMessage.toOllamaMessage(): OllamaMessage {
         role = role.wireValue,
         content = text,
         images = images,
+        thinking = reasoningContent.takeIf { role == com.mojentic.llm.MessageRole.Assistant },
         toolCalls = toolCalls?.map { it.toOllamaToolCall() },
     )
 }
@@ -46,3 +48,9 @@ internal fun List<LlmTool>.toOllamaTools(): List<OllamaToolWire> = map { tool ->
 @Suppress("unused")
 internal fun List<MessageContent>.flatText(json: Json = Json.Default): String =
     filterIsInstance<TextContent>().joinToString("\n") { it.text }
+
+internal fun OllamaChatResponse.toLegacyStreamEvents(): List<GatewayStreamEvent> = listOfNotNull(
+    message.content?.takeIf { it.isNotEmpty() }?.let { GatewayStreamEvent.Content(it) },
+    message.thinking?.takeIf { it.isNotEmpty() }?.let { GatewayStreamEvent.Thinking(it) },
+    message.toolCalls?.takeIf { it.isNotEmpty() }?.let { calls -> GatewayStreamEvent.ToolCalls(calls.map { it.toLlmToolCall() }) },
+)
