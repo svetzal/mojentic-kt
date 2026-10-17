@@ -1,0 +1,108 @@
+Starting a Gradle Daemon (subsequent builds will be faster)
+> Task :mojentic-core:loadKtlintReporters UP-TO-DATE
+> Task :mojentic-realtime-openai:loadKtlintReporters UP-TO-DATE
+> Task :mojentic-anthropic:loadKtlintReporters UP-TO-DATE
+> Task :mojentic-openai:loadKtlintReporters UP-TO-DATE
+> Task :mojentic-ollama:loadKtlintReporters UP-TO-DATE
+> Task :mojentic-websearch-serpapi:loadKtlintReporters UP-TO-DATE
+> Task :mojentic-core:runKtlintCheckOverAndroidHostTestSourceSet NO-SOURCE
+> Task :mojentic-websearch-serpapi:runKtlintCheckOverAndroidHostTestSourceSet NO-SOURCE
+> Task :mojentic-realtime-openai:runKtlintCheckOverAndroidHostTestSourceSet NO-SOURCE
+> Task :mojentic-core:ktlintAndroidHostTestSourceSetCheck SKIPPED
+> Task :mojentic-ollama:runKtlintCheckOverAndroidHostTestSourceSet NO-SOURCE
+> Task :mojentic-openai:runKtlintCheckOverAndroidHostTestSourceSet NO-SOURCE
+> Task :mojentic-anthropic:runKtlintCheckOverAndroidHostTestSourceSet NO-SOURCE
+> Task :mojentic-realtime-openai:ktlintAndroidHostTestSourceSetCheck SKIPPED
+> Task :mojentic-ollama:ktlintAndroidHostTestSourceSetCheck SKIPPED
+> Task :mojentic-openai:ktlintAndroidHostTestSourceSetCheck SKIPPED
+> Task :mojentic-websearch-serpapi:ktlintAndroidHostTestSourceSetCheck SKIPPED
+> Task :mojentic-anthropic:ktlintAndroidHostTestSourceSetCheck SKIPPED
+> Task :mojentic-realtime-openai:runKtlintCheckOverAndroidMainSourceSet NO-SOURCE
+> Task :mojentic-anthropic:runKtlintCheckOverAndroidMainSourceSet NO-SOURCE
+> Task :mojentic-anthropic:ktlintAndroidMainSourceSetCheck SKIPPED
+> Task :mojentic-websearch-serpapi:runKtlintCheckOverAndroidMainSourceSet NO-SOURCE
+> Task :mojentic-websearch-serpapi:ktlintAndroidMainSourceSetCheck SKIPPED
+> Task :mojentic-ollama:runKtlintCheckOverAndroidMainSourceSet NO-SOURCE
+> Task :mojentic-realtime-openai:ktlintAndroidMainSourceSetCheck SKIPPED
+> Task :mojentic-ollama:ktlintAndroidMainSourceSetCheck SKIPPED
+> Task :mojentic-realtime-openai:runKtlintCheckOverCommonMainSourceSet UP-TO-DATE
+> Task :mojentic-websearch-serpapi:runKtlintCheckOverCommonMainSourceSet UP-TO-DATE
+> Task :mojentic-openai:runKtlintCheckOverAndroidMainSourceSet UP-TO-DATE
+> Task :mojentic-core:runKtlintCheckOverAndroidMainSourceSet UP-TO-DATE
+> Task :mojentic-websearch-serpapi:ktlintCommonMainSourceSetCheck UP-TO-DATE
+> Task :mojentic-core:ktlintAndroidMainSourceSetCheck UP-TO-DATE
+> Task :mojentic-openai:ktlintAndroidMainSourceSetCheck UP-TO-DATE
+> Task :mojentic-realtime-openai:ktlintCommonMainSourceSetCheck UP-TO-DATE
+> Task :mojentic-realtime-openai:runKtlintCheckOverCommonTestSourceSet UP-TO-DATE
+> Task :mojentic-websearch-serpapi:runKtlintCheckOverCommonTestSourceSet UP-TO-DATE
+> Task :mojentic-realtime-openai:ktlintCommonTestSourceSetCheck UP-TO-DATE
+> Task :mojentic-websearch-serpapi:ktlintCommonTestSourceSetCheck UP-TO-DATE
+> Task :mojentic-realtime-openai:runKtlintCheckOverJvmMainSourceSet NO-SOURCE
+> Task :mojentic-websearch-serpapi:runKtlintCheckOverJvmMainSourceSet NO-SOURCE
+> Task :mojentic-websearch-serpapi:ktlintJvmMainSourceSetCheck SKIPPED
+> Task :mojentic-realtime-openai:ktlintJvmMainSourceSetCheck SKIPPED
+> Task :mojentic-websearch-serpapi:runKtlintCheckOverJvmTestSourceSet NO-SOURCE
+> Task :mojentic-realtime-openai:runKtlintCheckOverJvmTestSourceSet NO-SOURCE
+> Task :mojentic-realtime-openai:ktlintJvmTestSourceSetCheck SKIPPED
+> Task :mojentic-websearch-serpapi:ktlintJvmTestSourceSetCheck SKIPPED
+> Task :mojentic-websearch-serpapi:runKtlintCheckOverKotlinScripts UP-TO-DATE
+> Task :mojentic-realtime-openai:runKtlintCheckOverKotlinScripts UP-TO-DATE
+> Task :mojentic-realtime-openai:ktlintKotlinScriptCheck UP-TO-DATE
+> Task :mojentic-realtime-openai:ktlintCheck UP-TO-DATE
+> Task :mojentic-websearch-serpapi:ktlintKotlinScriptCheck UP-TO-DATE
+> Task :mojentic-websearch-serpapi:ktlintCheck UP-TO-DATE
+> Task :mojentic-anthropic:runKtlintCheckOverCommonTestSourceSet
+> Task :mojentic-ollama:runKtlintCheckOverCommonMainSourceSet
+> Task :mojentic-anthropic:runKtlintCheckOverJvmMainSourceSet NO-SOURCE
+> Task :mojentic-core:runKtlintCheckOverJvmMainSourceSet UP-TO-DATE
+> Task :mojentic-core:ktlintJvmMainSourceSetCheck UP-TO-DATE
+> Task :mojentic-core:runKtlintCheckOverJvmTestSourceSet NO-SOURCE
+> Task :mojentic-core:ktlintJvmTestSourceSetCheck SKIPPED
+> Task :mojentic-core:runKtlintCheckOverKotlinScripts UP-TO-DATE
+> Task :mojentic-core:ktlintKotlinScriptCheck UP-TO-DATE
+> Task :mojentic-anthropic:ktlintCommonTestSourceSetCheck
+> Task :mojentic-anthropic:ktlintJvmMainSourceSetCheck SKIPPED
+> Task :mojentic-anthropic:runKtlintCheckOverCommonMainSourceSet
+> Task :mojentic-ollama:ktlintCommonMainSourceSetCheck
+> Task :mojentic-ollama:runKtlintCheckOverJvmMainSourceSet NO-SOURCE
+> Task :mojentic-ollama:ktlintJvmMainSourceSetCheck SKIPPED
+> Task :mojentic-ollama:runKtlintCheckOverJvmTestSourceSet UP-TO-DATE
+> Task :mojentic-openai:runKtlintCheckOverJvmMainSourceSet UP-TO-DATE
+> Task :mojentic-ollama:ktlintJvmTestSourceSetCheck UP-TO-DATE
+> Task :mojentic-anthropic:runKtlintCheckOverKotlinScripts UP-TO-DATE
+> Task :mojentic-anthropic:ktlintKotlinScriptCheck UP-TO-DATE
+> Task :mojentic-ollama:runKtlintCheckOverCommonTestSourceSet
+> Task :mojentic-ollama:runKtlintCheckOverKotlinScripts UP-TO-DATE
+> Task :mojentic-openai:ktlintJvmMainSourceSetCheck UP-TO-DATE
+> Task :mojentic-anthropic:ktlintCommonMainSourceSetCheck
+> Task :mojentic-ollama:ktlintKotlinScriptCheck UP-TO-DATE
+> Task :mojentic-ollama:ktlintCommonTestSourceSetCheck
+> Task :mojentic-ollama:ktlintCheck
+> Task :mojentic-openai:runKtlintCheckOverKotlinScripts UP-TO-DATE
+> Task :mojentic-openai:ktlintKotlinScriptCheck UP-TO-DATE
+> Task :mojentic-openai:runKtlintCheckOverCommonMainSourceSet
+> Task :mojentic-openai:ktlintCommonMainSourceSetCheck
+> Task :mojentic-openai:runKtlintCheckOverCommonTestSourceSet
+> Task :mojentic-openai:ktlintCommonTestSourceSetCheck
+> Task :mojentic-anthropic:runKtlintCheckOverJvmTestSourceSet
+> Task :mojentic-anthropic:ktlintJvmTestSourceSetCheck
+> Task :mojentic-anthropic:ktlintCheck
+> Task :mojentic-core:runKtlintCheckOverCommonTestSourceSet
+> Task :mojentic-core:runKtlintCheckOverCommonMainSourceSet
+> Task :mojentic-core:ktlintCommonTestSourceSetCheck
+> Task :mojentic-core:ktlintCommonMainSourceSetCheck
+> Task :mojentic-core:ktlintCheck
+> Task :mojentic-openai:runKtlintCheckOverJvmTestSourceSet
+> Task :mojentic-openai:ktlintJvmTestSourceSetCheck
+> Task :mojentic-openai:ktlintCheck
+
+[Incubating] Problems report is available at: file:///home/svetzal/Work/Projects/Personal/mojentic-unify/mojentic-kt/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.8.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 48s
+56 actionable tasks: 20 executed, 36 up-to-date

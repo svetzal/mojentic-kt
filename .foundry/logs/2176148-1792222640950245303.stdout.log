@@ -1,0 +1,254 @@
+> Task :mojentic-core:kmpPartiallyResolvedDependenciesChecker
+> Task :mojentic-core:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :mojentic-core:transformCommonMainDependenciesMetadata UP-TO-DATE
+> Task :mojentic-core:compileCommonMainKotlinMetadata SKIPPED
+> Task :mojentic-core:generateProjectStructureMetadata UP-TO-DATE
+> Task :mojentic-core:metadataCommonMainProcessResources NO-SOURCE
+> Task :mojentic-core:metadataCommonMainClasses UP-TO-DATE
+> Task :mojentic-core:allMetadataJar UP-TO-DATE
+> Task :mojentic-core:exportCommonSourceSetsMetadataLocationsForMetadataApiElements UP-TO-DATE
+> Task :mojentic-anthropic:transformCommonMainDependenciesMetadata UP-TO-DATE
+> Task :mojentic-openai:transformCommonMainDependenciesMetadata UP-TO-DATE
+> Task :mojentic-ollama:transformCommonMainDependenciesMetadata UP-TO-DATE
+> Task :mojentic-realtime-openai:transformCommonMainDependenciesMetadata UP-TO-DATE
+> Task :mojentic-websearch-serpapi:transformCommonMainDependenciesMetadata UP-TO-DATE
+> Task :mojentic-core:compileAndroidMain UP-TO-DATE
+> Task :mojentic-core:androidPreBuild UP-TO-DATE
+> Task :mojentic-core:preAndroidMainBuild UP-TO-DATE
+> Task :mojentic-core:bundleAndroidMainClassesToCompileJar UP-TO-DATE
+> Task :mojentic-core:compileKotlinJvm UP-TO-DATE
+> Task :mojentic-core:compileJvmMainJava NO-SOURCE
+> Task :mojentic-core:jvmProcessResources NO-SOURCE
+> Task :mojentic-core:processJvmMainResources SKIPPED
+> Task :mojentic-core:jvmMainClasses UP-TO-DATE
+> Task :mojentic-core:jvmJar UP-TO-DATE
+w: [:mojentic-ollama:dokkaGenerateModuleHtml] Couldn't resolve link: [MessageContent] in OllamaMessageAdapter.kt/com.mojentic.ollama.flatText (:mojentic-ollama/commonMain)
+w: [:mojentic-realtime-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [RealtimeVoiceConfig] in OpenAiRealtimeGateway.kt/com.mojentic.realtime.openai.OpenAiRealtimeGateway (:mojentic-realtime-openai/commonMain)
+w: [:mojentic-realtime-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [Flow] in OpenAiRealtimeGateway.kt/com.mojentic.realtime.openai.OpenAiRealtimeGateway (:mojentic-realtime-openai/commonMain)
+w: [:mojentic-realtime-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [RealtimeVoiceConfig] in OpenAiRealtimeGateway.kt (:mojentic-realtime-openai/commonMain)
+w: [:mojentic-realtime-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [Flow] in OpenAiRealtimeGateway.kt (:mojentic-realtime-openai/commonMain)
+w: [:mojentic-ollama:dokkaGeneratePublicationHtml] Couldn't resolve link: [MessageContent] in OllamaMessageAdapter.kt/com.mojentic.ollama.flatText (:mojentic-ollama/commonMain)
+w: [:mojentic-anthropic:dokkaGenerateModuleHtml] Couldn't resolve link: [LlmGateway] in AnthropicGateway.kt/com.mojentic.anthropic.AnthropicGateway (:mojentic-anthropic/commonMain)
+w: [:mojentic-anthropic:dokkaGenerateModuleHtml] Couldn't resolve link: [CompletionConfig.recovery] in AnthropicGateway.kt/com.mojentic.anthropic.AnthropicGateway (:mojentic-anthropic/commonMain)
+w: [:mojentic-anthropic:dokkaGenerateModuleHtml] Couldn't resolve link: [LlmGateway] in AnthropicGateway.kt (:mojentic-anthropic/commonMain)
+w: [:mojentic-anthropic:dokkaGenerateModuleHtml] Couldn't resolve link: [CompletionConfig.recovery] in AnthropicGateway.kt (:mojentic-anthropic/commonMain)
+w: [:mojentic-websearch-serpapi:dokkaGenerateModuleHtml] Couldn't resolve link: [WebSearchGateway] in SerpApiWebSearchGateway.kt/com.mojentic.websearch.serpapi.SerpApiWebSearchGateway (:mojentic-websearch-serpapi/commonMain)
+w: [:mojentic-websearch-serpapi:dokkaGenerateModuleHtml] Couldn't resolve link: [WebSearchGateway] in SerpApiWebSearchGateway.kt (:mojentic-websearch-serpapi/commonMain)
+w: [:mojentic-anthropic:dokkaGeneratePublicationHtml] Couldn't resolve link: [LlmGateway] in AnthropicGateway.kt/com.mojentic.anthropic.AnthropicGateway (:mojentic-anthropic/commonMain)
+w: [:mojentic-anthropic:dokkaGeneratePublicationHtml] Couldn't resolve link: [CompletionConfig.recovery] in AnthropicGateway.kt/com.mojentic.anthropic.AnthropicGateway (:mojentic-anthropic/commonMain)
+w: [:mojentic-anthropic:dokkaGeneratePublicationHtml] Couldn't resolve link: [LlmGateway] in AnthropicGateway.kt (:mojentic-anthropic/commonMain)
+w: [:mojentic-anthropic:dokkaGeneratePublicationHtml] Couldn't resolve link: [CompletionConfig.recovery] in AnthropicGateway.kt (:mojentic-anthropic/commonMain)
+w: [:mojentic-realtime-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [ClientRealtimeEvent] in OpenAiEventCodec.kt/com.mojentic.realtime.openai.internal.OpenAiEventCodec (:mojentic-realtime-openai/commonMain)
+w: [:mojentic-realtime-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [AudioFrame] in OpenAiEventCodec.kt/com.mojentic.realtime.openai.internal.OpenAiEventCodec (:mojentic-realtime-openai/commonMain)
+w: [:mojentic-realtime-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [ClientRealtimeEvent] in OpenAiEventCodec.kt (:mojentic-realtime-openai/commonMain)
+w: [:mojentic-realtime-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [AudioFrame] in OpenAiEventCodec.kt (:mojentic-realtime-openai/commonMain)
+w: [:mojentic-realtime-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [AudioFrame] in OpenAiEventCodec.kt/com.mojentic.realtime.openai.internal.OpenAiEventCodec.encodeAudio (:mojentic-realtime-openai/commonMain)
+w: [:mojentic-realtime-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [AudioFrame] in OpenAiEventCodec.kt/com.mojentic.realtime.openai.internal.OpenAiEventCodec.decodeAudio (:mojentic-realtime-openai/commonMain)
+w: [:mojentic-ollama:dokkaGenerateModuleHtml] Couldn't resolve link: [CompletionStreamEvent] in OllamaGateway.kt/com.mojentic.ollama.OllamaGateway.streamEvents (:mojentic-ollama/commonMain)
+w: [:mojentic-ollama:dokkaGenerateModuleHtml] Couldn't resolve link: [com.mojentic.llm.LlmBroker.generateStreamEvents] in OllamaGateway.kt/com.mojentic.ollama.OllamaGateway.streamEvents (:mojentic-ollama/commonMain)
+w: [:mojentic-ollama:dokkaGeneratePublicationHtml] Couldn't resolve link: [CompletionStreamEvent] in OllamaGateway.kt/com.mojentic.ollama.OllamaGateway.streamEvents (:mojentic-ollama/commonMain)
+w: [:mojentic-ollama:dokkaGeneratePublicationHtml] Couldn't resolve link: [com.mojentic.llm.LlmBroker.generateStreamEvents] in OllamaGateway.kt/com.mojentic.ollama.OllamaGateway.streamEvents (:mojentic-ollama/commonMain)
+w: [:mojentic-anthropic:dokkaGenerateModuleHtml] Couldn't resolve link: [GatewayStreamEvent.Content] in AnthropicStreamAccumulator.kt/com.mojentic.anthropic.AnthropicStreamAccumulator (:mojentic-anthropic/commonMain)
+w: [:mojentic-anthropic:dokkaGenerateModuleHtml] Couldn't resolve link: [GatewayStreamEvent.Thinking] in AnthropicStreamAccumulator.kt/com.mojentic.anthropic.AnthropicStreamAccumulator (:mojentic-anthropic/commonMain)
+w: [:mojentic-anthropic:dokkaGenerateModuleHtml] Couldn't resolve link: [GatewayStreamEvent.Content] in AnthropicStreamAccumulator.kt (:mojentic-anthropic/commonMain)
+w: [:mojentic-anthropic:dokkaGenerateModuleHtml] Couldn't resolve link: [GatewayStreamEvent.Thinking] in AnthropicStreamAccumulator.kt (:mojentic-anthropic/commonMain)
+w: [:mojentic-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [CompletionConfig.numCtx] in OmlxGateway.kt/com.mojentic.omlx.OmlxGateway (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [CompletionConfig.numPredict] in OmlxGateway.kt/com.mojentic.omlx.OmlxGateway (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [CompletionConfig.reasoningEffort] in OmlxGateway.kt/com.mojentic.omlx.OmlxGateway (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [LlmGatewayResponse.thinking] in OmlxGateway.kt/com.mojentic.omlx.OmlxGateway (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [LlmGatewayResponse.finishReason] in OmlxGateway.kt/com.mojentic.omlx.OmlxGateway (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [CompletionConfig.responseFormat] in OmlxGateway.kt/com.mojentic.omlx.OmlxGateway (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [ResponseFormat.Json] in OmlxGateway.kt/com.mojentic.omlx.OmlxGateway (:mojentic-openai/commonMain)
+w: [:mojentic-anthropic:dokkaGeneratePublicationHtml] Couldn't resolve link: [GatewayStreamEvent.Content] in AnthropicStreamAccumulator.kt/com.mojentic.anthropic.AnthropicStreamAccumulator (:mojentic-anthropic/commonMain)
+w: [:mojentic-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [LlmGatewayResponse.metadata] in OmlxGateway.kt/com.mojentic.omlx.OmlxGateway (:mojentic-openai/commonMain)
+w: [:mojentic-anthropic:dokkaGeneratePublicationHtml] Couldn't resolve link: [GatewayStreamEvent.Thinking] in AnthropicStreamAccumulator.kt/com.mojentic.anthropic.AnthropicStreamAccumulator (:mojentic-anthropic/commonMain)
+w: [:mojentic-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [GatewayStreamEvent.Thinking] in OmlxGateway.kt/com.mojentic.omlx.OmlxGateway (:mojentic-openai/commonMain)
+w: [:mojentic-anthropic:dokkaGeneratePublicationHtml] Couldn't resolve link: [GatewayStreamEvent.Content] in AnthropicStreamAccumulator.kt (:mojentic-anthropic/commonMain)
+w: [:mojentic-anthropic:dokkaGeneratePublicationHtml] Couldn't resolve link: [GatewayStreamEvent.Thinking] in AnthropicStreamAccumulator.kt (:mojentic-anthropic/commonMain)
+w: [:mojentic-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [LlmGatewayException] in OmlxGateway.kt/com.mojentic.omlx.OmlxGateway (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [StreamErrorReason.ProviderError] in OmlxGateway.kt/com.mojentic.omlx.OmlxGateway (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [CompletionConfig.numCtx] in OmlxGateway.kt (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [CompletionConfig.numPredict] in OmlxGateway.kt (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [CompletionConfig.reasoningEffort] in OmlxGateway.kt (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [LlmGatewayResponse.thinking] in OmlxGateway.kt (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [LlmGatewayResponse.finishReason] in OmlxGateway.kt (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [CompletionConfig.responseFormat] in OmlxGateway.kt (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [ResponseFormat.Json] in OmlxGateway.kt (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [LlmGatewayResponse.metadata] in OmlxGateway.kt (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [GatewayStreamEvent.Thinking] in OmlxGateway.kt (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [LlmGatewayException] in OmlxGateway.kt (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [StreamErrorReason.ProviderError] in OmlxGateway.kt (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [CompletionStreamEvent] in OmlxGateway.kt/com.mojentic.omlx.OmlxGateway.streamEvents (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [com.mojentic.llm.LlmBroker.generateStreamEvents] in OmlxGateway.kt/com.mojentic.omlx.OmlxGateway.streamEvents (:mojentic-openai/commonMain)
+w: [:mojentic-ollama:dokkaGeneratePublicationHtml] Couldn't resolve link: [CompletionStreamEvent] in OllamaStreamEventParser.kt/com.mojentic.ollama.OllamaStreamEventParser (:mojentic-ollama/commonMain)
+w: [:mojentic-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [LlmGatewayException] in OmlxGateway.kt/com.mojentic.omlx.OmlxGateway.availableModels (:mojentic-openai/commonMain)
+w: [:mojentic-ollama:dokkaGeneratePublicationHtml] Couldn't resolve link: [CompletionStreamEvent] in OllamaStreamEventParser.kt (:mojentic-ollama/commonMain)
+w: [:mojentic-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [LlmGatewayException] in OmlxGateway.kt/com.mojentic.omlx.OmlxGateway.loadModel (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [LlmGatewayException] in OmlxGateway.kt/com.mojentic.omlx.OmlxGateway.unloadModel (:mojentic-openai/commonMain)
+w: [:mojentic-ollama:dokkaGenerateModuleHtml] Couldn't resolve link: [CompletionStreamEvent] in OllamaStreamEventParser.kt/com.mojentic.ollama.OllamaStreamEventParser (:mojentic-ollama/commonMain)
+w: [:mojentic-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [LlmGatewayException] in OmlxGateway.kt/com.mojentic.omlx.OmlxGateway.embed (:mojentic-openai/commonMain)
+w: [:mojentic-ollama:dokkaGenerateModuleHtml] Couldn't resolve link: [CompletionStreamEvent] in OllamaStreamEventParser.kt (:mojentic-ollama/commonMain)
+w: [:mojentic-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [CompletionConfig.recovery] in OpenAIGateway.kt/com.mojentic.openai.OpenAIGateway (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [CompletionConfig.recovery] in OpenAIGateway.kt (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [CompletionStreamEvent] in OpenAIGateway.kt/com.mojentic.openai.OpenAIGateway.streamEvents (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [com.mojentic.llm.LlmBroker.generateStreamEvents] in OpenAIGateway.kt/com.mojentic.openai.OpenAIGateway.streamEvents (:mojentic-openai/commonMain)
+> Task :mojentic-realtime-openai:dokkaGenerateModuleHtml
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [CoroutineScope] in AsyncDispatcher.kt/com.mojentic.agents.AsyncDispatcher (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [CoroutineScope] in AsyncDispatcher.kt (:mojentic-core/commonMain)
+w: [:mojentic-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [GatewayStreamEvent] in OpenAILegacyStreamParser.kt/com.mojentic.openai.OpenAILegacyStreamParser (:mojentic-openai/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [Job] in AsyncDispatcher.kt/com.mojentic.agents.AsyncDispatcher.start (:mojentic-core/commonMain)
+w: [:mojentic-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [GatewayStreamEvent] in OpenAILegacyStreamParser.kt (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [GatewayStreamEvent.ToolCalls] in OpenAILegacyStreamParser.kt/com.mojentic.openai.OpenAILegacyStreamParser.finish (:mojentic-openai/commonMain)
+> Task :mojentic-websearch-serpapi:dokkaGenerateModuleHtml
+> Task :mojentic-anthropic:dokkaGenerateModuleHtml
+> Task :mojentic-core:dokkaGenerateModuleHtml
+> Task :mojentic-openai:dokkaGenerateModuleHtml
+> Task :mojentic-ollama:dokkaGenerateModuleHtml
+> Task :mojentic-ollama:dokkaGeneratePublicationHtml
+> Task :mojentic-ollama:logLinkDokkaGeneratePublicationHtml SKIPPED
+> Task :mojentic-ollama:dokkaGenerate
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [SimpleRecursiveAgent.observe] in SimpleRecursiveAgent.kt/com.mojentic.agents.GoalState (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [SimpleRecursiveAgent.observe] in SimpleRecursiveAgent.kt (:mojentic-core/commonMain)
+> Task :mojentic-anthropic:dokkaGeneratePublicationHtml
+
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [kotlinx.coroutines.flow.SharedFlow] in SimpleRecursiveAgent.kt/com.mojentic.agents.SimpleRecursiveAgent (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [kotlinx.coroutines.flow.SharedFlow] in SimpleRecursiveAgent.kt (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [Mutex] in SharedWorkingMemory.kt/com.mojentic.context.SharedWorkingMemory (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [Mutex] in SharedWorkingMemory.kt (:mojentic-core/commonMain)
+
+> Task :mojentic-anthropic:logLinkDokkaGeneratePublicationHtml SKIPPED
+> Task :mojentic-anthropic:dokkaGenerate
+w: [:mojentic-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [CompletionStreamEvent] in OpenAIStreamEventParser.kt/com.mojentic.openai.OpenAIStreamEventParser (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [CompletionStreamEvent] in OpenAIStreamEventParser.kt (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [LlmToolCall] in StreamingToolCallAccumulator.kt/com.mojentic.openai.StreamingToolCallAccumulator (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGenerateModuleHtml] Couldn't resolve link: [LlmToolCall] in StreamingToolCallAccumulator.kt (:mojentic-openai/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [SerialDescriptor] in JsonSchemaGenerator.kt/com.mojentic.internal.JsonSchemaGenerator (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [SerialDescriptor] in JsonSchemaGenerator.kt (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [Mutex] in ChatSession.kt/com.mojentic.llm.ChatSession (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [Mutex] in ChatSession.kt (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [com.mojentic.llm.gateway.LlmGateway] in Messages.kt/com.mojentic.llm.LlmGatewayResponse (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [com.mojentic.llm.gateway.LlmGateway] in Messages.kt (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [com.mojentic.llm.Broker.LlmBroker.stream] in StreamEvent.kt/com.mojentic.llm.StreamEvent (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [com.mojentic.llm.gateway.LlmGateway.stream] in StreamEvent.kt/com.mojentic.llm.GatewayStreamEvent (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [Regex] in Glob.kt/com.mojentic.llm.tools.files.globToRegex (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [okio.FileSystem] in OkioFilesystemGateway.kt/com.mojentic.llm.tools.files.OkioFilesystemGateway (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [okio.FileSystem] in OkioFilesystemGateway.kt (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [Mutex] in EphemeralTaskList.kt/com.mojentic.llm.tools.tasks.EphemeralTaskList (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [Mutex] in EphemeralTaskList.kt (:mojentic-core/commonMain)
+w: [:mojentic-websearch-serpapi:dokkaGeneratePublicationHtml] Couldn't resolve link: [WebSearchGateway] in SerpApiWebSearchGateway.kt/com.mojentic.websearch.serpapi.SerpApiWebSearchGateway (:mojentic-websearch-serpapi/commonMain)
+w: [:mojentic-websearch-serpapi:dokkaGeneratePublicationHtml] Couldn't resolve link: [WebSearchGateway] in SerpApiWebSearchGateway.kt (:mojentic-websearch-serpapi/commonMain)
+w: [:mojentic-realtime-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [RealtimeVoiceConfig] in OpenAiRealtimeGateway.kt/com.mojentic.realtime.openai.OpenAiRealtimeGateway (:mojentic-realtime-openai/commonMain)
+w: [:mojentic-realtime-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [Flow] in OpenAiRealtimeGateway.kt/com.mojentic.realtime.openai.OpenAiRealtimeGateway (:mojentic-realtime-openai/commonMain)
+w: [:mojentic-realtime-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [RealtimeVoiceConfig] in OpenAiRealtimeGateway.kt (:mojentic-realtime-openai/commonMain)
+w: [:mojentic-realtime-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [Flow] in OpenAiRealtimeGateway.kt (:mojentic-realtime-openai/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [create] in RealtimeSession.kt/com.mojentic.realtime.RealtimeSessionWiring (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [create] in RealtimeSession.kt (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [Job] in RealtimeSession.kt/com.mojentic.realtime.RealtimeSession.sendAudio (:mojentic-core/commonMain)
+w: [:mojentic-realtime-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [ClientRealtimeEvent] in OpenAiEventCodec.kt/com.mojentic.realtime.openai.internal.OpenAiEventCodec (:mojentic-realtime-openai/commonMain)
+w: [:mojentic-realtime-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [AudioFrame] in OpenAiEventCodec.kt/com.mojentic.realtime.openai.internal.OpenAiEventCodec (:mojentic-realtime-openai/commonMain)
+w: [:mojentic-realtime-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [ClientRealtimeEvent] in OpenAiEventCodec.kt (:mojentic-realtime-openai/commonMain)
+w: [:mojentic-realtime-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [AudioFrame] in OpenAiEventCodec.kt (:mojentic-realtime-openai/commonMain)
+w: [:mojentic-realtime-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [AudioFrame] in OpenAiEventCodec.kt/com.mojentic.realtime.openai.internal.OpenAiEventCodec.encodeAudio (:mojentic-realtime-openai/commonMain)
+w: [:mojentic-realtime-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [AudioFrame] in OpenAiEventCodec.kt/com.mojentic.realtime.openai.internal.OpenAiEventCodec.decodeAudio (:mojentic-realtime-openai/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [SharedFlow] in EventStore.kt/com.mojentic.tracer.EventStore (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [Mutex] in EventStore.kt/com.mojentic.tracer.EventStore (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [SharedFlow] in EventStore.kt (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [Mutex] in EventStore.kt (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [SharedFlow] in EventStore.kt/com.mojentic.tracer.EventStore.store (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [MutableSharedFlow.tryEmit] in EventStore.kt/com.mojentic.tracer.EventStore.store (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [CoroutineScope] in AsyncDispatcher.kt/com.mojentic.agents.AsyncDispatcher (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [CoroutineScope] in AsyncDispatcher.kt (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [Job] in AsyncDispatcher.kt/com.mojentic.agents.AsyncDispatcher.start (:mojentic-core/commonMain)
+w: [:mojentic-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [CompletionConfig.numCtx] in OmlxGateway.kt/com.mojentic.omlx.OmlxGateway (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [CompletionConfig.numPredict] in OmlxGateway.kt/com.mojentic.omlx.OmlxGateway (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [CompletionConfig.reasoningEffort] in OmlxGateway.kt/com.mojentic.omlx.OmlxGateway (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [LlmGatewayResponse.thinking] in OmlxGateway.kt/com.mojentic.omlx.OmlxGateway (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [LlmGatewayResponse.finishReason] in OmlxGateway.kt/com.mojentic.omlx.OmlxGateway (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [CompletionConfig.responseFormat] in OmlxGateway.kt/com.mojentic.omlx.OmlxGateway (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [ResponseFormat.Json] in OmlxGateway.kt/com.mojentic.omlx.OmlxGateway (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [LlmGatewayResponse.metadata] in OmlxGateway.kt/com.mojentic.omlx.OmlxGateway (:mojentic-openai/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [SimpleRecursiveAgent.observe] in SimpleRecursiveAgent.kt/com.mojentic.agents.GoalState (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [SimpleRecursiveAgent.observe] in SimpleRecursiveAgent.kt (:mojentic-core/commonMain)
+w: [:mojentic-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [GatewayStreamEvent.Thinking] in OmlxGateway.kt/com.mojentic.omlx.OmlxGateway (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [LlmGatewayException] in OmlxGateway.kt/com.mojentic.omlx.OmlxGateway (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [StreamErrorReason.ProviderError] in OmlxGateway.kt/com.mojentic.omlx.OmlxGateway (:mojentic-openai/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [kotlinx.coroutines.flow.SharedFlow] in SimpleRecursiveAgent.kt/com.mojentic.agents.SimpleRecursiveAgent (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [kotlinx.coroutines.flow.SharedFlow] in SimpleRecursiveAgent.kt (:mojentic-core/commonMain)
+w: [:mojentic-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [CompletionConfig.numCtx] in OmlxGateway.kt (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [CompletionConfig.numPredict] in OmlxGateway.kt (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [CompletionConfig.reasoningEffort] in OmlxGateway.kt (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [LlmGatewayResponse.thinking] in OmlxGateway.kt (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [LlmGatewayResponse.finishReason] in OmlxGateway.kt (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [CompletionConfig.responseFormat] in OmlxGateway.kt (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [ResponseFormat.Json] in OmlxGateway.kt (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [LlmGatewayResponse.metadata] in OmlxGateway.kt (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [GatewayStreamEvent.Thinking] in OmlxGateway.kt (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [LlmGatewayException] in OmlxGateway.kt (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [StreamErrorReason.ProviderError] in OmlxGateway.kt (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [CompletionStreamEvent] in OmlxGateway.kt/com.mojentic.omlx.OmlxGateway.streamEvents (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [com.mojentic.llm.LlmBroker.generateStreamEvents] in OmlxGateway.kt/com.mojentic.omlx.OmlxGateway.streamEvents (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [LlmGatewayException] in OmlxGateway.kt/com.mojentic.omlx.OmlxGateway.availableModels (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [LlmGatewayException] in OmlxGateway.kt/com.mojentic.omlx.OmlxGateway.loadModel (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [LlmGatewayException] in OmlxGateway.kt/com.mojentic.omlx.OmlxGateway.unloadModel (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [LlmGatewayException] in OmlxGateway.kt/com.mojentic.omlx.OmlxGateway.embed (:mojentic-openai/commonMain)
+> Task :mojentic-realtime-openai:dokkaGeneratePublicationHtml
+> Task :mojentic-realtime-openai:logLinkDokkaGeneratePublicationHtml SKIPPED
+> Task :mojentic-realtime-openai:dokkaGenerate
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [Mutex] in SharedWorkingMemory.kt/com.mojentic.context.SharedWorkingMemory (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [Mutex] in SharedWorkingMemory.kt (:mojentic-core/commonMain)
+w: [:mojentic-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [CompletionConfig.recovery] in OpenAIGateway.kt/com.mojentic.openai.OpenAIGateway (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [CompletionConfig.recovery] in OpenAIGateway.kt (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [CompletionStreamEvent] in OpenAIGateway.kt/com.mojentic.openai.OpenAIGateway.streamEvents (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [com.mojentic.llm.LlmBroker.generateStreamEvents] in OpenAIGateway.kt/com.mojentic.openai.OpenAIGateway.streamEvents (:mojentic-openai/commonMain)
+> Task :mojentic-websearch-serpapi:dokkaGeneratePublicationHtml
+> Task :mojentic-websearch-serpapi:logLinkDokkaGeneratePublicationHtml SKIPPED
+> Task :mojentic-websearch-serpapi:dokkaGenerate
+w: [:mojentic-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [GatewayStreamEvent] in OpenAILegacyStreamParser.kt/com.mojentic.openai.OpenAILegacyStreamParser (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [GatewayStreamEvent] in OpenAILegacyStreamParser.kt (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [GatewayStreamEvent.ToolCalls] in OpenAILegacyStreamParser.kt/com.mojentic.openai.OpenAILegacyStreamParser.finish (:mojentic-openai/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [SerialDescriptor] in JsonSchemaGenerator.kt/com.mojentic.internal.JsonSchemaGenerator (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [SerialDescriptor] in JsonSchemaGenerator.kt (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [Mutex] in ChatSession.kt/com.mojentic.llm.ChatSession (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [Mutex] in ChatSession.kt (:mojentic-core/commonMain)
+w: [:mojentic-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [CompletionStreamEvent] in OpenAIStreamEventParser.kt/com.mojentic.openai.OpenAIStreamEventParser (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [CompletionStreamEvent] in OpenAIStreamEventParser.kt (:mojentic-openai/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [com.mojentic.llm.gateway.LlmGateway] in Messages.kt/com.mojentic.llm.LlmGatewayResponse (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [com.mojentic.llm.gateway.LlmGateway] in Messages.kt (:mojentic-core/commonMain)
+w: [:mojentic-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [LlmToolCall] in StreamingToolCallAccumulator.kt/com.mojentic.openai.StreamingToolCallAccumulator (:mojentic-openai/commonMain)
+w: [:mojentic-openai:dokkaGeneratePublicationHtml] Couldn't resolve link: [LlmToolCall] in StreamingToolCallAccumulator.kt (:mojentic-openai/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [com.mojentic.llm.Broker.LlmBroker.stream] in StreamEvent.kt/com.mojentic.llm.StreamEvent (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [com.mojentic.llm.gateway.LlmGateway.stream] in StreamEvent.kt/com.mojentic.llm.GatewayStreamEvent (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [Regex] in Glob.kt/com.mojentic.llm.tools.files.globToRegex (:mojentic-core/commonMain)
+> Task :mojentic-openai:dokkaGeneratePublicationHtml
+> Task :mojentic-openai:logLinkDokkaGeneratePublicationHtml SKIPPED
+> Task :mojentic-openai:dokkaGenerate
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [okio.FileSystem] in OkioFilesystemGateway.kt/com.mojentic.llm.tools.files.OkioFilesystemGateway (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [okio.FileSystem] in OkioFilesystemGateway.kt (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [Mutex] in EphemeralTaskList.kt/com.mojentic.llm.tools.tasks.EphemeralTaskList (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [Mutex] in EphemeralTaskList.kt (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [create] in RealtimeSession.kt/com.mojentic.realtime.RealtimeSessionWiring (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [create] in RealtimeSession.kt (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [Job] in RealtimeSession.kt/com.mojentic.realtime.RealtimeSession.sendAudio (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [SharedFlow] in EventStore.kt/com.mojentic.tracer.EventStore (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [Mutex] in EventStore.kt/com.mojentic.tracer.EventStore (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [SharedFlow] in EventStore.kt (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [Mutex] in EventStore.kt (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [SharedFlow] in EventStore.kt/com.mojentic.tracer.EventStore.store (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [MutableSharedFlow.tryEmit] in EventStore.kt/com.mojentic.tracer.EventStore.store (:mojentic-core/commonMain)
+> Task :mojentic-core:dokkaGeneratePublicationHtml
+> Task :mojentic-core:logLinkDokkaGeneratePublicationHtml SKIPPED
+> Task :mojentic-core:dokkaGenerate
+> Task :dokkaGeneratePublicationHtml
+> Task :logLinkDokkaGeneratePublicationHtml SKIPPED
+> Task :dokkaGenerate
+
+[Incubating] Problems report is available at: file:///home/svetzal/Work/Projects/Personal/mojentic-unify/mojentic-kt/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.8.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 1m 7s
+27 actionable tasks: 14 executed, 13 up-to-date

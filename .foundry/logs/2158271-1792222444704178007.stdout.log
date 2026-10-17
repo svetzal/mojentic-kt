@@ -1,0 +1,173 @@
+> Task :mojentic-websearch-serpapi:kmpPartiallyResolvedDependenciesChecker
+> Task :mojentic-websearch-serpapi:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :mojentic-websearch-serpapi:androidPreBuild UP-TO-DATE
+> Task :mojentic-websearch-serpapi:preAndroidMainBuild UP-TO-DATE
+> Task :mojentic-ollama:kmpPartiallyResolvedDependenciesChecker
+> Task :mojentic-openai:kmpPartiallyResolvedDependenciesChecker
+> Task :mojentic-openai:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :mojentic-openai:androidPreBuild UP-TO-DATE
+> Task :mojentic-openai:preAndroidMainBuild UP-TO-DATE
+> Task :mojentic-realtime-openai:kmpPartiallyResolvedDependenciesChecker
+> Task :mojentic-realtime-openai:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :mojentic-ollama:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :mojentic-anthropic:kmpPartiallyResolvedDependenciesChecker
+> Task :mojentic-anthropic:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :mojentic-ollama:androidPreBuild UP-TO-DATE
+> Task :mojentic-realtime-openai:androidPreBuild UP-TO-DATE
+> Task :mojentic-ollama:preAndroidMainBuild UP-TO-DATE
+> Task :mojentic-realtime-openai:preAndroidMainBuild UP-TO-DATE
+> Task :mojentic-anthropic:androidPreBuild UP-TO-DATE
+> Task :mojentic-core:kmpPartiallyResolvedDependenciesChecker
+> Task :mojentic-core:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :mojentic-websearch-serpapi:androidJar UP-TO-DATE
+> Task :mojentic-anthropic:preAndroidMainBuild UP-TO-DATE
+> Task :mojentic-ollama:androidJar UP-TO-DATE
+> Task :mojentic-openai:androidJar UP-TO-DATE
+> Task :mojentic-realtime-openai:androidJar UP-TO-DATE
+> Task :mojentic-anthropic:androidJar UP-TO-DATE
+> Task :mojentic-ollama:jvmProcessResources NO-SOURCE
+> Task :mojentic-ollama:processJvmMainResources SKIPPED
+> Task :mojentic-ollama:jvmTestProcessResources NO-SOURCE
+> Task :mojentic-ollama:processJvmTestResources SKIPPED
+> Task :mojentic-openai:jvmProcessResources NO-SOURCE
+> Task :mojentic-anthropic:jvmProcessResources NO-SOURCE
+> Task :mojentic-realtime-openai:jvmProcessResources NO-SOURCE
+> Task :mojentic-websearch-serpapi:jvmProcessResources NO-SOURCE
+> Task :mojentic-openai:processJvmMainResources SKIPPED
+> Task :mojentic-realtime-openai:processJvmMainResources SKIPPED
+> Task :mojentic-anthropic:processJvmMainResources SKIPPED
+> Task :mojentic-websearch-serpapi:processJvmMainResources SKIPPED
+> Task :mojentic-websearch-serpapi:jvmTestProcessResources NO-SOURCE
+> Task :mojentic-websearch-serpapi:processJvmTestResources SKIPPED
+> Task :mojentic-anthropic:jvmTestProcessResources NO-SOURCE
+> Task :mojentic-anthropic:processJvmTestResources SKIPPED
+> Task :mojentic-openai:jvmTestProcessResources NO-SOURCE
+> Task :mojentic-realtime-openai:jvmTestProcessResources NO-SOURCE
+> Task :mojentic-openai:processJvmTestResources SKIPPED
+> Task :mojentic-realtime-openai:processJvmTestResources SKIPPED
+> Task :mojentic-realtime-openai:detektMetadataCommonMain UP-TO-DATE
+> Task :mojentic-websearch-serpapi:detektMetadataCommonMain UP-TO-DATE
+> Task :mojentic-realtime-openai:detektMetadataMain UP-TO-DATE
+> Task :mojentic-websearch-serpapi:detektMetadataMain UP-TO-DATE
+> Task :mojentic-core:androidPreBuild UP-TO-DATE
+> Task :mojentic-core:preAndroidMainBuild UP-TO-DATE
+> Task :mojentic-core:jvmProcessResources NO-SOURCE
+> Task :mojentic-core:processJvmMainResources SKIPPED
+> Task :mojentic-core:androidJar UP-TO-DATE
+> Task :mojentic-core:jvmTestProcessResources NO-SOURCE
+> Task :mojentic-core:processJvmTestResources SKIPPED
+> Task :mojentic-anthropic:detektMetadataCommonMain
+> Task :mojentic-ollama:detektMetadataCommonMain
+> Task :mojentic-ollama:detektMetadataMain FROM-CACHE
+> Task :mojentic-anthropic:detektMetadataMain FROM-CACHE
+> Task :mojentic-openai:detektMetadataCommonMain
+> Task :mojentic-openai:detektMetadataMain FROM-CACHE
+> Task :mojentic-core:detektMetadataCommonMain
+> Task :mojentic-core:detektMetadataMain FROM-CACHE
+> Task :mojentic-core:compileAndroidMain
+> Task :mojentic-core:compileKotlinJvm
+> Task :mojentic-core:bundleAndroidMainClassesToCompileJar
+> Task :mojentic-core:detektAndroidMain
+> Task :mojentic-core:compileJvmMainJava NO-SOURCE
+> Task :mojentic-core:jvmMainClasses
+> Task :mojentic-core:jvmJar
+
+> Task :mojentic-realtime-openai:compileAndroidMain
+w: file:///home/svetzal/Work/Projects/Personal/mojentic-unify/mojentic-kt/mojentic-realtime-openai/src/commonMain/kotlin/com/mojentic/realtime/openai/OpenAiRealtimeGateway.kt:110:25 'when' is exhaustive so 'else' is redundant here.
+
+> Task :mojentic-websearch-serpapi:compileAndroidMain
+> Task :mojentic-core:detektJvmMain
+> Task :mojentic-anthropic:compileKotlinJvm
+> Task :mojentic-anthropic:compileJvmMainJava NO-SOURCE
+> Task :mojentic-anthropic:jvmMainClasses
+> Task :mojentic-anthropic:detektJvmMain NO-SOURCE
+> Task :mojentic-anthropic:jvmJar
+> Task :mojentic-ollama:compileAndroidMain
+> Task :mojentic-ollama:bundleAndroidMainClassesToCompileJar
+> Task :mojentic-ollama:compileAndroidHostTest FROM-CACHE
+> Task :mojentic-ollama:detektAndroidHostTest NO-SOURCE
+> Task :mojentic-ollama:detektAndroidMain NO-SOURCE
+> Task :mojentic-realtime-openai:bundleAndroidMainClassesToCompileJar UP-TO-DATE
+> Task :mojentic-realtime-openai:compileAndroidHostTest FROM-CACHE
+> Task :mojentic-ollama:compileKotlinJvm
+> Task :mojentic-realtime-openai:detektAndroidHostTest NO-SOURCE
+> Task :mojentic-realtime-openai:detektAndroidMain NO-SOURCE
+> Task :mojentic-ollama:compileJvmMainJava NO-SOURCE
+> Task :mojentic-ollama:jvmMainClasses
+> Task :mojentic-ollama:detektJvmMain NO-SOURCE
+> Task :mojentic-ollama:jvmJar
+> Task :mojentic-anthropic:compileAndroidMain
+> Task :mojentic-anthropic:bundleAndroidMainClassesToCompileJar
+> Task :mojentic-anthropic:compileAndroidHostTest FROM-CACHE
+> Task :mojentic-anthropic:detektAndroidHostTest NO-SOURCE
+> Task :mojentic-anthropic:detektAndroidMain NO-SOURCE
+> Task :mojentic-websearch-serpapi:bundleAndroidMainClassesToCompileJar UP-TO-DATE
+> Task :mojentic-websearch-serpapi:compileAndroidHostTest FROM-CACHE
+> Task :mojentic-websearch-serpapi:detektAndroidHostTest NO-SOURCE
+> Task :mojentic-websearch-serpapi:detektAndroidMain NO-SOURCE
+
+> Task :mojentic-realtime-openai:compileKotlinJvm
+w: file:///home/svetzal/Work/Projects/Personal/mojentic-unify/mojentic-kt/mojentic-realtime-openai/src/commonMain/kotlin/com/mojentic/realtime/openai/OpenAiRealtimeGateway.kt:110:25 'when' is exhaustive so 'else' is redundant here.
+
+> Task :mojentic-realtime-openai:compileJvmMainJava NO-SOURCE
+> Task :mojentic-realtime-openai:jvmMainClasses
+> Task :mojentic-realtime-openai:detektJvmMain NO-SOURCE
+> Task :mojentic-realtime-openai:jvmJar UP-TO-DATE
+> Task :mojentic-realtime-openai:compileTestKotlinJvm
+> Task :mojentic-realtime-openai:compileJvmTestJava NO-SOURCE
+> Task :mojentic-realtime-openai:jvmTestClasses
+> Task :mojentic-realtime-openai:detektJvmTest NO-SOURCE
+> Task :mojentic-realtime-openai:detekt NO-SOURCE
+> Task :mojentic-openai:compileAndroidMain
+> Task :mojentic-openai:bundleAndroidMainClassesToCompileJar
+> Task :mojentic-websearch-serpapi:compileKotlinJvm
+> Task :mojentic-websearch-serpapi:compileJvmMainJava NO-SOURCE
+> Task :mojentic-websearch-serpapi:jvmMainClasses
+> Task :mojentic-websearch-serpapi:detektJvmMain NO-SOURCE
+> Task :mojentic-websearch-serpapi:jvmJar UP-TO-DATE
+> Task :mojentic-openai:detektAndroidMain
+> Task :mojentic-ollama:compileTestKotlinJvm
+> Task :mojentic-openai:compileAndroidHostTest FROM-CACHE
+> Task :mojentic-openai:detektAndroidHostTest NO-SOURCE
+> Task :mojentic-ollama:compileJvmTestJava NO-SOURCE
+> Task :mojentic-ollama:jvmTestClasses
+> Task :mojentic-websearch-serpapi:compileTestKotlinJvm
+> Task :mojentic-websearch-serpapi:compileJvmTestJava NO-SOURCE
+> Task :mojentic-websearch-serpapi:jvmTestClasses
+> Task :mojentic-websearch-serpapi:detektJvmTest NO-SOURCE
+> Task :mojentic-websearch-serpapi:detekt NO-SOURCE
+> Task :mojentic-openai:compileKotlinJvm
+> Task :mojentic-openai:compileJvmMainJava NO-SOURCE
+> Task :mojentic-openai:jvmMainClasses
+> Task :mojentic-openai:detektJvmMain
+> Task :mojentic-ollama:detektJvmTest
+> Task :mojentic-ollama:detekt NO-SOURCE
+> Task :mojentic-openai:jvmJar
+> Task :mojentic-core:compileAndroidHostTest
+> Task :mojentic-core:detektAndroidHostTest NO-SOURCE
+> Task :mojentic-core:compileTestKotlinJvm
+> Task :mojentic-core:compileJvmTestJava NO-SOURCE
+> Task :mojentic-core:jvmTestClasses
+> Task :mojentic-core:detektJvmTest NO-SOURCE
+> Task :mojentic-core:detekt NO-SOURCE
+> Task :mojentic-anthropic:compileTestKotlinJvm
+> Task :mojentic-anthropic:compileJvmTestJava NO-SOURCE
+> Task :mojentic-anthropic:jvmTestClasses
+> Task :mojentic-anthropic:detektJvmTest
+> Task :mojentic-anthropic:detekt NO-SOURCE
+> Task :mojentic-openai:compileTestKotlinJvm
+> Task :mojentic-openai:compileJvmTestJava NO-SOURCE
+> Task :mojentic-openai:jvmTestClasses
+> Task :mojentic-openai:detektJvmTest
+> Task :mojentic-openai:detekt NO-SOURCE
+
+[Incubating] Problems report is available at: file:///home/svetzal/Work/Projects/Personal/mojentic-unify/mojentic-kt/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.8.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 1m 15s
+67 actionable tasks: 44 executed, 9 from cache, 14 up-to-date
