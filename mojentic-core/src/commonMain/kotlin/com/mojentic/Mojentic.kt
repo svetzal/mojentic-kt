@@ -14,5 +14,6 @@ package com.mojentic
  * tool execution.
  */
 public object Mojentic {
-    public const val VERSION: String = "0.3.0-SNAPSHOT"
+    /** Current development artifact version; update with gradle.properties at release. */
+    public const val VERSION: String = "2.1.0"
 }

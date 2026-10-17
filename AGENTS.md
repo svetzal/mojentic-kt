@@ -7,13 +7,21 @@ Stacey authorized the coordinated 3.0.0 scope in
 release-preparation authorization. All six ports must satisfy the binding
 contracts and required gates before the coordinated release.
 
-The coordinated 3.0.0 authorization includes every binding release contract.
-This correction implements the October 12 completion-adapter Capabilities
-guarantee, alongside the existing admission and invalid-policy corrections.
-Reasoning, metadata and remaining recovery amendments remain separate initiative
-work for this task. Do not bump versions, tag or publish in this task. Foundry owns
-Git finalization: leave changes in the worktree without committing, pushing,
-rebasing or modifying refs. Change this repository only.
+The coordinated authorization covers release parts 1–5: complete transient recovery
+including all October 12 amendments, native reasoning, model metadata and request
+fidelity, JVM/Android-only distribution, and applicable audit regressions. Preserve
+completed work; fix demonstrated omissions. Under the October 17 library
+self-validation decision, verify public behavior and freshly packaged Maven
+artifacts in a separate consumer build. Counterpart repositories need not verify
+unreleased library artifacts. See `CONFORMANCE-3.0.0.md` for the complete mapping
+and `tools/verify-distribution.sh` for the packaged-consumer check.
+
+Do not bump the release version, tag or publish remotely in this task. Foundry
+owns Git finalization: leave changes in the worktree without committing, pushing,
+rebasing or modifying refs. Change this repository only. Registry publication,
+signing and post-release installation remain separate coordinated release work.
+When that release is authorized, update `Mojentic.VERSION` together with
+`gradle.properties`; both currently identify the 2.1.0 development artifact.
 
 This file provides Kotlin-specific guidance for AI agents working in this
 sub-project. The monorepo root `AGENTS.md` covers shared cross-port principles;
@@ -236,7 +244,7 @@ independently. Update `CHANGELOG.md` in the same commit as code changes.
 
 ## Trunk-Based Development
 
-Per the user's global instructions: integrate directly to `main`. No
-long-lived feature branches, no PRs as gates. Commit scoped, working changes;
-push to `origin/main` after each commit. See `~/.claude/CLAUDE.md` for full
-policy.
+Ordinary development integrates directly to `main`, with no long-lived feature
+branches or PR gates. In this Foundry task, the explicit scope authorization
+above overrides ordinary commit/push guidance: do not commit, push, merge,
+rebase, tag or modify refs. Foundry reviews and finalizes the worktree.

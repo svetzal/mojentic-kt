@@ -185,6 +185,8 @@ class AnthropicRecoveryHttpTest {
         for ((header, expected) in listOf(
             "2" to 2000L,
             "Thu, 01 Jan 1970 00:00:03 GMT" to 3000L,
+            "Thursday, 01-Jan-70 00:00:03 GMT" to 3000L,
+            "Thu Jan  1 00:00:03 1970" to 3000L,
             "Wed, 31 Dec 1969 23:59:59 GMT" to 5L,
             "invalid" to 5L,
         )) {
@@ -211,7 +213,7 @@ class AnthropicRecoveryHttpTest {
                             ),
                         ),
                     )
-                    assertEquals(listOf(expected), delays)
+                    assertEquals(listOf(expected), delays, header)
                     val parsed = events.first { it.stage == RecoveryStage.FAILED }.failure?.retryAfter
                     if (header == "invalid") assertIs<RecoveryRetryAfter.Invalid>(parsed) else assertIs<RecoveryRetryAfter.Delay>(parsed)
                 } finally {

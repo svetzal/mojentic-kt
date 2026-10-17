@@ -1,0 +1,141 @@
+{
+  "source_base": "f6913fc1c3f8cc35e110e4a47e7dfbe6ddc6db78",
+  "source_manifest_sha256": "94ecf5ed06fbc9a8b73a5115797c101d77614018f44a479ac21e0d2c45233f6b",
+  "source_manifest_files": 324,
+  "verified_at_utc": "2026-10-17T23:54:07.187226+00:00",
+  "gates": [
+    {
+      "command": "./gradlew ktlintCheck",
+      "exit_code": 0,
+      "stdout_sha256": "5dee9732e170850721322c10d84b8ed33fe6a2c1f57282c1eb83119fed0d26b4",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "./gradlew detekt",
+      "exit_code": 0,
+      "stdout_sha256": "abc42852f078db8ba54b05bb5334aaf02132e12dc74b54a440b0ab78d3087008",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "./gradlew build",
+      "exit_code": 0,
+      "stdout_sha256": "917e82e594c011122021b3868723bb9ae381ab5749ef883268148c77b84c9338",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "./gradlew allTests",
+      "exit_code": 0,
+      "stdout_sha256": "d84c2c28d9bfbec1a8cefab196d046c838337f2ae202836cadcf59d0be686dcf",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "./gradlew apiCheck",
+      "exit_code": 0,
+      "stdout_sha256": "6187d341d39b522b9ba659f122af30751d2ede358346e92a3e365f1e2a5bb2c7",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "./gradlew dokkaGenerate",
+      "exit_code": 0,
+      "stdout_sha256": "95f94951a9490013b76ca78a9c292f3ea2c254e4aa8c6f3515d77efb3c61a7e1",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "packaged_consumer": {
+    "command": [
+      "tools/verify-distribution.sh",
+      "--offline"
+    ],
+    "exit_code": 0,
+    "stdout_sha256": "a1d988b70a517fb87484b41e105fec2897740f65d7f2d9608c194b6d01b4df7a",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests": {
+      "com.mojentic.omlx.PackagedApiTest": {
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "com.mojentic.omlx.FirstDispatchTimingProofTest": {
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "coordinates": [
+      "com.vetzal.mojentic:mojentic-anthropic-android:2.1.0",
+      "com.vetzal.mojentic:mojentic-anthropic-jvm:2.1.0",
+      "com.vetzal.mojentic:mojentic-anthropic:2.1.0",
+      "com.vetzal.mojentic:mojentic-core-android:2.1.0",
+      "com.vetzal.mojentic:mojentic-core-jvm:2.1.0",
+      "com.vetzal.mojentic:mojentic-core:2.1.0",
+      "com.vetzal.mojentic:mojentic-ollama-android:2.1.0",
+      "com.vetzal.mojentic:mojentic-ollama-jvm:2.1.0",
+      "com.vetzal.mojentic:mojentic-ollama:2.1.0",
+      "com.vetzal.mojentic:mojentic-openai-android:2.1.0",
+      "com.vetzal.mojentic:mojentic-openai-jvm:2.1.0",
+      "com.vetzal.mojentic:mojentic-openai:2.1.0",
+      "com.vetzal.mojentic:mojentic-realtime-openai-android:2.1.0",
+      "com.vetzal.mojentic:mojentic-realtime-openai-jvm:2.1.0",
+      "com.vetzal.mojentic:mojentic-realtime-openai:2.1.0",
+      "com.vetzal.mojentic:mojentic-websearch-serpapi-android:2.1.0",
+      "com.vetzal.mojentic:mojentic-websearch-serpapi-jvm:2.1.0",
+      "com.vetzal.mojentic:mojentic-websearch-serpapi:2.1.0"
+    ],
+    "artifact_manifest_sha256": "7561426afcf7a20442fdffd730b4bb74da9f3b72ab485735103de100bc3e9abb",
+    "runtime_graph_sha256": "1d4cad3c3846ff8d4c9331d91e15e9cf1abd02f87eba0fdbcc2387035811fbe6"
+  },
+  "library_tests": {
+    "jvmTest": {
+      "suites": 100,
+      "tests": 540,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "testAndroidHostTest": {
+      "suites": 67,
+      "tests": 382,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "security": {
+    "command": [
+      "./gradlew",
+      "dependencyCheckAggregate",
+      "--no-parallel",
+      "-PdependencyCheckDataDirectory=/tmp/mojentic-kt-timing-gradle/dependency-check-data",
+      "--offline"
+    ],
+    "exit_code": 0,
+    "stdout_sha256": "3200ef17609350351d5c34f72ae6ede812815d30a72c40942a5fdc14ec5560a6",
+    "stderr_sha256": "97a1e664167bc4b9afdafa6ec01617687d6d29ad7cf1b0cb51a0406ba519b8f5",
+    "report_sha256": "40933b316da3b8bace596d691ef8e194adab185db77e2baca4deace0410fb43e",
+    "dependencies": 305,
+    "unsuppressed_findings": 0,
+    "inherited_suppressed_findings": 47,
+    "unchanged_suppressions_sha256": "7cee0a8efe513e2b45d3d01e723c4c93355b7e6e9c020e0a8f9adfae59106db1",
+    "data_sources": [
+      {
+        "name": "NVD API Last Checked",
+        "timestamp": "2026-10-17T23:52:06Z"
+      },
+      {
+        "name": "NVD API Last Modified",
+        "timestamp": "2026-10-16T18:00:09-04"
+      },
+      {
+        "name": "NVD Cache Last Checked",
+        "timestamp": "2026-10-17T23:52:06Z"
+      },
+      {
+        "name": "NVD Cache Last Modified",
+        "timestamp": "2026-10-16T18:00:09-04"
+      }
+    ]
+  },
+  "hosted_ci_scope": "Base commit only; worktree results are local CI-equivalent validation."
+}

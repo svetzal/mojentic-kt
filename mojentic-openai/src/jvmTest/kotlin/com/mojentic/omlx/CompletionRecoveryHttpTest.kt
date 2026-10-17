@@ -151,6 +151,8 @@ class CompletionRecoveryHttpTest {
             val cases = listOf(
                 "2" to 2000L,
                 "Thu, 01 Jan 1970 00:00:03 GMT" to 3000L,
+                "Thursday, 01-Jan-70 00:00:03 GMT" to 3000L,
+                "Thu Jan  1 00:00:03 1970" to 3000L,
                 "Wed, 31 Dec 1969 23:59:59 GMT" to 100L,
                 "invalid-secret" to 100L,
                 "-1" to 100L,
@@ -162,7 +164,7 @@ class CompletionRecoveryHttpTest {
                     .use { server ->
                         provider.gateway(server.url).use { gateway ->
                             call(gateway.value, structured, policy(events, sleeps = sleeps, wall = 0))
-                            assertEquals(listOf(expected), sleeps)
+                            assertEquals(listOf(expected), sleeps, header)
                             val retry = requireNotNull(events.first { it.stage == RecoveryStage.FAILED }.failure).retryAfter
                             assertTrue(
                                 if (header == "invalid-secret" || header == "-1") {

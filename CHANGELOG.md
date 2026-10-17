@@ -10,6 +10,19 @@ patch versions move independently.
 
 ## [Unreleased]
 
+### Distribution readiness
+
+- Verify the Maven candidate from a separate consumer build using public recovery,
+  reasoning and metadata APIs against deterministic HTTP fixtures. The complete
+  release-parts 1–5 assessment is in `CONFORMANCE-3.0.0.md`; October 17 library
+  self-validation supersedes the historical paired-verification blockers below.
+- Honor RFC 850 and asctime Retry-After dates through shared recovery parsing,
+  preserving provider minimum delays instead of falling back to local jitter.
+- Correct stale `Mojentic.VERSION` from `0.3.0-SNAPSHOT` to the unchanged Gradle
+  artifact version `2.1.0`. This is not a release version bump; the coordinated
+  release must update both values together.
+
+
 ### Breaking: client streaming timing (3.0.0)
 
 - All four completion adapters now report client `request_duration_ms` and,
@@ -95,7 +108,7 @@ patch versions move independently.
   Add the pure Ollama `effectiveContextWindow` helper with explicit caller,
   model parameter and advertised-capacity precedence. Discovery does not alter completion configuration, reasoning or recovery.
 - Execute the shared Elixir `context-window-v1` artifact through real gateway HTTP
-  boundaries; section-1 conformance and external verification gaps are recorded
+  boundaries; section-1 conformance and library self-validation are recorded
   in `CONFORMANCE-3.0.0.md`.
 
 

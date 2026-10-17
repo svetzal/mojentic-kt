@@ -1,3 +1,143 @@
+# Kotlin 3.0.0 distribution-readiness self-assessment
+
+This assessment covers RELEASE-3.0.0.md parts 1–5 on
+`f6913fc1c3f8cc35e110e4a47e7dfbe6ddc6db78` plus the worktree changes identified
+in `docs/release-readiness/source.sha256`. JVM and Android are the supported
+targets. The release version remains 2.1.0 while 3.0.0 approval is held.
+
+The **October 17 library self-validation decision supersedes every historical
+external/paired-verification blocker and limited-scope readiness disclaimer in
+the records below**. This library validates distribution readiness through its
+own public API, executable contracts, production adapters and fresh Maven
+consumer. No dependent must install an unreleased library, and no other port or
+provider must execute this library's snapshot. These results establish the
+specified library behavior against deterministic HTTP inputs; they do not claim
+live provider operation, model efficacy or another application's compatibility.
+Registry publication and fresh registry installation remain separate release
+work. No sibling repository, Git ref or remote publication was changed.
+
+## Current authorities and executable identities
+
+The initiative brief was read and its recorded SHA-256 verified:
+`ea6a0efa56bfb3cd74b5ce728f80cc33c6fbd853114bec94b8aabe79f5d28e6e`.
+Release parts 1–5 and the binding contracts were inspected read-only at
+mojentic-unify `ef9339c6a9682ed5f060bd690b738f6b8eea1d2d`.
+
+| Authority / executable set | Current SHA-256 |
+| --- | --- |
+| RELEASE-3.0.0.md | `ea6a0efa56bfb3cd74b5ce728f80cc33c6fbd853114bec94b8aabe79f5d28e6e` |
+| TRANSIENT-RECOVERY-2026-10.md including October 12 | `a53a3a4eb118fa4687dd703d6ce918dd40dd6cb4eda796abc6c429a6e932e7a3` |
+| REASONING-PROTOTYPE-2026-10.md | `0a40f3ad45c593bc779411021e45db569e73d3ecce86c99b201e7f8ebb656809` |
+| MODEL-METADATA-2026-10.md including October 17 timing decisions | `d9945dca45ce09e2163843263a75b5e93028b00ee1baf191fc3ff13396830e9c` |
+| `contracts/native_reasoning_v1.json` / native-reasoning-v1 | `d5539eb334b69e0f8b698e8cd2c1402772dfabd09af92c652e1d1dc35f34e127` |
+| `contracts/context_window_v1.json` / context-window-v1 | `9327502962112a020bafb46c6a677366df732f5a29cd44c92f17e8f632281395` |
+| `contracts/request_fidelity_v1.json` / request-fidelity-v1 | `6f02088311f50707b9c12154d888f844928c23d359043cb2e5d5654bf7e5eaea` |
+
+The current `source.sha256` replaces historical Kotlin implementation manifests,
+which describe earlier intermediate worktrees. It hashes library source, tests,
+API dumps, build configuration, consumer checks and CI workflows using sorted
+repository-relative paths. Recovery executable sets kt-admission-v1,
+kt-invalid-policy-v1, capabilities/typed-operation matrices and
+kt-stream-first-token-v1 are identified by these current source hashes.
+The standalone executable set is **kt-distribution-readiness-v1**, identified
+by the `tests/distribution/` and `tools/` entries in that manifest.
+Existing fixture identities are checked by tests. The packaged consumer reads
+the same JSON artifacts and validates their hashes before deriving HTTP replies.
+
+## Complete binding-decision mapping
+
+Classes without a provider prefix are in `com.mojentic.omlx`; paired Anthropic
+classes live in `com.mojentic.anthropic`. These are consumer-perspective public
+API tests, with actual production adapter HTTP requests. Common tests also run
+on the Android host target. `build` and `allTests` run the contract suites;
+CI executes JVM and Android host tests. Detailed per-case mappings in the
+historical records and `RECOVERY-CONFORMANCE.md` remain supporting evidence.
+
+| Recovery contract decision | Named executable verification |
+| --- | --- |
+| Typed category, HTTP status, phase, acceptance, progress, identities, bounded history, private original cause | `CompletionRecoveryHttpTest.exhaustionRetainsEveryAttemptAndTypedCause`; `RecoveryMetadataHttpTest.exactMetadataAndOrderedHistoriesAcrossAllPublicOperations`; `PermanentHttpBoundaryTest.truncatedPermanentAllPublicBoundaries` in both provider packages |
+| Safe allowlisted code/request ID, credential/payload echo rejection, provider-specific headers and fields | `RecoveryMetadataHttpTest.unsafeMetadataIsOmittedButExactEvidenceRemainsPrivate`, `validatedRequestIdCannotEchoBearerCredential`; `AnthropicRecoveryHttpTest.safeSummariesWithholdCredentialPayloadAndHeaderEchoes` |
+| Default one attempt, legacy success/error behavior, opt-in recovery | `CompletionRecoveryHttpTest.retriesDisabledPreserveSuccessAndLegacyFailure`; both `AdmissionAmendmentHttpTest` default-one-attempt cases |
+| Positive attempts, nonnegative delays/budget, overflow-safe ceiling; synchronous typed invalid-policy error, no callbacks or I/O | `RecoveryPolicyTest` constraint/default/boundary cases; both `InvalidRecoveryPolicyHttpTest` public-entrypoint matrices |
+| 429/500/502/503/504 and transient transport eligibility; permanent/auth/protocol failures veto replay | `CompletionRecoveryHttpTest.recover503PreservesExactPayloadIdentityAndLifecycle`, `permanentTruncationAndPartialSuccessNeverReplay`; `RecoveryTransportHttpTest.oneAttempt503ZeroRetainsExactFailureWithoutHiddenResend`; admission matrices cover 500/502/504; Anthropic default/permanent matrix |
+| Exponential full jitter, overflow saturation, provider minimum and budget/ceiling refusal; healthy generation not timed out by recovery budget | `CompletionRecoveryHttpTest.fullJitterCeilingsSaturateAndRedirectsStaySingleRequest`, `insufficientBudgetRefusesProviderMinimum`, `budgetsDoNotTimeoutHealthyGenerationAndPreventLateResend`, `deadlineIsRecheckedAfterRequestCaptureBeforeResend` |
+| Retry-After seconds, IMF-fixdate, RFC 850, asctime, invalid/past/overflow values | `CompletionRecoveryHttpTest.retryAfterSecondsDatesInvalidAndMinimumRefusal`; `AnthropicRecoveryHttpTest.retryAfterSecondsDatesAndInvalid`, `retryAfterMinimumRefusesCeilingOrBudget`. `RecoveryHttpDateTest` verifies obsolete forms and RFC 850 century handling; this assessment fixes the demonstrated parsing omission and adds HTTP assertions across all four adapters |
+| Remote no-hook retry; local unknown acceptance requires admission; no termination/idempotency inferred from IDs or model unload | `AdmissionAmendmentHttpTest.noHookDistinguishesRemoteAndLocalAcrossPublicEntrypoints`, `remoteRetryWithoutHookPreservesExactPayloadAndIdentity`; Anthropic `remoteNoHookRetriesAcrossPublicEntrypoints`; all four `RecoveryCapabilitiesTest` classes |
+| Pending admission makes no wire attempt; explicit false/null have distinct reasons; cancellation beats later allow; budget bounds pending wait | OpenAI/Ollama/oMLX `pendingRejectUndecidedAndCancellationNeverConsumeQueuedSentinel`, `undecidedWithoutBudgetIsDistinctFromRejection`; Anthropic `pendingRejectUndecidedAndCancellationPreventQueuedSentinel` |
+| Cancellation closes active request and wins in admission/backoff, capture and paused tool delivery | `CompletionRecoveryHttpTest.cancellationWinsDuringActiveRequestAdmissionAndBackoff`; `StreamingRecoveryHttpTest.cancellationDuringAdmissionAndBackoffNeverResends`; `AnthropicRecoveryHttpTest.cancellationWinsInRequestAdmissionBackoffAndPausedToolDelivery` |
+| Immutable messages/native history/tools/schema/model/sampling/limits across ordinary, structured and streaming attempts | `CompletionRecoveryHttpTest.recover503PreservesExactPayloadIdentityAndLifecycle`; `StreamingRecoveryHttpTest.admittedRetriesPreserveExactPayloadCaptureAndIdentities`; `AnthropicRecoveryHttpTest.structuredRecoveryKeepsForcedToolSchemaAndDoesNotReplayTools`; request-fidelity and native-reasoning matrices |
+| Observed raw vs semantic vs delivered progress; content/reasoning/tool fragments and completed tools interrupt without concatenation or replay; exhaustion stays failure | `StreamingRecoveryHttpTest.allObservedSemanticChannelsInterruptWithoutReplay`, `deliveredProgressIndependentlyPreventsHttpReplay`, `escapedSemanticKeysPreventReplayAtHttpBoundary`; `AnthropicRecoveryHttpTest.keepaliveOnlyCanRecoverButContentReasoningAndToolFragmentsInterrupt` |
+| oMLX keepalive is raw-only, no metadata/frame-index pollution | `StreamingRecoveryHttpTest.keepaliveOnlyClosureRequiresAdmissionAndCanRecover`; `ClientStreamTimingHttpTest.noTokenSuccessIgnoresKeepaliveAndEmptyFramesOnBothPublicApis`; existing oMLX decoder tests |
+| Tools execute once; request recovery never resets broker depth or session history | `CompletionRecoveryHttpTest.brokerStructuredAndSessionToolCompletionKeepDepthAndExecuteOnce`, `completedToolIsNotReplayedWhenNextCompletionExhausts`; Anthropic `brokerToolsExecuteOnceAcrossFollowupRecovery`, `streamingBrokerAndSessionCompleteToolsOnce` |
+| Typed provider/operation vocabulary across all adapters, distinct stream/event operations, legacy serialized vocabulary and optional fields | Both `AdmissionAmendmentHttpTest.typedFailuresPreserveLegacySerializedReports`; `CompletionRecoveryHttpTest.httpFailureUsesClosedProviderAndOperation` |
+| Five capabilities per adapter, endpoint-specific citations/inspection date, unsupported/unknown preserved; exact-attempt termination unknown | All four `RecoveryCapabilitiesTest` classes assert each value and citation; legacy custom gateway defaults unknown. No acceptance-NO evidence or remote termination facility is invented |
+| Lifecycle ordering and wire counts, request/response capture including partial/error bytes, safe default formatting, capture failures never succeed/retry | `CompletionRecoveryHttpTest.malformedAndCaptureFailuresAreTerminalWithPrivateCauseIdentity`, `captureAccountsForSemanticFieldsBeforeHookFailure`; `StreamingRecoveryHttpTest.finalizationObserverFailureProducesOnlyPrivateErrorThroughGatewayAndBroker`; Anthropic evidence/capture tests |
+| User migration and capability table; realtime/embeddings excluded | `docs/use-cases/completion-recovery.md`, capability tests; realtime/embeddings remain separate APIs |
+
+| Native reasoning decision | Named executable verification |
+| --- | --- |
+| Six distinct efforts, exact Ollama booleans/named strings and oMLX enable_thinking/reasoning_effort; omitted effort unknown | `NativeReasoningControlsTest.everyEffortAndOmissionHasExactWireTypeAcrossCompletionModes` |
+| Explicit profiles never inferred from name; Qwen3.8 exact Disabled/Low/Medium/XHigh set and history capability | `NativeReasoningControlsTest.profilesValidateExactQwenSetAndHistoryBeforeHttpAcrossModes` |
+| Native assistant reasoning separate from content/results; ordinary/streamed completed tools retained only when selected, stable call/result associations | `NativeReasoningContinuityTest.ordinaryAndStreamedToolsPreserveAssistantAssociationOnlyWhenSelected`; `NativeReasoningHttpProofTest.completedAssistantReasoningSurvivesToolAndNextSessionTurn` |
+| Exact thinking/reasoning_content history, oMLX preserve_thinking request; structured controls/history | `NativeReasoningStructuredTest.structuredBrokerPreservesSeparateNativeHistoryAndTemplateRequest`; continuity matrix. Server-forced templates may override the request |
+| Unsupported OpenAI history/new controls fail explicitly; legacy behavior remains | `NativeReasoningControlsTest.openaiRejectsNewControlsAndOmlxHistoryExtensionBeforeHttp`; Anthropic `NativeReasoningUnsupportedTest.newControlsAndNativeHistoryFailBeforeHttp` |
+| Failed/cancelled/unfinished native output never fabricated into history or tool execution; retry before delivery only | `NativeReasoningFailureTest` cancellation/unfinished/followup-failure cases; `NativeReasoningRetryTest.partialNativeStreamCannotBeRetriedOrRetainedEvenWithAdmission`, `admittedRetryBeforeDeliveryKeepsCompletedNativeHistoryAndToolCounts` |
+
+| Metadata/request-fidelity decision | Named executable verification |
+| --- | --- |
+| Optional single-purpose discovery; window/provenance/optional modelNumCtx, not-advertised vs typed error | `ContextWindowContractTest.sharedHttpCases`, `additionalMalformedShapesMissingModelsAndOptionalFields`, `legacyGatewayInheritsNotAdvertised`, `transportFailuresRetainTypedCause` |
+| Exact oMLX model, GET host/auth, absent key; Ollama POST sole model, arbitrary architecture prefix, parameters; errors including 404 | `ContextWindowContractTest.sharedHttpCases`; `ContextWindowProofTest.exactSelectionThroughHttp` |
+| Exact OpenAI registry without HTTP/guess; other gateways not advertised | `ContextWindowContractTest.registryLookupHasAnActiveZeroRequestObserverAndNegativeControl`; `AnthropicGatewayTest.contextWindowIsNotAdvertisedWithoutRequests` |
+| Pure effective window: clamp caller then model then capacity, absent result stays absent; no discovery mutation | `ContextWindowContractTest.sharedEffectiveCasesAndUnsetConfigurationPrecedence`; `ContextWindowRequestFidelityTest.discoveryPreservesOrdinaryStructuredAndBothStreamingRequestBytes` |
+| First-dispatch monotonic clock, thinking/content/argument precedence, keepalive/empty/name ignored, exact units; success/failure/no-token evidence | `ClientStreamTimingTest` controlled byte-channel cases; `ClientStreamTimingHttpTest.publicStreamsMeasureExactKindsAndKeepProviderUnitsOnOrdinaryAndRecoveryPaths`, `failuresBeforeTokensAndArgumentFragmentsRetainExactTerminalEvidence`, `noTokenSuccessIgnoresKeepaliveAndEmptyFramesOnBothPublicApis` |
+| Retry admission/backoff stays on one clock; delayed collection excluded; each tool continuation restarts | `FirstDispatchTimingProofTest.delayedCollectionRetryAndMixedFrameUseOneDispatchClock`; `ClientStreamTimingHttpTest.realHttpRetryIncludesAdmittedDelayAndNewCollectionStartsFreshClock`, tool-continuation cases; controlled clocks, no sleep-based timing claims |
+| Nullable unset temperature/numCtx/maxTokens; no invented defaults; one output limit, exact explicit zero; removed numPredict/sentinels; copies preserve other policy | Both `RequestFidelityContractTest` provider matrices; `CompletionConfigTest.depthCopyPreservesRecoveryReasoningRetentionAndUnsetSampling`; API dumps |
+| Provider shapes and precedence; Ollama num_predict only from maxTokens; OpenAI output field and registry restrictions; oMLX no unset limit; Anthropic required registry/4096 fallback | `RequestFidelityContractTest` in both provider packages, including `knownRegistryIdsAndAliasesUseMaximumOutputAndUnknownNamesUse4096`; `ContextWindowRequestFidelityTest` |
+| Public migration/docs for all three capabilities | `docs/use-cases/model-context-window.md`, `native-reasoning.md`, `request-fidelity.md`, streaming guide and CHANGELOG Unreleased |
+
+## Release parts 4–5 and demonstrated corrections
+
+All six module build files target JVM/Android. Fresh Maven inspection requires
+exactly root/JVM/Android publications for each module and rejects any iOS variant.
+CHANGELOG's removal entry directs native Apple callers to mojentic-sw; callers
+must replace iOS klibs/XCFramework integration rather than expecting new iOS
+coordinates. Nullable limits, removed numPredict, new enum/stream cases and
+reasoning retention migrations are documented under Unreleased.
+
+Release part 5's Python assistant filter, Rust negative cast and TypeScript
+zero-temperature bugs belong to other ports and are not modified here. Kotlin's
+request-fidelity matrix preserves zero; Anthropic ordinary/structured recovery
+and assistant-history tests preserve assistant messages; removed numPredict and
+shared output-limit validation avoid the Rust cast path. No claim is made about
+the other ports' current readiness.
+
+The demonstrated runtime omissions fixed here are obsolete Retry-After dates
+(shared normalization before Ktor parsing) and the stale version constant:
+`Mojentic.VERSION` now matches unchanged Maven/Gradle version `2.1.0`, rather than
+`0.3.0-SNAPSHOT`. The packaged consumer compares it to resolved coordinates.
+The separate release must change both values to 3.0.0. No release bump occurs
+here. Retry-After parsing/coverage and packaged distribution checks preserve the
+completed recovery/reasoning/metadata design.
+
+## Fresh package, quality, security and CI evidence
+
+See [current results](docs/release-readiness/results.md) for exact commands,
+source identity, artifact hashes, POM/module inspection, six gate outcomes,
+security evidence and hosted-run distinction. The separate consumer build lives
+in `tests/distribution`; run `tools/verify-distribution.sh`. It uses Maven
+artifacts and their transitive dependencies with no project dependency,
+composite substitution or library source inclusion. It includes semantic HTTP
+checks, errors/absent fields and terminal failure behavior, not just identifiers
+or test counts. The incomplete terminal-frame negative control failed with an
+actual Error event; restoring the terminal response passed with Completed and
+exact timing. Execution proof retains both exits and logs for Foundry review.
+
+## Historical implementation records (superseded scope/coordination statements)
+
+The following records preserve intermediate source hashes, decisions and test
+mappings. Their external-verification blockers, separate-scope exclusions and
+readiness disclaimers are superseded by the current self-assessment above.
+
 # 3.0.0 recovery and model metadata conformance
 
 This record covers the October 12 admission, invalid-policy and completion-adapter

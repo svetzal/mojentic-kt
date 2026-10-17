@@ -12,7 +12,6 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
-import io.ktor.http.fromHttpToGmtDate
 import io.ktor.utils.io.readAvailable
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
@@ -509,7 +508,7 @@ internal class ResponseEvidence(private val payload: String = "", private val ap
             return RecoveryRetryAfter.Delay(millis)
         }
         return try {
-            val date = normalized.fromHttpToGmtDate().timestamp
+            val date = recoveryHttpDate(normalized, now)
             RecoveryRetryAfter.Delay(remainingMillis(date, now))
         } catch (_: Exception) {
             RecoveryRetryAfter.Invalid
