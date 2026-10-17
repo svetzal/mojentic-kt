@@ -12,7 +12,12 @@ public sealed class MojenticException(message: String, cause: Throwable? = null)
  * Raised when an LLM gateway call fails for any reason — transport, deserialisation,
  * provider rejection, or an unexpected response shape.
  */
-public class LlmGatewayException(message: String, cause: Throwable? = null) : MojenticException(message, cause)
+public class LlmGatewayException(
+    message: String,
+    cause: Throwable? = null,
+    /** Terminal stream evidence, including client timing, when a dispatched ordinary stream fails. */
+    public val completionEvidence: com.mojentic.llm.CompletionEvidence? = null,
+) : MojenticException(message, cause)
 
 /**
  * Raised when the broker exhausts [com.mojentic.llm.CompletionConfig.maxToolIterations]

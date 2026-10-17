@@ -8,9 +8,13 @@ import kotlinx.serialization.json.JsonElement
  * Cold `Flow<StreamEvent>` returned by the broker emits these in arrival order.
  * The broker handles tool execution internally; a tool round-trip surfaces to
  * callers as a [ToolCall] / [ToolResult] pair followed by further [TextChunk]s
- * from the recursive completion.
+ * from the recursive completion. Production gateways also surface [Completed]
+ * for each provider request; a tool round-trip may follow that request.
  */
 public sealed interface StreamEvent {
+    /** Terminal evidence for one successful completion; tool continuations each emit their own. */
+    public data class Completed(val evidence: CompletionEvidence) : StreamEvent
+
     /** A chunk of assistant text content as it arrives. */
     public data class TextChunk(val text: String) : StreamEvent
 
@@ -29,9 +33,14 @@ public sealed interface StreamEvent {
  *
  * Gateways translate provider-specific stream payloads into this shape. The
  * broker accumulates these into a single response and orchestrates tool
- * execution before surfacing public [StreamEvent]s to callers.
+ * execution before surfacing public [StreamEvent]s to callers. Production adapters
+ * append [Completed] with timing after the existing semantic events. Older custom
+ * gateways may omit this optional evidence event.
  */
 public sealed interface GatewayStreamEvent {
+    /** Terminal success evidence, including client timing and original provider metrics. */
+    public data class Completed(val evidence: CompletionEvidence) : GatewayStreamEvent
+
     public data class Content(val text: String) : GatewayStreamEvent
 
     public data class Thinking(val text: String) : GatewayStreamEvent

@@ -3,8 +3,10 @@ package com.mojentic.llm.recovery
 import com.mojentic.errors.InvalidRecoveryPolicyException
 import com.mojentic.errors.RecoveryPolicyViolation
 import com.mojentic.llm.CompletionEvidence
+import com.mojentic.llm.StreamTiming
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.Serializable
 import kotlin.random.Random
 import kotlin.time.Clock
@@ -174,6 +176,7 @@ public class RecoveryFailure internal constructor(
     public val identity: RecoveryIdentity,
     private val details: RecoveryDetails,
     private val evidence: SensitiveRecoveryEvidence,
+    private val timing: StreamTiming? = null,
 ) {
     public val category: RecoveryCategory get() = details.category
     public val status: Int? get() = details.status
@@ -213,7 +216,11 @@ public class RecoveryFailure internal constructor(
     /** Original request failure when a capture hook also failed; may contain secrets. */
     public fun inspectBoundaryCause(): Throwable? = evidence.boundaryCause
 
-    /** Validated completion telemetry retained on interruption; provider values require explicit inspection. */
+    internal suspend fun finishTiming() {
+        timing?.let { evidence.completion = it.evidence(evidence.completion) }
+    }
+
+    /** Completion telemetry and finalized client timing; provider values require explicit inspection. */
     public fun inspectCompletionEvidence(): CompletionEvidence? = evidence.completion
 
     /** The original object, which may contain secrets. Never log implicitly. */
@@ -371,8 +378,15 @@ internal class SensitiveRecoveryEvidence(
     val receivedBytes: ByteArray,
     val receivedHeaders: Map<String, List<String>>,
     val boundaryCause: Throwable?,
-    val completion: CompletionEvidence?,
-)
+    completion: CompletionEvidence?,
+) {
+    private val completionState = MutableStateFlow(completion)
+    var completion: CompletionEvidence?
+        get() = completionState.value
+        set(value) {
+            completionState.value = value
+        }
+}
 
 private const val TOO_MANY_REQUESTS = 429
 private const val SERVER_ERROR = 500

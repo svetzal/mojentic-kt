@@ -14,6 +14,8 @@ package com.mojentic.llm
  * @property maxTokens Only output limit; null leaves provider defaults except Anthropic’s required registry fallback.
  * @property reasoningEffort Optional native control; null leaves provider defaults unknown.
  * @property reasoningProfile Caller-selected capability contract, never inferred from a model name.
+ * @property streamTimeSource Ordinary stream timing source, monotonic by default. Recovery uses its policy
+ * monotonicClock instead. Inject a controlled source for deterministic measurements.
  * @property preserveReasoning Opt-in retention of completed native assistant reasoning in tool history.
  * @property maxToolIterations Optional ceiling on broker tool-recursion depth; null is unlimited.
  * @property responseFormat Optional output format forwarded by gateways in streaming and
@@ -29,6 +31,7 @@ public data class CompletionConfig(
     val recovery: com.mojentic.llm.recovery.RecoveryPolicy? = null,
     val reasoningProfile: ReasoningProfile? = null,
     val preserveReasoning: Boolean = false,
+    val streamTimeSource: kotlin.time.TimeSource = kotlin.time.TimeSource.Monotonic,
 ) {
     public companion object {
         public const val DEFAULT_MAX_TOOL_ITERATIONS: Int = 10

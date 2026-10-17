@@ -9,6 +9,8 @@ import com.mojentic.llm.LlmBroker
 import com.mojentic.llm.LlmMessage
 import com.mojentic.llm.StreamErrorReason
 import com.mojentic.omlx.OmlxTestServer.Companion.SSE_HEADERS
+import com.mojentic.openai.providerEvidence
+import com.mojentic.openai.providerMetrics
 import com.mojentic.tracer.LlmResponseEvent
 import com.mojentic.tracer.TracerSystem
 import io.ktor.client.engine.mock.respond
@@ -47,7 +49,7 @@ class OmlxStreamEventsTest {
         LlmBroker(gateway().also { gateway = it }, tracer)
 
     private suspend fun events(body: String): List<CompletionStreamEvent> =
-        OmlxTestServer.answering(body, headers = SSE_HEADERS).broker().generateStreamEvents(model, messages).toList()
+        OmlxTestServer.answering(body, headers = SSE_HEADERS).broker().generateStreamEvents(model, messages).toList().providerEvidence()
 
     /** The usage object of the fixture's usage-only frame, as reported. */
     private fun usageOf(sse: String): JsonObject = sse.lineSequence()
@@ -130,7 +132,7 @@ class OmlxStreamEventsTest {
             body.close()
         }
 
-        val events = withContext(Dispatchers.Default) { server.broker().generateStreamEvents(model, messages).toList() }
+        val events = withContext(Dispatchers.Default) { server.broker().generateStreamEvents(model, messages).toList().providerEvidence() }
         writer.join()
 
         assertEquals(listOf<CompletionStreamEvent>(Error(StreamErrorReason.IncompleteStream(null))), events)
@@ -140,7 +142,7 @@ class OmlxStreamEventsTest {
     fun requestAsksForUsageAndSendsNoTools() = runTest {
         val server = OmlxTestServer.answering(OmlxFixtures.STREAM_THINKING_SSE, headers = SSE_HEADERS)
 
-        server.broker().generateStreamEvents(model, messages).toList()
+        server.broker().generateStreamEvents(model, messages).toList().providerEvidence()
 
         val request = server.requests.single()
         assertEquals("http://localhost:8000/v1/chat/completions", request.url.toString())
@@ -153,7 +155,7 @@ class OmlxStreamEventsTest {
     fun unknownModelIsProviderErrorWithStatusAndBody() = runTest {
         val events = OmlxTestServer.answering(OmlxFixtures.ERROR_MODEL_NOT_FOUND, HttpStatusCode.NotFound).broker()
             .generateStreamEvents("nope", messages)
-            .toList()
+            .toList().providerEvidence()
 
         assertEquals(
             listOf<CompletionStreamEvent>(Error(StreamErrorReason.ProviderError(OmlxFixtures.ERROR_MODEL_NOT_FOUND, 404))),
@@ -167,7 +169,7 @@ class OmlxStreamEventsTest {
 
         OmlxTestServer.answering(OmlxFixtures.STREAM_THINKING_SSE, headers = SSE_HEADERS).broker(tracer)
             .generateStreamEvents(model, messages)
-            .toList()
+            .toList().providerEvidence()
 
         val response = tracer.eventStore.getEvents(LlmResponseEvent::class).single() as LlmResponseEvent
         assertEquals(model, response.providerModel)

@@ -61,7 +61,7 @@ class AnthropicLegacyStreamTimingTest {
         val events = withContext(Dispatchers.Default) {
             gateway.stream("claude-sonnet-4-5", listOf(LlmMessage.user("hi")))
                 .onEach { firstChunkSeen.complete(Unit) }
-                .toList()
+                .toList().filterNot { it is GatewayStreamEvent.Completed }
         }
 
         assertTrue(server.await(), "first chunk must reach the collector while the server is still sending")

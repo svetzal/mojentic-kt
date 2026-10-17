@@ -13,6 +13,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 class AnthropicStreamingTest {
@@ -64,6 +65,7 @@ class AnthropicStreamingTest {
             val second = awaitItem()
             assertEquals("hel", (first as GatewayStreamEvent.Content).text)
             assertEquals("lo", (second as GatewayStreamEvent.Content).text)
+            assertIs<GatewayStreamEvent.Completed>(awaitItem())
             awaitComplete()
         }
     }
@@ -97,6 +99,7 @@ class AnthropicStreamingTest {
             assertEquals("do", call.name)
             assertEquals("tu_1", call.id)
             assertEquals("b", (call.arguments["a"] as JsonPrimitive).content)
+            assertIs<GatewayStreamEvent.Completed>(awaitItem())
             awaitComplete()
         }
     }
@@ -128,6 +131,7 @@ class AnthropicStreamingTest {
         ).test {
             assertEquals("step 1", (awaitItem() as GatewayStreamEvent.Thinking).text)
             assertEquals("final", (awaitItem() as GatewayStreamEvent.Content).text)
+            assertIs<GatewayStreamEvent.Completed>(awaitItem())
             awaitComplete()
         }
     }

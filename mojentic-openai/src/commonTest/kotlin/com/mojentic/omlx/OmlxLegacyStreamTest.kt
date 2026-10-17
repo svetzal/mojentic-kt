@@ -27,7 +27,7 @@ class OmlxLegacyStreamTest {
     }
 
     private suspend fun stream(server: OmlxTestServer): List<GatewayStreamEvent> =
-        server.gateway().also { gateway = it }.stream(model, messages).toList()
+        server.gateway().also { gateway = it }.stream(model, messages).toList().filterNot { it is GatewayStreamEvent.Completed }
 
     private suspend fun stream(body: String): List<GatewayStreamEvent> =
         stream(OmlxTestServer.answering(body, headers = SSE_HEADERS))
@@ -64,7 +64,7 @@ class OmlxLegacyStreamTest {
         stream(server)
 
         assertEquals("http://localhost:8000/v1/chat/completions", server.requests.single().url.toString())
-        assertFalse("stream_options" in server.body, "legacy streaming cannot hand usage back: ${server.body}")
+        assertFalse("stream_options" in server.body, "timing preserves the legacy stream_options omission: ${server.body}")
     }
 
     @Test

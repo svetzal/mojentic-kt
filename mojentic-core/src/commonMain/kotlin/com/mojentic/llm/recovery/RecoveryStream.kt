@@ -45,12 +45,14 @@ public class RecoveryStream internal constructor(
             if (newline >= 0) {
                 val line = decode(pending.take(newline).toByteArray()).removeSuffix("\r")
                 repeat(newline + 1) { pending.removeAt(0) }
+                evidence.timing?.observe(line)
                 return line
             }
             if (ended) {
                 if (pending.isEmpty()) return null
                 val line = decode(pending.toByteArray())
                 pending.clear()
+                evidence.timing?.observe(line)
                 return line
             }
             val buffer = ByteArray(BUFFER_SIZE)
@@ -61,6 +63,7 @@ public class RecoveryStream internal constructor(
             } else if (count > 0) {
                 val bytes = buffer.copyOf(count)
                 evidence.bytes.addAll(bytes.toList())
+                evidence.timing?.observeBytes(bytes)
                 pending.addAll(bytes.toList())
                 val previous = evidence.streamProgress
                 val observed = streamingProgress(evidence.bytes.toByteArray())

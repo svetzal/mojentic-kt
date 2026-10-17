@@ -83,7 +83,7 @@ class OpenAIStreamEventsTest {
     fun contentThenStopThenDoneYieldsContentThenCompleted() = runTest {
         val events = broker(sse(delta("Par"), delta("is"), delta(finish = "stop"), usageFrame, "[DONE]"))
             .generateStreamEvents("gpt-4o", messages)
-            .toList()
+            .toList().providerEvidence()
 
         assertEquals(
             listOf(
@@ -100,7 +100,7 @@ class OpenAIStreamEventsTest {
         val schema = buildJsonObject { put("type", "object") }
         broker(sse(delta(finish = "stop"), "[DONE]"))
             .generateStreamEvents("gpt-4o", messages, CompletionConfig(responseFormat = ResponseFormat.Json(schema)))
-            .toList()
+            .toList().providerEvidence()
 
         val body = bodies.single()
         assertEquals(JsonPrimitive(true), body["stream"])
@@ -113,7 +113,7 @@ class OpenAIStreamEventsTest {
     fun doneWithLengthFinishIsIncompleteCompletionWithEvidence() = runTest {
         val events = broker(sse(delta("Par"), delta(finish = "length"), usageFrame, "[DONE]"))
             .generateStreamEvents("gpt-4o", messages)
-            .toList()
+            .toList().providerEvidence()
 
         assertEquals(Content("Par"), events.first())
         assertEquals(
@@ -130,7 +130,7 @@ class OpenAIStreamEventsTest {
     fun stopWithoutDoneIsIncompleteStreamWithPartialEvidence() = runTest {
         val events = broker(sse(delta("Par"), delta(finish = "stop")))
             .generateStreamEvents("gpt-4o", messages)
-            .toList()
+            .toList().providerEvidence()
 
         assertEquals(
             Error(
@@ -144,7 +144,7 @@ class OpenAIStreamEventsTest {
 
     @Test
     fun emptyStreamIsIncompleteStreamWithoutEvidence() = runTest {
-        val events = broker("").generateStreamEvents("gpt-4o", messages).toList()
+        val events = broker("").generateStreamEvents("gpt-4o", messages).toList().providerEvidence()
 
         assertEquals(listOf<CompletionStreamEvent>(Error(StreamErrorReason.IncompleteStream(null))), events)
     }
@@ -156,7 +156,7 @@ class OpenAIStreamEventsTest {
 
         val events = broker(sse(delta("Par"), toolDelta, delta(finish = "stop"), "[DONE]"))
             .generateStreamEvents("gpt-4o", messages)
-            .toList()
+            .toList().providerEvidence()
 
         assertEquals(listOf(Content("Par"), Error(StreamErrorReason.UnexpectedToolCalls)), events)
     }
@@ -165,7 +165,7 @@ class OpenAIStreamEventsTest {
     fun providerErrorFrameIsProviderError() = runTest {
         val events = broker(sse("""{"error":{"message":"overloaded","type":"server_error"}}"""))
             .generateStreamEvents("gpt-4o", messages)
-            .toList()
+            .toList().providerEvidence()
 
         val error = assertIs<Error>(events.single())
         val reason = assertIs<StreamErrorReason.ProviderError>(error.reason)
@@ -176,7 +176,7 @@ class OpenAIStreamEventsTest {
     fun nonSuccessStatusIsProviderErrorWithStatus() = runTest {
         val events = broker("""{"error":{"message":"bad key"}}""", HttpStatusCode.Unauthorized)
             .generateStreamEvents("gpt-4o", messages)
-            .toList()
+            .toList().providerEvidence()
 
         val error = assertIs<Error>(events.single())
         val reason = assertIs<StreamErrorReason.ProviderError>(error.reason)
@@ -186,7 +186,7 @@ class OpenAIStreamEventsTest {
 
     @Test
     fun malformedFrameIsInvalidStreamEvent() = runTest {
-        val events = broker(sse("{not json", "[DONE]")).generateStreamEvents("gpt-4o", messages).toList()
+        val events = broker(sse("{not json", "[DONE]")).generateStreamEvents("gpt-4o", messages).toList().providerEvidence()
 
         assertEquals(listOf<CompletionStreamEvent>(Error(StreamErrorReason.InvalidStreamEvent("{not json"))), events)
     }
@@ -196,7 +196,7 @@ class OpenAIStreamEventsTest {
         val tracer = TracerSystem()
         broker(sse(delta("Paris"), delta(finish = "stop"), usageFrame, "[DONE]"), tracer = tracer)
             .generateStreamEvents("gpt-4o", messages)
-            .toList()
+            .toList().providerEvidence()
 
         assertEquals(1, tracer.eventStore.getEvents(LlmCallEvent::class).size)
         val response = tracer.eventStore.getEvents(LlmResponseEvent::class).single() as LlmResponseEvent

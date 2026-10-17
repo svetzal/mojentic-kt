@@ -10,6 +10,32 @@ patch versions move independently.
 
 ## [Unreleased]
 
+### Breaking: client streaming timing (3.0.0)
+
+- All four completion adapters now report client `request_duration_ms` and,
+  when a token arrived, `time_to_first_token_ms` and `first_token_kind` in
+  terminal `CompletionEvidence.metadata`. Thinking takes precedence over
+  content, then tool arguments, within one frame. Keepalives and empty deltas
+  do not count. Provider metrics retain their original units.
+- `GatewayStreamEvent.Completed` and broker/session `StreamEvent.Completed`
+  carry evidence for each successful completion, including each tool
+  continuation. `CompletionStreamEvent.Error.evidence` carries failed-turn
+  telemetry; recovery failures also retain it through
+  `RecoveryFailure.inspectCompletionEvidence()`. Dispatched ordinary stream
+  exceptions expose `LlmGatewayException.completionEvidence` and retain the
+  original failure as their cause. Cancellation still propagates.
+- Migration: recompile callers and handle the new `Completed` cases in
+  exhaustive stream-event `when` expressions. Read error evidence from the
+  terminal event, rather than assuming every error reason carries it. Account
+  for one additional terminal event per lower-level completion. Custom
+  gateways may continue emitting their existing events; the new evidence is
+  supplied by the production adapters.
+- Measurement starts at collection-time dispatch, spans admitted retries and
+  admission/backoff delays, and restarts for each tool continuation. Ordinary
+  streams use `CompletionConfig.streamTimeSource` (monotonic by default);
+  recovery uses the policy's existing `monotonicClock`. Request encoding and
+  defaults are unchanged.
+
 ### Breaking: request fidelity (3.0.0)
 
 - `CompletionConfig.temperature`, `numCtx` and `maxTokens` are nullable and unset

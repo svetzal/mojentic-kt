@@ -1,6 +1,7 @@
 package com.mojentic.anthropic
 
 import com.mojentic.llm.CompletionConfig
+import com.mojentic.llm.GatewayStreamEvent
 import com.mojentic.llm.LlmMessage
 import com.mojentic.llm.recovery.RecoveryCategory
 import com.mojentic.llm.recovery.RecoveryException
@@ -154,8 +155,13 @@ class AnthropicRecoveryEvidenceTest {
                     val recovered = mutableListOf<com.mojentic.llm.GatewayStreamEvent>()
                     gateway.stream("claude", messages).collect { legacy += it }
                     gateway.stream("claude", messages, config = CompletionConfig(recovery = RecoveryPolicy())).collect { recovered += it }
-                    assertEquals(legacy, recovered)
-                    assertEquals(1, recovered.size)
+                    assertEquals(
+                        legacy.filterNot { it is GatewayStreamEvent.Completed },
+                        recovered.filterNot { it is GatewayStreamEvent.Completed },
+                    )
+                    assertEquals(reason, assertIs<GatewayStreamEvent.Completed>(legacy.last()).evidence.finishReason)
+                    assertEquals(reason, assertIs<GatewayStreamEvent.Completed>(recovered.last()).evidence.finishReason)
+                    assertEquals(2, recovered.size)
                     assertEquals(2, server.requests.size)
                 } finally {
                     gateway.close()

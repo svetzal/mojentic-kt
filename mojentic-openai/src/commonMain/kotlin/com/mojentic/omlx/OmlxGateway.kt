@@ -13,12 +13,17 @@ import com.mojentic.llm.ReasoningEffort
 import com.mojentic.llm.ResponseFormat
 import com.mojentic.llm.StreamErrorReason
 import com.mojentic.llm.StreamEventsGateway
+import com.mojentic.llm.StreamTiming
+import com.mojentic.llm.executeTimed
+import com.mojentic.llm.readTimedLine
 import com.mojentic.llm.recovery.RecoveryCapabilities
 import com.mojentic.llm.recovery.RecoveryHttp
 import com.mojentic.llm.recovery.RecoveryOperation
 import com.mojentic.llm.recovery.RecoveryPolicy
 import com.mojentic.llm.recovery.RecoveryProvider
 import com.mojentic.llm.recovery.recoveryHttpClient
+import com.mojentic.llm.timedCompletionStream
+import com.mojentic.llm.timedGatewayStream
 import com.mojentic.llm.tools.LlmTool
 import com.mojentic.llm.validateReasoning
 import com.mojentic.openai.OpenAIChatRequest
@@ -55,7 +60,6 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
 import io.ktor.http.encodeURLParameter
 import io.ktor.http.isSuccess
-import io.ktor.utils.io.readLine
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -279,25 +283,27 @@ public class OmlxGateway internal constructor(
         messages: List<LlmMessage>,
         tools: List<LlmTool>?,
         config: CompletionConfig,
-    ): Flow<GatewayStreamEvent> = if (config.recovery != null) {
-        recoveryStream(model, messages, tools, config)
-    } else {
-        channelFlow {
-            chatStatement(chatRequest(model, messages, tools, config, stream = true)).execute { response ->
-                ensureSuccess(response)
-                val parser = OpenAILegacyStreamParser(json)
-                val channel = response.bodyAsChannel()
-                while (!parser.isDone) {
-                    val line = channel.readLine() ?: break
-                    if (isKeepAliveFrame(line, json)) continue
-                    parser.accept(line).forEach { send(it) }
+    ): Flow<GatewayStreamEvent> = timedGatewayStream(config) { timing ->
+        if (config.recovery != null) {
+            recoveryStream(model, messages, tools, config, timing)
+        } else {
+            channelFlow {
+                chatStatement(chatRequest(model, messages, tools, config, stream = true)).executeTimed(timing) { response ->
+                    ensureSuccess(response)
+                    val parser = OpenAILegacyStreamParser(json)
+                    val channel = response.bodyAsChannel()
+                    while (!parser.isDone) {
+                        val line = channel.readTimedLine(timing) ?: break
+                        if (isKeepAliveFrame(line, json)) continue
+                        parser.accept(line).forEach { send(it) }
+                    }
+                    if (config.preserveReasoning && !parser.hasNativeCompletion) {
+                        throw LlmGatewayException("Incomplete native reasoning stream")
+                    }
+                    parser.finish().forEach { send(it) }
                 }
-                if (config.preserveReasoning && !parser.hasNativeCompletion) {
-                    throw LlmGatewayException("Incomplete native reasoning stream")
-                }
-                parser.finish().forEach { send(it) }
-            }
-        }.buffer(Channel.RENDEZVOUS)
+            }.buffer(Channel.RENDEZVOUS)
+        }
     }
 
     /**
@@ -313,29 +319,31 @@ public class OmlxGateway internal constructor(
         model: String,
         messages: List<LlmMessage>,
         config: CompletionConfig,
-    ): Flow<CompletionStreamEvent> = if (config.recovery != null) {
-        recoveryStreamEvents(model, messages, config)
-    } else {
-        channelFlow {
-            val request = chatRequest(model, messages, tools = null, config = config, stream = true)
-                .copy(streamOptions = OpenAIStreamOptions(includeUsage = true))
+    ): Flow<CompletionStreamEvent> = timedCompletionStream(config) { timing ->
+        if (config.recovery != null) {
+            recoveryStreamEvents(model, messages, config, timing)
+        } else {
+            channelFlow {
+                val request = chatRequest(model, messages, tools = null, config = config, stream = true)
+                    .copy(streamOptions = OpenAIStreamOptions(includeUsage = true))
 
-            chatStatement(request).execute { response ->
-                if (!response.status.isSuccess()) {
-                    send(CompletionStreamEvent.Error(StreamErrorReason.ProviderError(response.bodyAsText(), response.status.value)))
-                    return@execute
+                chatStatement(request).executeTimed(timing) { response ->
+                    if (!response.status.isSuccess()) {
+                        send(CompletionStreamEvent.Error(StreamErrorReason.ProviderError(response.bodyAsText(), response.status.value)))
+                        return@executeTimed
+                    }
+                    val parser = OpenAIStreamEventParser(json)
+                    val channel = response.bodyAsChannel()
+                    while (!parser.isTerminal) {
+                        val line = channel.readTimedLine(timing) ?: break
+                        if (isKeepAliveFrame(line, json)) continue
+                        parser.accept(line).forEach { send(it) }
+                    }
+                    if (!parser.isTerminal) send(parser.endOfStream())
                 }
-                val parser = OpenAIStreamEventParser(json)
-                val channel = response.bodyAsChannel()
-                while (!parser.isTerminal) {
-                    val line = channel.readLine() ?: break
-                    if (isKeepAliveFrame(line, json)) continue
-                    parser.accept(line).forEach { send(it) }
-                }
-                if (!parser.isTerminal) send(parser.endOfStream())
-            }
-        }.buffer(Channel.RENDEZVOUS)
-            .catch { failure -> emit(CompletionStreamEvent.Error(StreamErrorReason.RequestFailed(failure))) }
+            }.buffer(Channel.RENDEZVOUS)
+                .catch { failure -> emit(CompletionStreamEvent.Error(StreamErrorReason.RequestFailed(failure))) }
+        }
     }
 
     private fun recoveryStream(
@@ -343,6 +351,7 @@ public class OmlxGateway internal constructor(
         messages: List<LlmMessage>,
         tools: List<LlmTool>?,
         config: CompletionConfig,
+        timing: StreamTiming,
     ): Flow<GatewayStreamEvent> = flow {
         val request = chatRequest(model, messages, tools, config, stream = true)
             .copy(streamOptions = OpenAIStreamOptions(includeUsage = true))
@@ -350,6 +359,7 @@ public class OmlxGateway internal constructor(
             json.encodeToString(OpenAIChatRequest.serializer(), request),
             RecoveryOperation.STREAM,
             requireNotNull(config.recovery),
+            timing,
         ) { stream ->
             OpenAIRecoveryStreamParser(json).consume(stream, allowTools = true) { emit(it) }
         }
@@ -359,6 +369,7 @@ public class OmlxGateway internal constructor(
         model: String,
         messages: List<LlmMessage>,
         config: CompletionConfig,
+        timing: StreamTiming,
     ): Flow<CompletionStreamEvent> = flow {
         val request = chatRequest(model, messages, tools = null, config = config, stream = true)
             .copy(streamOptions = OpenAIStreamOptions(includeUsage = true))
@@ -368,6 +379,7 @@ public class OmlxGateway internal constructor(
             json.encodeToString(OpenAIChatRequest.serializer(), request),
             RecoveryOperation.STREAM_EVENTS,
             requireNotNull(config.recovery),
+            timing,
         ) { stream ->
             val evidence = OpenAIRecoveryStreamParser(json).consume(stream, allowTools = false) { event ->
                 if (event is GatewayStreamEvent.Content) emit(CompletionStreamEvent.Content(event.text))

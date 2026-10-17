@@ -93,7 +93,7 @@ class OllamaStreamEventsTest {
     fun contentThenStopFrameYieldsContentThenCompleted() = runTest {
         val events = broker(lines(content("Par"), content("is"), done("stop")))
             .generateStreamEvents("qwen3", messages)
-            .toList()
+            .toList().providerEvidence()
 
         assertEquals(listOf(Content("Par"), Content("is"), Completed(stopEvidence)), events)
     }
@@ -102,7 +102,7 @@ class OllamaStreamEventsTest {
     fun requestStreamsWithoutToolsAndForwardsFormat() = runTest {
         broker(lines(done("stop")))
             .generateStreamEvents("qwen3", messages, CompletionConfig(responseFormat = ResponseFormat.Json()))
-            .toList()
+            .toList().providerEvidence()
 
         val body = bodies.single()
         assertEquals(JsonPrimitive(true), body["stream"])
@@ -114,7 +114,7 @@ class OllamaStreamEventsTest {
     fun lengthDoneReasonIsIncompleteCompletionWithEvidence() = runTest {
         val events = broker(lines(content("Par"), done("length")))
             .generateStreamEvents("qwen3", messages)
-            .toList()
+            .toList().providerEvidence()
 
         assertEquals(Error(StreamErrorReason.IncompleteCompletion(stopEvidence.copy(finishReason = "length"))), events.last())
     }
@@ -123,7 +123,7 @@ class OllamaStreamEventsTest {
     fun missingDoneReasonIsIncompleteCompletion() = runTest {
         val events = broker(lines(content("Par"), done(null, withEvidence = false)))
             .generateStreamEvents("qwen3", messages)
-            .toList()
+            .toList().providerEvidence()
 
         assertEquals(
             Error(StreamErrorReason.IncompleteCompletion(CompletionEvidence(providerModel = "qwen3:32b"))),
@@ -133,7 +133,7 @@ class OllamaStreamEventsTest {
 
     @Test
     fun endOfStreamWithoutDoneIsIncompleteStreamWithPartialEvidence() = runTest {
-        val events = broker(lines(content("Par"))).generateStreamEvents("qwen3", messages).toList()
+        val events = broker(lines(content("Par"))).generateStreamEvents("qwen3", messages).toList().providerEvidence()
 
         assertEquals(
             listOf(Content("Par"), Error(StreamErrorReason.IncompleteStream(CompletionEvidence(providerModel = "qwen3:32b")))),
@@ -143,7 +143,7 @@ class OllamaStreamEventsTest {
 
     @Test
     fun emptyStreamIsIncompleteStreamWithoutEvidence() = runTest {
-        val events = broker("").generateStreamEvents("qwen3", messages).toList()
+        val events = broker("").generateStreamEvents("qwen3", messages).toList().providerEvidence()
 
         assertEquals(listOf<CompletionStreamEvent>(Error(StreamErrorReason.IncompleteStream(null))), events)
     }
@@ -155,7 +155,7 @@ class OllamaStreamEventsTest {
 
         val events = broker(lines(content("Par"), toolFrame, done("stop")))
             .generateStreamEvents("qwen3", messages)
-            .toList()
+            .toList().providerEvidence()
 
         assertEquals(listOf(Content("Par"), Error(StreamErrorReason.UnexpectedToolCalls)), events)
     }
@@ -164,7 +164,7 @@ class OllamaStreamEventsTest {
     fun providerErrorFrameIsProviderError() = runTest {
         val events = broker(lines("""{"error":"model 'qwen3' not found"}"""))
             .generateStreamEvents("qwen3", messages)
-            .toList()
+            .toList().providerEvidence()
 
         val error = assertIs<Error>(events.single())
         val reason = assertIs<StreamErrorReason.ProviderError>(error.reason)
@@ -175,7 +175,7 @@ class OllamaStreamEventsTest {
     fun nonSuccessStatusIsProviderErrorWithStatus() = runTest {
         val events = broker("""{"error":"model 'qwen3' not found"}""", HttpStatusCode.NotFound)
             .generateStreamEvents("qwen3", messages)
-            .toList()
+            .toList().providerEvidence()
 
         val error = assertIs<Error>(events.single())
         assertEquals(404, assertIs<StreamErrorReason.ProviderError>(error.reason).status)
@@ -183,7 +183,7 @@ class OllamaStreamEventsTest {
 
     @Test
     fun malformedFrameIsInvalidStreamEvent() = runTest {
-        val events = broker(lines("{not json", done("stop"))).generateStreamEvents("qwen3", messages).toList()
+        val events = broker(lines("{not json", done("stop"))).generateStreamEvents("qwen3", messages).toList().providerEvidence()
 
         assertEquals(listOf<CompletionStreamEvent>(Error(StreamErrorReason.InvalidStreamEvent("{not json"))), events)
     }
@@ -191,14 +191,14 @@ class OllamaStreamEventsTest {
     @Test
     fun tracerRecordsCallAndResponseWithUsageAndMetadata() = runTest {
         val tracer = TracerSystem()
-        broker(lines(content("Paris"), done("stop")), tracer = tracer).generateStreamEvents("qwen3", messages).toList()
+        broker(lines(content("Paris"), done("stop")), tracer = tracer).generateStreamEvents("qwen3", messages).toList().providerEvidence()
 
         assertEquals(1, tracer.eventStore.getEvents(LlmCallEvent::class).size)
         val response = tracer.eventStore.getEvents(LlmResponseEvent::class).single() as LlmResponseEvent
         assertEquals("qwen3", response.model)
         assertEquals("Paris", response.content)
         assertEquals(usage, response.usage)
-        assertEquals(timings, response.metadata)
+        assertEquals(timings, response.metadata.providerMetrics())
         assertEquals("qwen3:32b", response.providerModel)
         assertEquals("stop", response.finishReason)
     }

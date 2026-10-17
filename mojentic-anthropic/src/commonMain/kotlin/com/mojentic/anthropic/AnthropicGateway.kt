@@ -16,6 +16,9 @@ import com.mojentic.llm.LlmGateway
 import com.mojentic.llm.LlmGatewayResponse
 import com.mojentic.llm.LlmMessage
 import com.mojentic.llm.LlmToolCall
+import com.mojentic.llm.StreamTiming
+import com.mojentic.llm.executeTimed
+import com.mojentic.llm.readTimedLine
 import com.mojentic.llm.recovery.RecoveryCapabilities
 import com.mojentic.llm.recovery.RecoveryHttp
 import com.mojentic.llm.recovery.RecoveryOperation
@@ -23,6 +26,7 @@ import com.mojentic.llm.recovery.RecoveryPolicy
 import com.mojentic.llm.recovery.RecoveryProvider
 import com.mojentic.llm.recovery.recoveryHttpClient
 import com.mojentic.llm.rejectNewReasoningControls
+import com.mojentic.llm.timedGatewayStream
 import com.mojentic.llm.tools.LlmTool
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
@@ -41,7 +45,6 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
-import io.ktor.utils.io.readLine
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
@@ -177,10 +180,12 @@ public class AnthropicGateway(
         messages: List<LlmMessage>,
         tools: List<LlmTool>?,
         config: CompletionConfig,
-    ): Flow<GatewayStreamEvent> = if (config.recovery != null) {
-        recoveryStream(model, messages, tools, config)
-    } else {
-        legacyStream(model, messages, tools, config)
+    ): Flow<GatewayStreamEvent> = timedGatewayStream(config) { timing ->
+        if (config.recovery != null) {
+            recoveryStream(model, messages, tools, config, timing)
+        } else {
+            legacyStream(model, messages, tools, config, timing)
+        }
     }
 
     private fun legacyStream(
@@ -188,6 +193,7 @@ public class AnthropicGateway(
         messages: List<LlmMessage>,
         tools: List<LlmTool>?,
         config: CompletionConfig,
+        timing: StreamTiming,
     ): Flow<GatewayStreamEvent> = channelFlow {
         val request = buildMessagesRequest(
             model = model,
@@ -202,13 +208,13 @@ public class AnthropicGateway(
             contentType(ContentType.Application.Json)
             setBody(json.encodeToString(AnthropicMessagesRequest.serializer(), request))
         }
-        statement.execute { httpResponse ->
+        statement.executeTimed(timing) { httpResponse ->
             ensureSuccess(httpResponse)
             val accumulator = AnthropicStreamAccumulator(json)
             val channel = httpResponse.bodyAsChannel()
             var stopped = false
             while (!stopped) {
-                val line = channel.readLine() ?: break
+                val line = channel.readTimedLine(timing) ?: break
                 stopped = handleSseLine(line, accumulator) { event -> send(event) }
             }
             val finalised = accumulator.toolCalls()
@@ -238,9 +244,10 @@ public class AnthropicGateway(
         messages: List<LlmMessage>,
         tools: List<LlmTool>?,
         config: CompletionConfig,
+        timing: StreamTiming,
     ): Flow<GatewayStreamEvent> = flow {
         val payload = encode(buildMessagesRequest(model, messages, tools?.toAnthropicTools(), null, config, true))
-        recoveryBoundary().executeStream(payload, RecoveryOperation.STREAM, requireNotNull(config.recovery)) { stream ->
+        recoveryBoundary().executeStream(payload, RecoveryOperation.STREAM, requireNotNull(config.recovery), timing) { stream ->
             AnthropicRecoveryStreamParser(json).consume(stream) { emit(it) }
         }
     }

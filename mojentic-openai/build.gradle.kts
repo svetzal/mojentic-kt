@@ -83,6 +83,7 @@ kotlin {
         jvmTest {
             dependencies {
                 implementation(project(":mojentic-ollama"))
+                implementation(project(":mojentic-anthropic"))
                 implementation(libs.slf4j.simple)
             }
         }

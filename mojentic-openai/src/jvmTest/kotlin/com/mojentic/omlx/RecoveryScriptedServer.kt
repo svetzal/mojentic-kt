@@ -22,6 +22,7 @@ internal data class ScriptedReply(
     val clientClosed: CountDownLatch? = null,
     val rawBody: ByteArray? = null,
     val readAcknowledged: Semaphore? = null,
+    val beforeReply: () -> Unit = {},
 )
 
 /** Exact HTTP/1.1 loopback scripts, including deliberately incomplete response bodies. */
@@ -66,6 +67,7 @@ internal class RecoveryScriptedServer(private val replies: List<ScriptedReply>) 
 
     private fun respond(output: java.io.OutputStream, reply: ScriptedReply) {
         Thread.sleep(reply.delayMillis)
+        reply.beforeReply()
         val bytes = if (reply.rawBody != null) {
             reply.rawBody
         } else if (reply.gzip) {

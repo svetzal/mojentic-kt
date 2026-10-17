@@ -207,6 +207,8 @@ public class LlmBroker(
 
                 is GatewayStreamEvent.ToolCalls -> accumulatedToolCalls += event.calls
 
+                is GatewayStreamEvent.Completed -> emit(StreamEvent.Completed(event.evidence))
+
                 is GatewayStreamEvent.Raw -> { /* no-op by default */ }
             }
         }
@@ -390,7 +392,7 @@ private val CompletionStreamEvent.evidence: CompletionEvidence?
     get() = when (this) {
         is CompletionStreamEvent.Completed -> evidence
 
-        is CompletionStreamEvent.Error -> when (val cause = reason) {
+        is CompletionStreamEvent.Error -> evidence ?: when (val cause = reason) {
             is StreamErrorReason.IncompleteCompletion -> cause.evidence
             is StreamErrorReason.IncompleteStream -> cause.evidence
             is StreamErrorReason.RequestFailed -> (cause.cause as? RecoveryException)?.failures?.lastOrNull()?.inspectCompletionEvidence()

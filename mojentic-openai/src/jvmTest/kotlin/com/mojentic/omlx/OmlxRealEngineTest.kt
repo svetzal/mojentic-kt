@@ -4,6 +4,8 @@ import com.mojentic.llm.CompletionEvidence
 import com.mojentic.llm.CompletionStreamEvent
 import com.mojentic.llm.LlmBroker
 import com.mojentic.llm.LlmMessage
+import com.mojentic.openai.providerEvidence
+import com.mojentic.openai.providerMetrics
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
 import kotlinx.coroutines.flow.toList
@@ -106,7 +108,9 @@ class OmlxRealEngineTest {
 
     @Test
     fun streamEventsCompleteOverARealChunkedResponse(): Unit = runBlocking {
-        val events = LlmBroker(gateway).generateStreamEvents(model, listOf(LlmMessage.user("Reply with exactly: hello"))).toList()
+        val events = LlmBroker(
+            gateway,
+        ).generateStreamEvents(model, listOf(LlmMessage.user("Reply with exactly: hello"))).toList().providerEvidence()
 
         assertEquals(CompletionStreamEvent.Content("\n\nhello"), events.first())
         val completed = events.last() as CompletionStreamEvent.Completed

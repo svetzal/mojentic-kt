@@ -96,7 +96,7 @@ public class ChatSession(
                 when (event) {
                     is StreamEvent.TextChunk -> contentBuilder.append(event.text)
                     is StreamEvent.ToolCall -> toolCalls += event.call
-                    is StreamEvent.ToolResult, is StreamEvent.ThinkingChunk -> Unit
+                    is StreamEvent.ToolResult, is StreamEvent.ThinkingChunk, is StreamEvent.Completed -> Unit
                 }
                 emit(event)
             }

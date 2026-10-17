@@ -1,6 +1,7 @@
 package com.mojentic.llm.recovery
 
 import com.mojentic.llm.CompletionEvidence
+import com.mojentic.llm.StreamTiming
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.plugins.HttpRequestTimeoutException
@@ -66,13 +67,24 @@ public class RecoveryHttp(
         consume: suspend (RecoveryStream) -> Unit,
     ): Unit = executeInternal(payload, operation, policy, { _, _ -> }, consume)
 
+    /** Shares one client timing clock with the adapter across all admitted attempts. */
+    public suspend fun executeStream(
+        payload: String,
+        operation: RecoveryOperation,
+        policy: RecoveryPolicy,
+        timing: StreamTiming,
+        consume: suspend (RecoveryStream) -> Unit,
+    ): Unit = executeInternal(payload, operation, policy, { _, _ -> }, consume, timing)
+
     private suspend fun <T> executeInternal(
         payload: String,
         operation: RecoveryOperation,
         policy: RecoveryPolicy,
         decode: (String, Map<String, List<String>>) -> T,
         consume: (suspend (RecoveryStream) -> Unit)?,
+        timing: StreamTiming? = null,
     ): T {
+        val streamTiming = if (consume != null) timing ?: StreamTiming(policy.monotonicClock) else null
         val failures = mutableListOf<RecoveryFailure>()
         val logicalId = RecoveryIdentity.newId()
         var started: Long? = null
@@ -80,7 +92,7 @@ public class RecoveryHttp(
         try {
             while (true) {
                 currentCoroutineContext().ensureActive()
-                val attempt = ResponseEvidence(payload, apiKey)
+                val attempt = ResponseEvidence(payload, apiKey).also { it.timing = streamTiming }
                 policy.observer(RecoveryEvent(RecoveryStage.STARTED, identity, failures = failures.toList()))
                 val received = perform(payload, identity, policy, attempt, decode, consume) {
                     started?.let { checkBudget(policy, it, 0, identity, failures) }
@@ -105,6 +117,7 @@ public class RecoveryHttp(
                 identity = RecoveryIdentity(logicalId, RecoveryIdentity.newId(), identity.attemptNumber + 1)
             }
         } catch (cause: Throwable) {
+            failures.lastOrNull()?.finishTiming()
             failOperation(cause, policy, identity, failures)
         }
     }
@@ -165,7 +178,7 @@ public class RecoveryHttp(
         evidence: ResponseEvidence,
         decode: (String, Map<String, List<String>>) -> T,
         consume: (suspend (RecoveryStream) -> Unit)?,
-        beforeSend: () -> Unit,
+        beforeSend: suspend () -> Unit,
     ): Result<T> = try {
         evidence.capture = true
         policy.capture?.invoke(RecoveryWire(identity, payload.encodeToByteArray(), null, emptyMap(), null))
@@ -173,12 +186,14 @@ public class RecoveryHttp(
         currentCoroutineContext().ensureActive()
         beforeSend()
         evidence.sent = true
-        val result = client.preparePost(url) {
+        val statement = client.preparePost(url) {
             contentType(ContentType.Application.Json)
             if (requestHeaders.isEmpty()) apiKey?.let { header("Authorization", "Bearer $it") }
             requestHeaders.forEach { (name, value) -> header(name, value) }
             setBody(payload)
-        }.execute { response ->
+        }
+        evidence.timing?.start()
+        val result = statement.execute { response ->
             if (consume != null && response.status.value in SUCCESS_RANGE) {
                 evidence.streaming = true
                 evidence.status = response.status.value
@@ -253,7 +268,7 @@ public class RecoveryHttp(
         if (cause is RecoveryException) throw cause
     }
 
-    private fun retryDelay(
+    private suspend fun retryDelay(
         policy: RecoveryPolicy,
         failure: RecoveryFailure,
         started: Long,
@@ -328,7 +343,7 @@ public class RecoveryHttp(
         }
     }
 
-    private fun checkBudget(
+    private suspend fun checkBudget(
         policy: RecoveryPolicy,
         started: Long,
         wait: Long,
@@ -346,13 +361,14 @@ public class RecoveryHttp(
         }
     }
 
-    private fun terminal(
+    private suspend fun terminal(
         policy: RecoveryPolicy,
         identity: RecoveryIdentity,
         failures: List<RecoveryFailure>,
         reason: RecoveryReason,
     ): Nothing {
         val last = failures.lastOrNull()
+        last?.finishTiming()
         val streaming = last?.operation == RecoveryOperation.STREAM || last?.operation == RecoveryOperation.STREAM_EVENTS
         val stage = if (streaming &&
             (last.progress.replayUnsafe || last.progress.semanticDelivered)
@@ -374,6 +390,7 @@ public class RecoveryHttp(
 }
 
 internal class ResponseEvidence(private val payload: String = "", private val apiKey: String? = null) {
+    var timing: StreamTiming? = null
     var streaming = false
     var delivered = false
     var deliveredCounts = RecoverySemanticProgress()
@@ -415,7 +432,7 @@ internal class ResponseEvidence(private val payload: String = "", private val ap
             progress(),
         )
 
-    fun failure(
+    suspend fun failure(
         provider: RecoveryProvider,
         operation: RecoveryOperation,
         identity: RecoveryIdentity,
@@ -437,7 +454,8 @@ internal class ResponseEvidence(private val payload: String = "", private val ap
             operation,
             identity,
             details,
-            SensitiveRecoveryEvidence(cause, bytes.toByteArray(), headers, boundaryCause, completion),
+            SensitiveRecoveryEvidence(cause, bytes.toByteArray(), headers, boundaryCause, timing?.evidence(completion) ?: completion),
+            timing,
         )
     }
 

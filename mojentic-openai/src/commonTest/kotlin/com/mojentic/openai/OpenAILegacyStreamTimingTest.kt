@@ -59,7 +59,7 @@ class OpenAILegacyStreamTimingTest {
         val events = withContext(Dispatchers.Default) {
             gateway.stream("gpt-4o-mini", listOf(LlmMessage.user("hi")))
                 .onEach { firstChunkSeen.complete(Unit) }
-                .toList()
+                .toList().filterNot { it is GatewayStreamEvent.Completed }
         }
 
         assertTrue(server.await(), "first chunk must reach the collector while the server is still sending")

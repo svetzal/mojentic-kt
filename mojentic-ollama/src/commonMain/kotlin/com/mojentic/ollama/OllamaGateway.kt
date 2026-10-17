@@ -12,6 +12,9 @@ import com.mojentic.llm.ModelContextWindow
 import com.mojentic.llm.ReasoningEffort
 import com.mojentic.llm.StreamErrorReason
 import com.mojentic.llm.StreamEventsGateway
+import com.mojentic.llm.StreamTiming
+import com.mojentic.llm.executeTimed
+import com.mojentic.llm.readTimedLine
 import com.mojentic.llm.recovery.RecoveryCapabilities
 import com.mojentic.llm.recovery.RecoveryHttp
 import com.mojentic.llm.recovery.RecoveryOperation
@@ -20,6 +23,8 @@ import com.mojentic.llm.recovery.RecoveryProvider
 import com.mojentic.llm.recovery.RecoveryStreamClosedException
 import com.mojentic.llm.recovery.RecoveryStreamException
 import com.mojentic.llm.recovery.recoveryHttpClient
+import com.mojentic.llm.timedCompletionStream
+import com.mojentic.llm.timedGatewayStream
 import com.mojentic.llm.tools.LlmTool
 import com.mojentic.llm.validateReasoning
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -39,7 +44,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
-import io.ktor.utils.io.readLine
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -167,38 +171,40 @@ public class OllamaGateway(
         messages: List<LlmMessage>,
         tools: List<LlmTool>?,
         config: CompletionConfig,
-    ): Flow<GatewayStreamEvent> = if (config.recovery != null) {
-        recoveryStream(model, messages, tools, config)
-    } else {
-        channelFlow {
-            val request = OllamaChatRequest(
-                model = model,
-                messages = messages.toOllamaMessages(),
-                options = optionsFor(config),
-                stream = true,
-                tools = tools?.toOllamaTools(),
-                format = config.responseFormat?.toOllamaFormat(),
-                think = thinkFor(config, messages),
-            )
+    ): Flow<GatewayStreamEvent> = timedGatewayStream(config) { timing ->
+        if (config.recovery != null) {
+            recoveryStream(model, messages, tools, config, timing)
+        } else {
+            channelFlow {
+                val request = OllamaChatRequest(
+                    model = model,
+                    messages = messages.toOllamaMessages(),
+                    options = optionsFor(config),
+                    stream = true,
+                    tools = tools?.toOllamaTools(),
+                    format = config.responseFormat?.toOllamaFormat(),
+                    think = thinkFor(config, messages),
+                )
 
-            val statement = httpClient.preparePost("$host/api/chat") {
-                contentType(ContentType.Application.Json)
-                setBody(json.encodeToString(OllamaChatRequest.serializer(), request))
-            }
-            statement.execute { httpResponse ->
-                ensureSuccess(httpResponse)
-                val channel = httpResponse.bodyAsChannel()
-                var completed = false
-                while (true) {
-                    val line = channel.readLine() ?: break
-                    if (line.isBlank()) continue
-                    val chunk = decodeLegacyStreamChunk(line, config.preserveReasoning) ?: continue
-                    if (chunk.done) completed = true
-                    chunk.toLegacyStreamEvents().forEach { send(it) }
+                val statement = httpClient.preparePost("$host/api/chat") {
+                    contentType(ContentType.Application.Json)
+                    setBody(json.encodeToString(OllamaChatRequest.serializer(), request))
                 }
-                if (config.preserveReasoning && !completed) throw LlmGatewayException("Incomplete native reasoning stream")
-            }
-        }.buffer(Channel.RENDEZVOUS)
+                statement.executeTimed(timing) { httpResponse ->
+                    ensureSuccess(httpResponse)
+                    val channel = httpResponse.bodyAsChannel()
+                    var completed = false
+                    while (true) {
+                        val line = channel.readTimedLine(timing) ?: break
+                        if (line.isBlank()) continue
+                        val chunk = decodeLegacyStreamChunk(line, config.preserveReasoning) ?: continue
+                        if (chunk.done) completed = true
+                        chunk.toLegacyStreamEvents().forEach { send(it) }
+                    }
+                    if (config.preserveReasoning && !completed) throw LlmGatewayException("Incomplete native reasoning stream")
+                }
+            }.buffer(Channel.RENDEZVOUS)
+        }
     }
 
     private fun decodeLegacyStreamChunk(line: String, nativeHistory: Boolean): OllamaChatResponse? {
@@ -226,39 +232,41 @@ public class OllamaGateway(
         model: String,
         messages: List<LlmMessage>,
         config: CompletionConfig,
-    ): Flow<CompletionStreamEvent> = if (config.recovery != null) {
-        recoveryStreamEvents(model, messages, config)
-    } else {
-        channelFlow {
-            val request = OllamaChatRequest(
-                model = model,
-                messages = messages.toOllamaMessages(),
-                options = optionsFor(config),
-                stream = true,
-                format = config.responseFormat?.toOllamaFormat(),
-                think = thinkFor(config, messages),
-            )
+    ): Flow<CompletionStreamEvent> = timedCompletionStream(config) { timing ->
+        if (config.recovery != null) {
+            recoveryStreamEvents(model, messages, config, timing)
+        } else {
+            channelFlow {
+                val request = OllamaChatRequest(
+                    model = model,
+                    messages = messages.toOllamaMessages(),
+                    options = optionsFor(config),
+                    stream = true,
+                    format = config.responseFormat?.toOllamaFormat(),
+                    think = thinkFor(config, messages),
+                )
 
-            val statement = httpClient.preparePost("$host/api/chat") {
-                contentType(ContentType.Application.Json)
-                setBody(json.encodeToString(OllamaChatRequest.serializer(), request))
-            }
-            statement.execute { response ->
-                if (!response.status.isSuccess()) {
-                    val detail = response.bodyAsText()
-                    send(CompletionStreamEvent.Error(StreamErrorReason.ProviderError(detail, response.status.value)))
-                    return@execute
+                val statement = httpClient.preparePost("$host/api/chat") {
+                    contentType(ContentType.Application.Json)
+                    setBody(json.encodeToString(OllamaChatRequest.serializer(), request))
                 }
-                val parser = OllamaStreamEventParser(json)
-                val channel = response.bodyAsChannel()
-                while (!parser.isTerminal) {
-                    val line = channel.readLine() ?: break
-                    parser.accept(line).forEach { send(it) }
+                statement.executeTimed(timing) { response ->
+                    if (!response.status.isSuccess()) {
+                        val detail = response.bodyAsText()
+                        send(CompletionStreamEvent.Error(StreamErrorReason.ProviderError(detail, response.status.value)))
+                        return@executeTimed
+                    }
+                    val parser = OllamaStreamEventParser(json)
+                    val channel = response.bodyAsChannel()
+                    while (!parser.isTerminal) {
+                        val line = channel.readTimedLine(timing) ?: break
+                        parser.accept(line).forEach { send(it) }
+                    }
+                    if (!parser.isTerminal) send(parser.endOfStream())
                 }
-                if (!parser.isTerminal) send(parser.endOfStream())
-            }
-        }.buffer(Channel.RENDEZVOUS)
-            .catch { failure -> emit(CompletionStreamEvent.Error(StreamErrorReason.RequestFailed(failure))) }
+            }.buffer(Channel.RENDEZVOUS)
+                .catch { failure -> emit(CompletionStreamEvent.Error(StreamErrorReason.RequestFailed(failure))) }
+        }
     }
 
     private fun recoveryStream(
@@ -266,6 +274,7 @@ public class OllamaGateway(
         messages: List<LlmMessage>,
         tools: List<LlmTool>?,
         config: CompletionConfig,
+        timing: StreamTiming,
     ): Flow<GatewayStreamEvent> = flow {
         val request = OllamaChatRequest(
             model = model,
@@ -281,6 +290,7 @@ public class OllamaGateway(
             json.encodeToString(OllamaChatRequest.serializer(), request),
             RecoveryOperation.STREAM,
             requireNotNull(config.recovery),
+            timing,
         ) { stream ->
             var terminal = false
             val completedTools = mutableListOf<LlmToolCall>()
@@ -311,6 +321,7 @@ public class OllamaGateway(
         model: String,
         messages: List<LlmMessage>,
         config: CompletionConfig,
+        timing: StreamTiming,
     ): Flow<CompletionStreamEvent> = flow {
         val request = OllamaChatRequest(
             model = model,
@@ -326,6 +337,7 @@ public class OllamaGateway(
             json.encodeToString(OllamaChatRequest.serializer(), request),
             RecoveryOperation.STREAM_EVENTS,
             requireNotNull(config.recovery),
+            timing,
         ) { stream ->
             val parser = OllamaStreamEventParser(json)
             while (!parser.isTerminal) {

@@ -4,15 +4,18 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.json.JsonObject
 
 /**
- * What the provider reported about how a streamed turn ended.
+ * Provider evidence and client measurements about how a streamed turn ended.
  *
- * Every field is null when the provider did not report it. Usage is never
- * estimated.
+ * Provider fields are null when absent. Usage is never estimated; metadata
+ * also carries client-measured streaming timing.
  *
  * @property finishReason Provider finish reason, for example `stop` or `length`.
  * @property usage Token usage as the provider reported it.
  * @property providerModel Model name the provider reported.
- * @property metadata Other provider-reported metadata, for example Ollama durations.
+ * @property metadata Provider metadata in original units, plus client `request_duration_ms`,
+ * `time_to_first_token_ms` and `first_token_kind` (thinking, content or tool_call).
+ * The first-token pair is absent when no token arrived. Client clocks start at dispatch,
+ * span admitted retries, and restart for each tool continuation.
  */
 public data class CompletionEvidence(
     val finishReason: String? = null,
@@ -37,8 +40,8 @@ public sealed interface CompletionStreamEvent {
     /** Terminal success: the provider reported a normal stop and ended the stream. */
     public data class Completed(val evidence: CompletionEvidence) : CompletionStreamEvent
 
-    /** Terminal failure. See [StreamErrorReason] for the causes. */
-    public data class Error(val reason: StreamErrorReason) : CompletionStreamEvent
+    /** Terminal failure with available provider evidence and client timing. See [StreamErrorReason] for causes. */
+    public data class Error(val reason: StreamErrorReason, val evidence: CompletionEvidence? = null) : CompletionStreamEvent
 }
 
 /**

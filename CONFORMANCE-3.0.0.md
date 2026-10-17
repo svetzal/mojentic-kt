@@ -3,7 +3,7 @@
 This record covers the October 12 admission, invalid-policy and completion-adapter
 Capabilities and Operation/provider guarantees.
 It does not certify all of transient recovery or readiness to release 3.0.0. JVM and Android are the
-supported targets. Provider wire formats and dependencies are unchanged.
+supported targets. Provider wire formats and published dependencies are unchanged.
 
 ## Contract identity and verification boundary
 
@@ -925,3 +925,163 @@ report's unsuppressed findings are zero; inherited suppressions were not newly
 revalidated. Audit output notes OSS Index lacks credentials and the .NET assembly
 analyzer lacks a runtime, so this is a passing configured audit rather than a
 claim of exhaustive vulnerability detection. No Maven publication was performed.
+
+## Client streaming timing — MODEL-METADATA section 2 (2026-10-17)
+
+This section supersedes earlier statements that first-token timing remains
+pending. It implements section 2 and release part 3 only; it does not close
+unrelated recovery amendments or authorize publication. The verified initiative
+brief / RELEASE-3.0.0 SHA-256 is
+`ea6a0efa56bfb3cd74b5ce728f80cc33c6fbd853114bec94b8aabe79f5d28e6e`.
+The owner-approved MODEL-METADATA document, including the October 17 dispatch,
+retry and continuation decisions, has SHA-256
+`d9945dca45ce09e2163843263a75b5e93028b00ee1baf191fc3ff13396830e9c`.
+The initiative repository was observed read-only at
+`ef9339c6a9682ed5f060bd690b738f6b8eea1d2d`.
+
+### Executable scope and behavioral reference
+
+The local executable set is **kt-stream-first-token-v1**:
+`ClientStreamTimingHttpTest`, `ClientStreamTimingTest` and
+`FirstDispatchTimingProofTest`. HTTP response scripts derive from section 2 and
+the read-only **ts-stream-first-token-v1** behavioral reference. The frozen
+`mojentic-ex/test/contracts/reference/ts-stream-first-token-v1.test.ts` snapshot
+has SHA-256 `e94d4f53928b3ea519eceedcb0f7e7a41ae2eb5da52076369d92374108b3d2a8`.
+Anthropic adds its required message/block lifecycle; Ollama projects its argument
+objects and required assistant role. The tests exercise public gateway,
+and broker APIs through production adapters; JVM
+cases use actual loopback HTTP sockets, while common tests control byte-channel
+arrival times through Ktor's production adapter with MockEngine.
+
+The owner authorized using this TypeScript set as a read-only behavioral
+reference without counterpart execution or manifest evidence. No TypeScript or
+external producer execution is claimed or required for this local telemetry
+correction. No provider wire protocol is changed. Live provider compatibility and
+paired verification gaps recorded for earlier boundary changes remain separate
+initiative work; this section does not close them.
+
+### Section-2 mapping
+
+Class names below are `ClientStreamTimingHttpTest` unless qualified.
+
+| Binding behavior | Named consumer-perspective verification |
+| --- | --- |
+| Start at first dispatch; exclude delayed collection | `FirstDispatchTimingProofTest.delayedCollectionRetryAndMixedFrameUseOneDispatchClock` checks zero pre-collection requests, then exact 77 ms; `ClientStreamTimingTest.delayedCollectionAndAdmittedRetryKeepFirstDispatchClockWithThinkingPrecedence` checks exact 60 ms |
+| Success evidence for OpenAI, Anthropic, Ollama and oMLX, ordinary and recovery | `publicStreamsMeasureExactKindsAndKeepProviderUnitsOnOrdinaryAndRecoveryPaths` |
+| Thinking/content/tool precedence independent of field order | The first-dispatch probes place content before thinking; `failuresBeforeTokensAndArgumentFragmentsRetainExactTerminalEvidence` places content and tool arguments in the same frame and checks exact kinds |
+| Empty/keepalive frames do not count; no-token streams omit both first-token fields and still report duration | `noTokenSuccessIgnoresKeepaliveAndEmptyFramesOnBothPublicApis` asserts absent pairs and exact 17 ms through every supported public stream API |
+| Tool arguments count before completed calls; names and empty arguments do not | `ClientStreamTimingTest.argumentFragmentStartsClockBeforeCompletedToolOnBothPaths` sends names/empty arguments at 15 ms, first arguments at 25 ms, completed calls at 45 ms; checks tool_call / 25 / 45 |
+| Failure before and after tokens, including argument rejection | `failuresBeforeTokensAndArgumentFragmentsRetainExactTerminalEvidence` checks HTTP 400, interrupted bodies and rejected tools, exact 31 ms and token kind on both paths |
+| First-token time differs from failed request duration | `ClientStreamTimingTest.terminalFailureAfterContentKeepsFirstTokenTimeAndFullDuration` checks content / 25 / 45 on ordinary and recovery paths |
+| Capture may interrupt before parsing/delivery, but received arguments still count | `recoveryCaptureFailureRetainsArgumentTimingBeforeParserOrDelivery` checks tool_call / 31 / 31, zero delivery, zero admissions and one HTTP request |
+| Retain the first clock across admitted retry and admission/backoff delays | `realHttpRetryIncludesAdmittedDelayAndNewCollectionStartsFreshClock` checks 10 + 7 admission + 40 backoff + 20 response = 77 ms and byte-identical retry payloads for all providers |
+| Final recovery failure includes pending admission time through existing private inspection | `terminalFailureDurationIncludesPendingAdmissionWithoutRestartOrReplay` checks 17 ms in Error.evidence, inspectCompletionEvidence() and the terminal EXHAUSTED observer, with no resend |
+| Tool execution and prior completion time do not enter continuation clocks | `brokerToolContinuationStartsIndependentClockAfterToolExecution` checks tool_call / 23 / 23, one tool execution with 500 ms caller work, then content / 11 / 11 for all four providers and both paths |
+| Provider metrics keep original units | Success matrix preserves oMLX usage values 0.7, 0.2, 0.5 and 0.9 seconds and Ollama total_duration 900 nanoseconds beside client milliseconds |
+| Timing configuration preserves wire bytes/defaults | `timingConfigurationPreservesRawRequestBytesAndDefaults` compares actual raw request bytes and header values across timing-source configuration changes |
+| Existing streaming order, cancellation, reasoning retention and retry admission stay intact | Existing delivery-before-EOF, native reasoning, recovery/admission and request-fidelity suites run in the full gates. Older provider-evidence assertions exclude only the three new client fields; exact timing is asserted in the named executable set above |
+
+### Public API and migration
+
+`GatewayStreamEvent.Completed` and broker/session `StreamEvent.Completed` expose
+one terminal evidence value per successful completion, before any subsequent tool
+continuation. `CompletionStreamEvent.Error.evidence` covers every dispatched
+failure. Ordinary lower-level stream failures retain their original cause in
+`LlmGatewayException` and expose `completionEvidence`; recovery keeps its typed
+exceptions and `RecoveryFailure.inspectCompletionEvidence()` path. Evidence is
+an immutable value; recovery's private evidence holder safely finalizes the last
+failure's duration before terminal observation and when the logical operation
+ends. Timing state is passed explicitly through adapter calls and a new
+RecoveryHttp.executeStream overload; the original overload remains supported.
+No coroutine context, dispatcher, job or buffer is added. Recovery retains its
+own collector-cancellation handling; the paused-tool cancellation regression
+keeps every original assertion. Cancellation remains cancellation. Existing permissive legacy EOF handling is unchanged.
+
+Recompile consumers, handle the new Completed cases in exhaustive event `when`
+expressions, and account for the extra terminal event per lower-level completion.
+Existing custom gateways can still omit that event. `CompletionConfig` adds
+`streamTimeSource` for ordinary streams; recovery uses its existing policy
+`monotonicClock`. Both default clocks are monotonic. No request field, default,
+reasoning control or retry-admission decision was changed. The only dependency
+addition is the Anthropic project on the OpenAI JVM test classpath, to exercise
+all four adapters in one socket contract matrix; published dependencies do not
+change.
+
+### Tested source and verification
+
+Kotlin base: `76e531bbfcae97c491be4a8c73608ad02ec42440` plus the uncommitted
+candidate described here. The baseline real-HTTP probe used an archive of that
+commit with the same consumer test/server, without changing any refs. It failed
+behaviorally: expected 77 ms, observed absent timing. The initial controlled Ktor
+probe likewise failed (expected 60 ms, observed absent timing) before production
+changes, then passed with exact timing. Execution evidence retains the actual
+nonzero and zero exits and complete logs. No sibling checkout was modified.
+
+The final code/API/test identity is
+`29e86aa08698b48f3704882643d7a38e49bb4d59ada178ceada4e6ccf520905a`.
+It is SHA-256 over UTF-8 `sha256sum` records, sorted by repository-relative path,
+for changed/new Kotlin, Gradle Kotlin DSL and API files together with
+`.hone-gates.json` (33 files total). The unchanged base supplies the remaining files. Earlier
+implementation manifests in this record are historical snapshots; the unchanged
+shared JSON contract artifacts and their tests remain in the full gates.
+
+| Executable source in kt-stream-first-token-v1 | SHA-256 |
+| --- | --- |
+| `ClientStreamTimingTest.kt` | `61162e4e8abdbc0c7c5911f97434778df6fb669ca271adccee15cc58f71993c6` |
+| `ClientStreamTimingHttpTest.kt` | `0f54f8651654b4bf9a4e27fcb8ce529d1df800f24925dab9df29e8da15672241` |
+| `FirstDispatchTimingProofTest.kt` | `78617ce25fe9ebe312186392e97be2d9898a0e06a575123fb50be4ea53140642` |
+
+The baseline and corrected socket proof use byte-identical consumer test and
+server source. The baseline exits 1 for absent timing; the corrected executable
+set exits 0. The targeted command was:
+
+```bash
+./gradlew ktlintFormat detekt \
+  :mojentic-anthropic:jvmTest --tests '*cancellationWinsInRequestAdmissionBackoffAndPausedToolDelivery*' \
+  :mojentic-openai:jvmTest --tests '*ClientStreamTiming*' --tests '*FirstDispatchTimingProof*' --offline
+```
+
+This passes all 12 timing tests and the unchanged cancellation test's five
+phases. The full gates then run every suite without test filters. All commands
+use `foundry capture` for execution logs, writable
+`GRADLE_USER_HOME=/tmp/mojentic-kt-timing-gradle`,
+`ANDROID_HOME=/home/svetzal/Android/Sdk` and
+`ANDROID_USER_HOME=/tmp/mojentic-kt-timing-android`. The writable Gradle home has
+`kotlin.compiler.execution.strategy=in-process` to avoid read-only host daemon
+state. Repository dependencies, SDK targets and compiler settings are unchanged.
+
+Final `.hone-gates.json` verification on this candidate, 2026-10-17:
+
+| Command | Exit | Captured stdout SHA-256 |
+| --- | --- | --- |
+
+| `./gradlew ktlintCheck` | 0 | `f023d7c93c6a10ff6c56be11c6011f2d2b5f8c61f6c0fd56c222828b309bc075` |
+| `./gradlew detekt` | 0 | `6ae7b70f86a6975e77a057813aebdeb369f2a945fd6a23d7a862604cc7c4de14` |
+| `./gradlew build` | 0 | `09548b743849ce82f705c921fa4564282b6db3f9f7afb2b5552f6422609451f1` |
+| `./gradlew allTests` | 0 | `cd3897fa6d879140ea8a7b8831cf1f537d603f82e6b48c3345fde7c388253c56` |
+| `./gradlew apiCheck` | 0 | `245e87d6d7efbc3157d9bb04d4d1573c202b84317d72a57145d05b87a01d5fd4` |
+| `./gradlew dokkaGenerate` | 0 | `5efad233e0d1f695a3e2ff5bf87efb7ec1e5bfee557a66d5069b7cdfc9c85e37` |
+
+Final reports contain **537 JVM tests in 99 suites and 379 Android host tests in
+66 suites**, with zero failures, errors or skips. API checks pass against the
+regenerated intentional 3.0 snapshot. Existing Gradle deprecation, realtime
+compiler and unresolved Dokka link notices remain visible; no new suppression
+or baseline was added. Coverage reporting is not wired, so no coverage percentage
+is claimed.
+
+The dependency audit also passes (exit 0):
+
+```bash
+./gradlew dependencyCheckAggregate --no-parallel \
+  -PdependencyCheckDataDirectory=/tmp/mojentic-kt-timing-gradle/dependency-check-data --offline
+```
+
+NVD `modified.meta` was checked first and reported
+`lastModifiedDate:2026-10-16T18:00:09-04:00`. The report scans 304 dependencies and
+has zero unsuppressed vulnerabilities. Existing audit scope, CVSS threshold and
+suppression file are unchanged; inherited suppressions were not newly
+revalidated. The audit reports the existing unavailable .NET assembly analyzer.
+No external dependency version, publication, repository ref or sibling checkout
+was changed. Foundry retains execution evidence; all changes remain uncommitted.
+
+Dependency-audit stdout SHA-256: `11dbdeefe851a5f32fcee3c256664557c8212ce22a4ff582db7b090e8dbe76a6`.

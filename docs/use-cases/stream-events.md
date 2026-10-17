@@ -20,8 +20,9 @@ terminal event. Nothing follows the terminal event.
 
 - `Completed(evidence)` is the only success. `evidence` is a
   `CompletionEvidence` with `finishReason`, `usage`, `providerModel`, and
-  `metadata`. Each field is `null` when the provider did not report it.
-- `Error(reason)` is a failed turn. Content that arrived before the error is
+  `metadata`. Provider fields are `null` when absent; metadata also carries
+  the client measurements described below.
+- `Error(reason, evidence)` is a failed turn. Content that arrived before the error is
   evidence of what the provider sent. It is not a result, even when it parses
   as valid JSON.
 
@@ -72,3 +73,35 @@ leaves a traced call and no traced response. That is not an error. An
 unsupported gateway records nothing.
 
 Existing `stream` behaviour is unchanged. It does not provide terminal proof.
+
+### Client timing
+
+OpenAI, oMLX, Ollama and Anthropic measure streaming completions with a monotonic
+clock. `CompletionEvidence.metadata` reports `request_duration_ms` on terminal
+success and failure. `time_to_first_token_ms` and `first_token_kind` are present
+together only when a token arrived. Kinds are `thinking`, `content` and
+`tool_call`, in that precedence when several first appear in one frame. Tool
+arguments count at their first nonempty fragment; tool IDs and names alone,
+keepalives, signatures and empty frames do not count.
+
+The clock starts immediately before the first HTTP dispatch, so constructing a
+flow or waiting before collecting it costs no measured time. Admitted retries
+share that clock, including admission and backoff delays. Each tool continuation
+starts a fresh completion clock. Provider metrics are preserved: Ollama durations
+remain nanoseconds and oMLX usage durations remain seconds.
+
+For `generateStreamEvents`, read `Completed.evidence` or `Error.evidence`.
+For the lower-level `gateway.stream` and broker/session `stream` APIs, handle the
+new `Completed(evidence)` event after each completion. An ordinary gateway stream
+that throws exposes evidence through `LlmGatewayException.completionEvidence`;
+the original failure remains its cause. Recovery failures keep their existing
+typed exception and expose timing through `inspectCompletionEvidence()` on the
+last failure. Cancellation remains cooperative cancellation, not a timing error.
+Existing provider validation, legacy EOF permissiveness and stream ordering are
+preserved.
+
+For deterministic measurements, inject `CompletionConfig.streamTimeSource` into
+ordinary streams, or `RecoveryPolicy.monotonicClock` into recovery streams. Neither
+setting changes the request body. Applications may ignore completion evidence
+when they only need text; exhaustive `when` expressions must still handle the
+new terminal event.

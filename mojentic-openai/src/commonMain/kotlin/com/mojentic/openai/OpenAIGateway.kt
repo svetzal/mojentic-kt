@@ -10,6 +10,9 @@ import com.mojentic.llm.LlmMessage
 import com.mojentic.llm.ModelContextWindow
 import com.mojentic.llm.StreamErrorReason
 import com.mojentic.llm.StreamEventsGateway
+import com.mojentic.llm.StreamTiming
+import com.mojentic.llm.executeTimed
+import com.mojentic.llm.readTimedLine
 import com.mojentic.llm.recovery.RecoveryCapabilities
 import com.mojentic.llm.recovery.RecoveryHttp
 import com.mojentic.llm.recovery.RecoveryOperation
@@ -17,6 +20,8 @@ import com.mojentic.llm.recovery.RecoveryPolicy
 import com.mojentic.llm.recovery.RecoveryProvider
 import com.mojentic.llm.recovery.recoveryHttpClient
 import com.mojentic.llm.rejectNewReasoningControls
+import com.mojentic.llm.timedCompletionStream
+import com.mojentic.llm.timedGatewayStream
 import com.mojentic.llm.tools.LlmTool
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
@@ -36,7 +41,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
-import io.ktor.utils.io.readLine
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -167,10 +171,12 @@ public class OpenAIGateway(
         messages: List<LlmMessage>,
         tools: List<LlmTool>?,
         config: CompletionConfig,
-    ): Flow<GatewayStreamEvent> = if (config.recovery != null) {
-        recoveryStream(model, messages, tools, config)
-    } else {
-        legacyStream(model, messages, tools, config)
+    ): Flow<GatewayStreamEvent> = timedGatewayStream(config) { timing ->
+        if (config.recovery != null) {
+            recoveryStream(model, messages, tools, config, timing)
+        } else {
+            legacyStream(model, messages, tools, config, timing)
+        }
     }
 
     private fun legacyStream(
@@ -178,6 +184,7 @@ public class OpenAIGateway(
         messages: List<LlmMessage>,
         tools: List<LlmTool>?,
         config: CompletionConfig,
+        timing: StreamTiming,
     ): Flow<GatewayStreamEvent> = channelFlow {
         val request = buildChatRequest(
             model = model,
@@ -192,12 +199,12 @@ public class OpenAIGateway(
             contentType(ContentType.Application.Json)
             setBody(json.encodeToString(OpenAIChatRequest.serializer(), request))
         }
-        statement.execute { httpResponse ->
+        statement.executeTimed(timing) { httpResponse ->
             ensureSuccess(httpResponse)
             val parser = OpenAILegacyStreamParser(json)
             val channel = httpResponse.bodyAsChannel()
             while (!parser.isDone) {
-                val line = channel.readLine() ?: break
+                val line = channel.readTimedLine(timing) ?: break
                 parser.accept(line).forEach { send(it) }
             }
             parser.finish().forEach { send(it) }
@@ -219,16 +226,19 @@ public class OpenAIGateway(
         model: String,
         messages: List<LlmMessage>,
         config: CompletionConfig,
-    ): Flow<CompletionStreamEvent> = if (config.recovery != null) {
-        recoveryStreamEvents(model, messages, config)
-    } else {
-        legacyStreamEvents(model, messages, config)
+    ): Flow<CompletionStreamEvent> = timedCompletionStream(config) { timing ->
+        if (config.recovery != null) {
+            recoveryStreamEvents(model, messages, config, timing)
+        } else {
+            legacyStreamEvents(model, messages, config, timing)
+        }
     }
 
     private fun legacyStreamEvents(
         model: String,
         messages: List<LlmMessage>,
         config: CompletionConfig,
+        timing: StreamTiming,
     ): Flow<CompletionStreamEvent> = channelFlow {
         val request = buildChatRequest(
             model = model,
@@ -243,16 +253,16 @@ public class OpenAIGateway(
             contentType(ContentType.Application.Json)
             setBody(json.encodeToString(OpenAIChatRequest.serializer(), request))
         }
-        statement.execute { response ->
+        statement.executeTimed(timing) { response ->
             if (!response.status.isSuccess()) {
                 val detail = response.bodyAsText()
                 send(CompletionStreamEvent.Error(StreamErrorReason.ProviderError(detail, response.status.value)))
-                return@execute
+                return@executeTimed
             }
             val parser = OpenAIStreamEventParser(json)
             val channel = response.bodyAsChannel()
             while (!parser.isTerminal) {
-                val line = channel.readLine() ?: break
+                val line = channel.readTimedLine(timing) ?: break
                 parser.accept(line).forEach { send(it) }
             }
             if (!parser.isTerminal) send(parser.endOfStream())
@@ -284,9 +294,10 @@ public class OpenAIGateway(
         messages: List<LlmMessage>,
         tools: List<LlmTool>?,
         config: CompletionConfig,
+        timing: StreamTiming,
     ): Flow<GatewayStreamEvent> = flow {
         val payload = recoveryRequest(model, messages, tools, config)
-        recoveryBoundary().executeStream(payload, RecoveryOperation.STREAM, requireNotNull(config.recovery)) { stream ->
+        recoveryBoundary().executeStream(payload, RecoveryOperation.STREAM, requireNotNull(config.recovery), timing) { stream ->
             OpenAIRecoveryStreamParser(json, retainCompletionEvidence = true).consume(stream, allowTools = true) { emit(it) }
         }
     }
@@ -295,10 +306,11 @@ public class OpenAIGateway(
         model: String,
         messages: List<LlmMessage>,
         config: CompletionConfig,
+        timing: StreamTiming,
     ): Flow<CompletionStreamEvent> = flow {
         val payload = recoveryRequest(model, messages, tools = null, config)
         var completed: CompletionStreamEvent.Completed? = null
-        recoveryBoundary().executeStream(payload, RecoveryOperation.STREAM_EVENTS, requireNotNull(config.recovery)) { stream ->
+        recoveryBoundary().executeStream(payload, RecoveryOperation.STREAM_EVENTS, requireNotNull(config.recovery), timing) { stream ->
             val evidence = OpenAIRecoveryStreamParser(json, retainCompletionEvidence = true).consume(stream, allowTools = false) { event ->
                 if (event is GatewayStreamEvent.Content) emit(CompletionStreamEvent.Content(event.text))
             }
