@@ -1,6 +1,7 @@
 # 3.0.0 recovery conformance
 
-This record covers the October 12 admission and invalid-policy guarantees only.
+This record covers the October 12 admission, invalid-policy and completion-adapter
+Capabilities guarantees.
 It does not certify all of transient recovery or readiness to release 3.0.0. JVM and Android are the
 supported targets. Provider wire formats and dependencies are unchanged.
 
@@ -56,7 +57,8 @@ retries emit SCHEDULED without inventing a hook admission or decision event.
 
 Current adapters have no exact-attempt evidence source establishing acceptance
 NO. The local no-hook exemption is consequently unavailable today. This work
-neither infers NO from status/closure nor introduces a cancellation/status API.
+neither infers NO from status/closure nor introduces a cancellation/status operation.
+The capability declarations below expose the absence of those operations.
 A custom local server behind an OpenAI/Anthropic adapter must configure a hook;
 admission follows the adapter's provider identity, not URL host heuristics.
 
@@ -137,7 +139,7 @@ work in the relevant authorized repositories; this task changes Kotlin only.
   source; none is introduced or claimed here.
 - Shared executable contract distribution and provider verification remain
   initiative coordination work, as above.
-- Reasoning, metadata, capability citations, typed operation/provider vocabulary,
+- Reasoning, metadata, typed operation/provider vocabulary,
   remaining recovery amendments belong to separate scope. Invalid-policy validation
   is covered by the correction below.
 - Other ports and consumer migrations are not verified here. No version bump,
@@ -273,3 +275,128 @@ Gradle deprecation notices. No warning-free build claim is made. The generated
 policy-error page was checked for its typed violation field, privacy contract
 and enum link. Final diff whitespace and behavioral proof JSON/log checks passed.
 Shared provider-contract verification remains missing as recorded above.
+
+
+## October 12 Capabilities correction (2026-10-17)
+
+Tested Kotlin base: `d5c517d5af5455fdf636c1ff5849d1bc340c598c` plus this
+uncommitted correction. The Foundry initiative brief SHA-256 was verified as
+`ea6a0efa56bfb3cd74b5ce728f80cc33c6fbd853114bec94b8aabe79f5d28e6e`.
+The new public boundary is `LlmGateway.recoveryCapabilities`, with conservative
+unknown defaults for custom gateways. The four completion adapters expose
+endpoint-scoped facility evidence inspected on 2026-10-17. Their provider
+payloads, admission/retry behavior and model capabilities are unchanged.
+
+The public immutable value types are `RecoveryCapabilities`,
+`RecoveryCapability` and `RecoverySupport`. Each facility has its own status,
+endpoint scope, provider documentation URLs, inspection date and rationale.
+The [recovery guide](docs/use-cases/completion-recovery.md#completion-adapter-capabilities)
+records the endpoint table, inspected references and limitations. Local HTTP
+cancellation is supported; remote request cancellation and individual in-flight
+request status are unsupported by these adapters; idempotency is unknown.
+Exact-attempt termination remains unknown for all four. No declaration can
+substitute for evidence about a particular failed attempt or authorize a retry.
+
+### Named public-surface tests
+
+The local regression set is identified as **kt-recovery-capabilities-v1**.
+It is not a provider-verified cross-repository contract. Each row below is a
+named test in **each** of these four common-test suites (executed on JVM and
+Android host by `allTests`):
+
+- `mojentic-openai/src/commonTest/kotlin/com/mojentic/openai/RecoveryCapabilitiesTest.kt`
+- `mojentic-anthropic/src/commonTest/kotlin/com/mojentic/anthropic/RecoveryCapabilitiesTest.kt`
+- `mojentic-ollama/src/commonTest/kotlin/com/mojentic/ollama/RecoveryCapabilitiesTest.kt`
+- `mojentic-openai/src/commonTest/kotlin/com/mojentic/omlx/RecoveryCapabilitiesTest.kt`
+
+| Named test in each suite | Expected value and specific evidence |
+| --- | --- |
+| `localRequestCancellationIsSupportedWithoutRemoteTermination` | SUPPORTED; calling coroutine cancellation, not remote termination |
+| `remoteRequestCancellationIsUnsupported` | UNSUPPORTED; OpenAI Responses / Anthropic batch exclusions; Ollama model unload exclusion; oMLX no request-scoped operation |
+| `requestStatusIsUnsupported` | UNSUPPORTED; stored OpenAI completion is not in-flight status; Anthropic batch exclusion; Ollama loaded models and oMLX aggregate activity are insufficient |
+| `idempotencyIsUnknownWithoutDeduplicationGuarantee` | UNKNOWN; correlation IDs are not idempotency keys |
+| `exactAttemptTerminationIsUnknownWithoutAttemptEvidence` | UNKNOWN; HTTP closure and model-level aggregate activity are insufficient |
+
+Every test obtains the facility through `LlmGateway` on a concrete adapter and
+asserts its specific status, exact endpoint scope, inspection date, complete
+source URL list and facility-specific rationale. These are not model-registry
+or count-only assertions. The additional oMLX proof test
+`localCancellationDoesNotProveRemoteOrExactAttemptTermination` asserts all five
+statuses together and termination/cancellation evidence. It rejected the
+inherited UNKNOWN declaration with an assertion failure (exit 1), then passed
+unchanged after the adapter supplied its declarations (exit 0), before the
+other named tests and documentation were expanded.
+
+### Initiative finding: capability boundary paired verification
+
+This adds a Kotlin library/consumer API boundary, without changing any HTTP
+provider boundary. No shared executable contract mechanism was found in this
+repository for this new surface. The local regression identifier above and
+existing prose contract hashes do not establish cross-repository compatibility.
+Kotlin-side verification runs at the tested base plus this worktree; no external
+consumer commit, shared executable contract version/hash, paired command or
+verification result is available. Provider-side commits and paired verification
+of supported old/new versions, errors and optional fields also remain missing
+as recorded in the earlier finding. Coordination must supply and verify the
+same versioned executable contracts on each relevant side in separately
+authorized repositories. No sibling repository was changed; paired verification
+remains unfinished initiative work, and this record makes no compatibility or
+release-readiness claim.
+
+### Capability correction verification
+
+All six required `.hone-gates.json` gates passed together (exit 0, 3m 47s):
+
+```sh
+GRADLE_USER_HOME=/tmp/mojentic-kt-gradle ./gradlew \
+  ktlintCheck detekt build allTests apiCheck dokkaGenerate
+```
+
+| Required gate | Result |
+| --- | --- |
+| `./gradlew ktlintCheck` | PASS |
+| `./gradlew detekt` | PASS |
+| `./gradlew build` | PASS |
+| `./gradlew allTests` | PASS |
+| `./gradlew apiCheck` | PASS |
+| `./gradlew dokkaGenerate` | PASS |
+
+The final test reports contain 856 JVM/Android host executions across 146 suites,
+with zero failures, errors or skips. All five named methods were checked in each
+of the four adapter suites on both targets: 40 facility executions. The additional
+oMLX proof passed on both targets, for 42 capability executions in total.
+Existing request, payload, admission, cancellation, broker and session cases
+also passed as part of the full suite. These are local behavior checks, not
+live provider verification or cross-repository compatibility evidence.
+
+`ktlintFormat apiDump` passed before the final gates. API baseline changes are
+limited to the new core types/default getter and four adapter getters. Generated
+Dokka pages were checked for the five evidence properties. Existing unresolved
+Dokka links, an example deprecation, Android analytics filesystem and Gradle
+warnings remain; no warning-free build claim is made. Gradle used its pinned
+JDK 21 daemon and the JDK 17 compiler toolchain with in-process compilation and
+the existing writable cache. Android device, macOS and hosted CI were not run.
+Coverage/JaCoCo is not wired in this KMP project; `allTests` is the test gate.
+Foundry capture retained complete run logs, and the behavioral proof JSON,
+nonzero/zero exit codes and both proof logs were validated. No version,
+dependency, payload, retry/admission or model-capability change was made.
+No publication, commit or ref-changing command was run.
+
+
+The configured dependency audit also passed (exit 0, 35s):
+
+```sh
+GRADLE_USER_HOME=/tmp/mojentic-kt-gradle ./gradlew dependencyCheckAggregate \
+  --no-parallel \
+  -PdependencyCheckDataDirectory=/tmp/mojentic-kt-gradle/dependency-check-data \
+  '-PdependencyCheckNvdDatafeedUrl=https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-{0}.json.gz'
+```
+
+NVD modified-feed metadata was checked before the audit:
+`lastModifiedDate:2026-10-16T18:00:09-04:00`. The generated report contains 305
+dependency entries, zero active findings and 52 existing suppressed findings.
+Its SHA-256 is
+`45d146703ab31fe8bdaa73a403802d7ee2f370539adfa13bc2d3486adecfcfbf`.
+OSS Index was disabled for missing credentials; the .NET analyzer could not
+initialize without its runtime. This is a configured-audit pass, not unfiltered
+or unavailable-analyzer verification. No suppression or dependency was changed.

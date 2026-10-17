@@ -16,6 +16,7 @@ import com.mojentic.llm.LlmGateway
 import com.mojentic.llm.LlmGatewayResponse
 import com.mojentic.llm.LlmMessage
 import com.mojentic.llm.LlmToolCall
+import com.mojentic.llm.recovery.RecoveryCapabilities
 import com.mojentic.llm.recovery.RecoveryHttp
 import com.mojentic.llm.recovery.RecoveryPolicy
 import com.mojentic.llm.recovery.recoveryHttpClient
@@ -97,6 +98,10 @@ public class AnthropicGateway(
     engine: HttpClientEngine? = null,
     private val json: Json = DEFAULT_JSON,
 ) : LlmGateway {
+    /** Completion recovery facilities; local cancellation never proves remote termination. */
+    override val recoveryCapabilities: RecoveryCapabilities
+        get() = anthropicRecoveryCapabilities
+
     private val httpClient: HttpClient = buildHttpClient(engine)
     private val recoveryClientDelegate = lazy { recoveryHttpClient(engine) }
     private val recoveryClient: HttpClient by recoveryClientDelegate

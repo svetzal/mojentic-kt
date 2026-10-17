@@ -11,6 +11,7 @@ import com.mojentic.llm.LlmMessage
 import com.mojentic.llm.ResponseFormat
 import com.mojentic.llm.StreamErrorReason
 import com.mojentic.llm.StreamEventsGateway
+import com.mojentic.llm.recovery.RecoveryCapabilities
 import com.mojentic.llm.recovery.RecoveryHttp
 import com.mojentic.llm.recovery.RecoveryPolicy
 import com.mojentic.llm.recovery.recoveryHttpClient
@@ -181,6 +182,10 @@ public class OmlxGateway internal constructor(
         engine: HttpClientEngine? = null,
         json: Json = OpenAIGateway.DEFAULT_JSON,
     ) : this(OmlxSettings.resolve(host, apiKey, timeout, ::environmentVariable), engine, json)
+
+    /** Completion recovery facilities; local cancellation never proves remote termination. */
+    override val recoveryCapabilities: RecoveryCapabilities
+        get() = omlxRecoveryCapabilities
 
     private val httpClient: HttpClient = buildHttpClient(engine)
     private val recoveryClientDelegate = lazy { recoveryHttpClient(engine, settings.timeout.inWholeMilliseconds) }

@@ -494,6 +494,7 @@ public abstract interface class com/mojentic/llm/LlmGateway {
 	public static synthetic fun completeJson$default (Lcom/mojentic/llm/LlmGateway;Ljava/lang/String;Ljava/util/List;Lkotlinx/serialization/json/JsonObject;Lcom/mojentic/llm/CompletionConfig;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public fun completeJsonResponse (Ljava/lang/String;Ljava/util/List;Lkotlinx/serialization/json/JsonObject;Lcom/mojentic/llm/CompletionConfig;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun completeJsonResponse$default (Lcom/mojentic/llm/LlmGateway;Ljava/lang/String;Ljava/util/List;Lkotlinx/serialization/json/JsonObject;Lcom/mojentic/llm/CompletionConfig;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public fun getRecoveryCapabilities ()Lcom/mojentic/llm/recovery/RecoveryCapabilities;
 	public abstract fun stream (Ljava/lang/String;Ljava/util/List;Ljava/util/List;Lcom/mojentic/llm/CompletionConfig;)Lkotlinx/coroutines/flow/Flow;
 	public static synthetic fun stream$default (Lcom/mojentic/llm/LlmGateway;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Lcom/mojentic/llm/CompletionConfig;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
 }
@@ -503,6 +504,7 @@ public final class com/mojentic/llm/LlmGateway$DefaultImpls {
 	public static synthetic fun completeJson$default (Lcom/mojentic/llm/LlmGateway;Ljava/lang/String;Ljava/util/List;Lkotlinx/serialization/json/JsonObject;Lcom/mojentic/llm/CompletionConfig;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static fun completeJsonResponse (Lcom/mojentic/llm/LlmGateway;Ljava/lang/String;Ljava/util/List;Lkotlinx/serialization/json/JsonObject;Lcom/mojentic/llm/CompletionConfig;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun completeJsonResponse$default (Lcom/mojentic/llm/LlmGateway;Ljava/lang/String;Ljava/util/List;Lkotlinx/serialization/json/JsonObject;Lcom/mojentic/llm/CompletionConfig;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static fun getRecoveryCapabilities (Lcom/mojentic/llm/LlmGateway;)Lcom/mojentic/llm/recovery/RecoveryCapabilities;
 	public static synthetic fun stream$default (Lcom/mojentic/llm/LlmGateway;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Lcom/mojentic/llm/CompletionConfig;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
 }
 
@@ -858,6 +860,48 @@ public final class com/mojentic/llm/recovery/RecoveryCancellationException : jav
 	public final fun getFailures ()Ljava/util/List;
 	public final fun getWireAttempts ()I
 	public final fun inspectCancellationCause ()Ljava/util/concurrent/CancellationException;
+}
+
+public final class com/mojentic/llm/recovery/RecoveryCapabilities {
+	public fun <init> ()V
+	public fun <init> (Lcom/mojentic/llm/recovery/RecoveryCapability;Lcom/mojentic/llm/recovery/RecoveryCapability;Lcom/mojentic/llm/recovery/RecoveryCapability;Lcom/mojentic/llm/recovery/RecoveryCapability;Lcom/mojentic/llm/recovery/RecoveryCapability;)V
+	public synthetic fun <init> (Lcom/mojentic/llm/recovery/RecoveryCapability;Lcom/mojentic/llm/recovery/RecoveryCapability;Lcom/mojentic/llm/recovery/RecoveryCapability;Lcom/mojentic/llm/recovery/RecoveryCapability;Lcom/mojentic/llm/recovery/RecoveryCapability;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lcom/mojentic/llm/recovery/RecoveryCapability;
+	public final fun component2 ()Lcom/mojentic/llm/recovery/RecoveryCapability;
+	public final fun component3 ()Lcom/mojentic/llm/recovery/RecoveryCapability;
+	public final fun component4 ()Lcom/mojentic/llm/recovery/RecoveryCapability;
+	public final fun component5 ()Lcom/mojentic/llm/recovery/RecoveryCapability;
+	public final fun copy (Lcom/mojentic/llm/recovery/RecoveryCapability;Lcom/mojentic/llm/recovery/RecoveryCapability;Lcom/mojentic/llm/recovery/RecoveryCapability;Lcom/mojentic/llm/recovery/RecoveryCapability;Lcom/mojentic/llm/recovery/RecoveryCapability;)Lcom/mojentic/llm/recovery/RecoveryCapabilities;
+	public static synthetic fun copy$default (Lcom/mojentic/llm/recovery/RecoveryCapabilities;Lcom/mojentic/llm/recovery/RecoveryCapability;Lcom/mojentic/llm/recovery/RecoveryCapability;Lcom/mojentic/llm/recovery/RecoveryCapability;Lcom/mojentic/llm/recovery/RecoveryCapability;Lcom/mojentic/llm/recovery/RecoveryCapability;ILjava/lang/Object;)Lcom/mojentic/llm/recovery/RecoveryCapabilities;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getExactAttemptTermination ()Lcom/mojentic/llm/recovery/RecoveryCapability;
+	public final fun getIdempotency ()Lcom/mojentic/llm/recovery/RecoveryCapability;
+	public final fun getLocalRequestCancellation ()Lcom/mojentic/llm/recovery/RecoveryCapability;
+	public final fun getRemoteRequestCancellation ()Lcom/mojentic/llm/recovery/RecoveryCapability;
+	public final fun getRequestStatus ()Lcom/mojentic/llm/recovery/RecoveryCapability;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/mojentic/llm/recovery/RecoveryCapability {
+	public fun <init> ()V
+	public fun <init> (Lcom/mojentic/llm/recovery/RecoverySupport;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;)V
+	public synthetic fun <init> (Lcom/mojentic/llm/recovery/RecoverySupport;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lcom/mojentic/llm/recovery/RecoverySupport;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/util/List;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun copy (Lcom/mojentic/llm/recovery/RecoverySupport;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;)Lcom/mojentic/llm/recovery/RecoveryCapability;
+	public static synthetic fun copy$default (Lcom/mojentic/llm/recovery/RecoveryCapability;Lcom/mojentic/llm/recovery/RecoverySupport;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;ILjava/lang/Object;)Lcom/mojentic/llm/recovery/RecoveryCapability;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDocumentation ()Ljava/util/List;
+	public final fun getEndpointScope ()Ljava/lang/String;
+	public final fun getInspectedOn ()Ljava/lang/String;
+	public final fun getRationale ()Ljava/lang/String;
+	public final fun getStatus ()Lcom/mojentic/llm/recovery/RecoverySupport;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class com/mojentic/llm/recovery/RecoveryCategory : java/lang/Enum {
@@ -1407,6 +1451,15 @@ public final synthetic class com/mojentic/llm/recovery/RecoveryStreamMetrics$$se
 
 public final class com/mojentic/llm/recovery/RecoveryStreamMetrics$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class com/mojentic/llm/recovery/RecoverySupport : java/lang/Enum {
+	public static final field SUPPORTED Lcom/mojentic/llm/recovery/RecoverySupport;
+	public static final field UNKNOWN Lcom/mojentic/llm/recovery/RecoverySupport;
+	public static final field UNSUPPORTED Lcom/mojentic/llm/recovery/RecoverySupport;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/mojentic/llm/recovery/RecoverySupport;
+	public static fun values ()[Lcom/mojentic/llm/recovery/RecoverySupport;
 }
 
 public final class com/mojentic/llm/recovery/RecoveryWire {

@@ -9,6 +9,7 @@ import com.mojentic.llm.LlmGatewayResponse
 import com.mojentic.llm.LlmMessage
 import com.mojentic.llm.StreamErrorReason
 import com.mojentic.llm.StreamEventsGateway
+import com.mojentic.llm.recovery.RecoveryCapabilities
 import com.mojentic.llm.recovery.RecoveryHttp
 import com.mojentic.llm.recovery.RecoveryPolicy
 import com.mojentic.llm.recovery.recoveryHttpClient
@@ -69,6 +70,10 @@ public class OpenAIGateway(
     private val json: Json = DEFAULT_JSON,
 ) : LlmGateway,
     StreamEventsGateway {
+    /** Completion recovery facilities; local cancellation never proves remote termination. */
+    override val recoveryCapabilities: RecoveryCapabilities
+        get() = openAIRecoveryCapabilities
+
     private val httpClient: HttpClient = buildHttpClient(engine)
     private val recoveryClientDelegate = lazy { recoveryHttpClient(engine) }
     private val recoveryClient: HttpClient by recoveryClientDelegate

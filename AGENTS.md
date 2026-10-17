@@ -7,9 +7,11 @@ Stacey authorized the coordinated 3.0.0 scope in
 release-preparation authorization. All six ports must satisfy the binding
 contracts and required gates before the coordinated release.
 
-This correction implements only the October 12 transient-recovery admission
-guarantees. Reasoning, metadata and other recovery amendments remain separate
-initiative work. Do not bump versions, tag or publish in this task. Foundry owns
+The coordinated 3.0.0 authorization includes every binding release contract.
+This correction implements the October 12 completion-adapter Capabilities
+guarantee, alongside the existing admission and invalid-policy corrections.
+Reasoning, metadata and remaining recovery amendments remain separate initiative
+work for this task. Do not bump versions, tag or publish in this task. Foundry owns
 Git finalization: leave changes in the worktree without committing, pushing,
 rebasing or modifying refs. Change this repository only.
 

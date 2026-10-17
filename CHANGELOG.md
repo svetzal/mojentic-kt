@@ -10,6 +10,18 @@ patch versions move independently.
 
 ## [Unreleased]
 
+### Added
+
+- `LlmGateway.recoveryCapabilities` exposes local request cancellation, remote
+  request cancellation, request status, idempotency and exact-attempt termination
+  for OpenAI Chat Completions, Anthropic Messages, Ollama and oMLX. Each facility
+  carries a supported/unsupported/unknown value, endpoint scope, documentation
+  URLs, inspection date and evidence rationale. Local cancellation is supported;
+  remote cancellation and status are unsupported by these adapters; idempotency
+  and exact-attempt termination remain unknown. Custom gateways default to
+  unknown with absent inspection metadata. Model features, payloads, retries and
+  admission are unchanged. See the completion recovery guide for endpoint limits.
+
 ### Breaking changes: invalid recovery policies
 
 - `RecoveryPolicy` construction now throws `InvalidRecoveryPolicyException`

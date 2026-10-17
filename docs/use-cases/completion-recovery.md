@@ -121,7 +121,7 @@ redirects. Caller-supplied engines own their internal retry/redirect settings an
 must meet the same contract; see
 [RECOVERY-CONFORMANCE.md](../../RECOVERY-CONFORMANCE.md).
 The legacy oMLX timeout still applies outside the dedicated recovery client.
-No provider ownership, termination or idempotency facility is claimed by this slice.
+Capability declarations below describe facilities; they do not establish request ownership or termination.
 
 ## Streaming migration
 
@@ -184,13 +184,70 @@ for scripted boundary assertions.
 
 ## Completion adapter capabilities
 
-| Adapter | Ordinary / structured / stream / streamEvents recovery | Cancellation, status, idempotency |
-| --- | --- | --- |
-| OpenAI Chat Completions | Opt-in on all four paths; event stream remains tool-free | No endpoint-specific facility established; unknown for custom hosts |
-| Ollama | Opt-in on all four paths | Ownership and termination unknown; caller admission required |
-| oMLX | Opt-in on all four paths | Ownership and termination unknown; caller admission required |
-| Anthropic Messages | Opt-in ordinary / forced-tool structured / stream; no separate streamEvents API | No endpoint-specific cancellation, status or idempotency facility established; eligible retries may omit admission |
-| Embeddings / realtime / model management | Outside completion recovery | Not investigated in this slice |
+Read the public `LlmGateway.recoveryCapabilities` property without making a
+request. This is separate from model capabilities and does not change retry or
+admission decisions. The declarations cover ordinary, structured and streaming
+completion at the named endpoint; OpenAI, Ollama and oMLX also expose tool-free
+`streamEvents`. Anthropic has no separate `streamEvents` API.
+
+| Adapter / endpoint scope | Local request cancellation | Remote request cancellation | Request status | Idempotency | Exact-attempt termination |
+| --- | --- | --- | --- | --- | --- |
+| OpenAI Chat Completions `POST /v1/chat/completions` | supported | unsupported | unsupported | unknown | unknown |
+| Anthropic Messages `POST /v1/messages` | supported | unsupported | unsupported | unknown | unknown |
+| Ollama `POST /api/chat` | supported | unsupported | unsupported | unknown | unknown |
+| oMLX `POST /v1/chat/completions` | supported | unsupported | unsupported | unknown | unknown |
+
+Every facility contains `status`, `endpointScope`, `inspectedOn`, `documentation`
+and `rationale`. Inspection date: **2026-10-17**. Supported means implemented in
+this adapter's declared scope. Unsupported means the adapter exposes no such
+operation; it is not a claim about every API a provider offers. Unknown means
+inspected evidence cannot establish the guarantee. Custom `LlmGateway`
+implementations inherit unknown values, null inspection dates and empty source
+lists until they provide declarations.
+
+```kotlin
+// gateway: LlmGateway (any of the four completion adapters)
+val facilities = gateway.recoveryCapabilities
+val cancellation = facilities.localRequestCancellation
+println(cancellation.status)
+println(cancellation.endpointScope)
+println(cancellation.inspectedOn)
+println(cancellation.documentation)
+println(cancellation.rationale)
+// Never infer termination of an attempt from local cancellation support.
+```
+
+Evidence inspected for these declarations:
+
+- [Ktor request cancellation](https://ktor.io/docs/client-requests.html#cancel-request)
+  documents cancellation through the calling coroutine. Default clients support
+  local cancellation; custom engines own transport cleanup. Neither establishes
+  that remote inference stopped.
+- OpenAI [create](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create)
+  and [retrieve](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/retrieve)
+  describe Chat Completions. Retrieval requires `store=true` and a completed
+  chat ID, so it cannot resolve an ambiguous in-flight attempt. This adapter
+  exposes no remote cancel/status operation. Responses cancellation is outside
+  this endpoint scope.
+- Anthropic [Messages](https://platform.claude.com/docs/en/api/http/messages)
+  describes the synchronous/streaming Messages endpoint. This adapter exposes
+  no individual-request cancel/status operation; Message Batches facilities
+  are outside this scope.
+- Ollama [chat](https://docs.ollama.com/api/chat) and
+  [running models](https://docs.ollama.com/api/ps) expose no request-scoped
+  cancellation/status facility used by this adapter. Model unload and loaded
+  model lists cannot establish termination of an individual request.
+- oMLX [API compatibility and endpoint table](https://github.com/jundot/omlx/blob/main/README.md#api-compatibility)
+  describes Chat Completions and model operations. This adapter exposes no
+  request-scoped cancel/status operation. Aggregate model activity cannot
+  establish that an exact attempt ended.
+
+None of these inspected endpoint references establishes a resend deduplication
+contract used here: idempotency remains unknown. All four adapters lack an
+exact-attempt termination evidence source, so termination remains unknown even
+when HTTP closes. Embeddings, realtime, batch, Responses and model management
+are outside this declaration. A custom host's provider guarantees remain
+unverified; these values describe this adapter's facilities, not that server.
 
 OpenAI uses its existing model registry: supported reasoning models omit temperature
 and use `max_completion_tokens` with `reasoning_effort`; other models retain

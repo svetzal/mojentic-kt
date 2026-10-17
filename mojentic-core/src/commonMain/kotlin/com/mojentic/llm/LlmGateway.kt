@@ -1,5 +1,6 @@
 package com.mojentic.llm
 
+import com.mojentic.llm.recovery.RecoveryCapabilities
 import com.mojentic.llm.tools.LlmTool
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.json.JsonObject
@@ -20,6 +21,14 @@ import kotlinx.serialization.json.JsonObject
  * before any completion, callback or tool execution; these APIs accept only validated policies.
  */
 public interface LlmGateway {
+    /**
+     * Endpoint-scoped recovery facilities with inspected documentation and evidence limitations.
+     * Custom gateways default to unknown. This does not describe model features or certify
+     * remote termination when the caller cancels local HTTP work.
+     */
+    public val recoveryCapabilities: RecoveryCapabilities
+        get() = RecoveryCapabilities()
+
     /**
      * Single-shot completion.
      *
