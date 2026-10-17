@@ -323,9 +323,9 @@ public class OpenAIGateway(
         return OpenAIChatRequest(
             model = model,
             messages = messages.toOpenAIMessages(),
-            temperature = if (reasoning) null else config.temperature,
-            maxTokens = if (reasoning) null else config.maxTokens.takeIf { it > 0 },
-            maxCompletionTokens = if (reasoning) config.maxTokens.takeIf { it > 0 } else null,
+            temperature = temperatureFor(config, model),
+            maxTokens = if (reasoning) null else config.maxTokens,
+            maxCompletionTokens = if (reasoning) config.maxTokens else null,
             stream = stream,
             tools = tools?.toOpenAITools(),
             responseFormat = responseFormat,
@@ -381,8 +381,22 @@ public class OpenAIGateway(
         throw LlmGatewayException("OpenAI returned ${response.status}: $body")
     }
 
+    private fun temperatureFor(config: CompletionConfig, model: String): Double? {
+        val temperature = config.temperature ?: return null
+        val allowed = OpenAIModelRegistry.capabilitiesFor(model).supportedTemperatures
+        return when {
+            allowed == null -> temperature
+            allowed.isEmpty() -> null
+            allowed.size == 1 -> allowed.single()
+            else -> temperature
+        }
+    }
+
     private fun reasoningEffortFor(config: CompletionConfig, model: String): String? {
-        if (!OpenAIModelRegistry.supportsReasoningEffort(model)) return null
+        if (!OpenAIModelRegistry.supportsReasoningEffort(model)) {
+            if (config.reasoningEffort != null) println("[WARN] OpenAIGateway: dropping unsupported reasoning effort for $model")
+            return null
+        }
         return config.reasoningEffort?.wireValue
     }
 

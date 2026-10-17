@@ -318,7 +318,6 @@ class RecoveryMetadataHttpTest {
         temperature = 0.37,
         maxTokens = 29,
         numCtx = 2048,
-        numPredict = 17,
         recovery = RecoveryPolicy(
             maxAttempts = 2,
             admission = {
@@ -366,7 +365,7 @@ class RecoveryMetadataHttpTest {
             val options = request.getValue("options").jsonObject
             assertEquals("0.37", options.getValue("temperature").jsonPrimitive.content)
             assertEquals("2048", options.getValue("num_ctx").jsonPrimitive.content)
-            assertEquals("17", options.getValue("num_predict").jsonPrimitive.content)
+            assertEquals("29", options.getValue("num_predict").jsonPrimitive.content)
         } else {
             assertEquals("0.37", request.getValue("temperature").jsonPrimitive.content)
             assertEquals("29", request.getValue("max_tokens").jsonPrimitive.content)

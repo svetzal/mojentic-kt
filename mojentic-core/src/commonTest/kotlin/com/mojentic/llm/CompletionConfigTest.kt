@@ -6,13 +6,12 @@ import kotlin.test.assertNull
 
 class CompletionConfigTest {
     @Test
-    fun defaultsMatchPythonReference() {
+    fun samplingAndLimitsDefaultToUnset() {
         val config = CompletionConfig()
 
-        assertEquals(CompletionConfig.DEFAULT_TEMPERATURE, config.temperature)
-        assertEquals(CompletionConfig.DEFAULT_NUM_CTX, config.numCtx)
-        assertEquals(CompletionConfig.DEFAULT_MAX_TOKENS, config.maxTokens)
-        assertEquals(CompletionConfig.DEFAULT_NUM_PREDICT, config.numPredict)
+        assertNull(config.temperature)
+        assertNull(config.numCtx)
+        assertNull(config.maxTokens)
         assertEquals(CompletionConfig.DEFAULT_MAX_TOOL_ITERATIONS, config.maxToolIterations)
         assertNull(config.reasoningEffort)
     }
@@ -24,6 +23,27 @@ class CompletionConfigTest {
         val decremented = config.copy(maxToolIterations = config.maxToolIterations?.minus(1))
 
         assertEquals(4, decremented.maxToolIterations)
+    }
+
+    @Test
+    fun depthCopyPreservesRecoveryReasoningRetentionAndUnsetSampling() {
+        val policy = com.mojentic.llm.recovery.RecoveryPolicy()
+        val profile = ReasoningProfile.qwen38()
+        val config = CompletionConfig(
+            recovery = policy,
+            reasoningProfile = profile,
+            preserveReasoning = true,
+            reasoningEffort = ReasoningEffort.XHIGH,
+            responseFormat = ResponseFormat.Json(),
+        )
+        val copied = config.copy(maxToolIterations = 9)
+        assertEquals(config, copied.copy(maxToolIterations = 10))
+        assertEquals(policy, copied.recovery)
+        assertEquals(profile, copied.reasoningProfile)
+        assertEquals(true, copied.preserveReasoning)
+        assertNull(copied.temperature)
+        assertNull(copied.numCtx)
+        assertNull(copied.maxTokens)
     }
 
     @Test

@@ -432,11 +432,7 @@ public class OllamaGateway(
     private fun optionsFor(config: CompletionConfig): OllamaOptions = OllamaOptions(
         temperature = config.temperature,
         numCtx = config.numCtx,
-        numPredict = when {
-            config.numPredict > 0 -> config.numPredict
-            config.maxTokens > 0 -> config.maxTokens
-            else -> null
-        },
+        numPredict = config.maxTokens,
     )
 
     private fun buildHttpClient(engine: HttpClientEngine?): HttpClient {

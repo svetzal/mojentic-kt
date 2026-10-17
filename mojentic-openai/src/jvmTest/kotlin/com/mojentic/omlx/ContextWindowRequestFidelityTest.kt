@@ -21,6 +21,24 @@ import kotlin.test.assertTrue
 
 class ContextWindowRequestFidelityTest {
     @Test
+    fun unsetSamplingAndLimitsAreAbsentThroughEveryEntrypoint() = runTest {
+        for (provider in Provider.entries) {
+            for (entry in listOf(Entry.ORDINARY, Entry.STRUCTURED, Entry.STRUCTURED_RESPONSE, Entry.STREAM, Entry.EVENTS)) {
+                RecoveryScriptedServer(listOf(entry.success(provider))).use { server ->
+                    provider.gateway(server.url).use { gateway ->
+                        call(gateway.value, entry, CompletionConfig())
+                        val body = Json.parseToJsonElement(server.requests.single().decodeToString()).jsonObject
+                        val fields = if (provider == Provider.OLLAMA) body.getValue("options").jsonObject else body
+                        for (key in listOf("temperature", "num_ctx", "num_predict", "max_tokens", "max_completion_tokens")) {
+                            assertTrue(key !in fields, "$provider/$entry unexpectedly sent $key: $body")
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
     fun discoveryPreservesOrdinaryStructuredAndBothStreamingRequestBytes() = runTest {
         val contract = Json.parseToJsonElement(File("../contracts/context_window_v1.json").readText()).jsonObject
         val entries = listOf(Entry.ORDINARY, Entry.STRUCTURED, Entry.STRUCTURED_RESPONSE, Entry.STREAM, Entry.EVENTS)
@@ -41,7 +59,7 @@ class ContextWindowRequestFidelityTest {
                             val body = Json.parseToJsonElement(baseline.decodeToString()).jsonObject
                             assertEquals("test-model", body.getValue("model").jsonPrimitive.content)
                             if (provider == Provider.OLLAMA) {
-                                assertEquals(config.numCtx.toString(), body.getValue("options").jsonObject.getValue("num_ctx").toString())
+                                assertEquals(config.numCtx?.toString(), body.getValue("options").jsonObject["num_ctx"]?.toString())
                             }
                             gateway.value.modelContextWindow("exact-model")
                             call(gateway.value, entry, config)

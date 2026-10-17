@@ -355,7 +355,7 @@ class AnthropicGatewayTest {
     }
 
     @Test
-    fun maxTokensFallsBackToDefaultWhenConfigIsZero() = runTest {
+    fun explicitOutputLimitIsPreserved() = runTest {
         gateway = AnthropicGateway(
             apiKey = "test",
             engine = mockEngine("""{"id":"m_9","content":[{"type":"text","text":"ok"}]}"""),
@@ -368,7 +368,7 @@ class AnthropicGatewayTest {
         )
 
         val body = assertNotNull(lastRequestBody)
-        assertContains(body, "\"max_tokens\":${AnthropicGateway.DEFAULT_MAX_TOKENS}")
+        assertContains(body, "\"max_tokens\":0")
     }
 
     private fun stubTool(): LlmTool = object : LlmTool {

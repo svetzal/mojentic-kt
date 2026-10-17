@@ -21,10 +21,11 @@ import kotlin.time.Duration
  * public surface does not depend on still-experimental `kotlin.uuid.Uuid`.
  */
 public interface Tracer {
+    /** Records caller sampling intent; null means the provider default was left unset. */
     public suspend fun recordLlmCall(
         model: String,
         messages: List<LlmMessage>,
-        temperature: Double,
+        temperature: Double?,
         tools: List<String>?,
         correlationId: String?,
     ) {

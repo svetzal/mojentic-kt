@@ -53,6 +53,6 @@ public fun effectiveContextWindow(window: ModelContextWindow?, numCtx: Int? = nu
     return window?.let { minOf(it.maxContextTokens, numCtx ?: it.modelNumCtx ?: it.maxContextTokens) }
 }
 
-/** Uses the existing explicit [CompletionConfig.numCtx] value, including its unchanged default. */
+/** Uses explicit [CompletionConfig.numCtx], or model settings when unset. */
 public fun effectiveContextWindow(window: ModelContextWindow?, config: CompletionConfig): Int? =
     effectiveContextWindow(window, config.numCtx)

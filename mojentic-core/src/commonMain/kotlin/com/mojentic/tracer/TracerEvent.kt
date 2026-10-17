@@ -36,7 +36,7 @@ public data class LlmCallEvent(
     override val correlationId: String,
     val model: String,
     val messages: List<LlmMessage>,
-    val temperature: Double,
+    val temperature: Double?,
     val tools: List<String>?,
 ) : TracerEvent {
     override fun printableSummary(): String = buildString {
@@ -46,7 +46,7 @@ public data class LlmCallEvent(
             val count = messages.size
             append("\n   Messages: $count message${if (count == 1) "" else "s"}")
         }
-        if (temperature != 1.0) append("\n   Temperature: $temperature")
+        if (temperature != null && temperature != 1.0) append("\n   Temperature: $temperature")
         if (!tools.isNullOrEmpty()) append("\n   Available Tools: ${tools.joinToString(", ")}")
     }
 }

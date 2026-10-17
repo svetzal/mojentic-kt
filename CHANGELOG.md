@@ -10,6 +10,30 @@ patch versions move independently.
 
 ## [Unreleased]
 
+### Breaking: request fidelity (3.0.0)
+
+- `CompletionConfig.temperature`, `numCtx` and `maxTokens` are nullable and unset
+  by default. Removed `numPredict`, its `-1` sentinel, sampling/context/output `DEFAULT_*`
+  constants, and legacy constructor/copy bridges. Recompile consumers; code that
+  reads numbers must now handle null. Tracer call temperatures are nullable too.
+- Use `maxTokens` as the only output limit: Ollama sends `options.num_predict`,
+  OpenAI sends exactly one of `max_tokens` / `max_completion_tokens`, and oMLX
+  and Anthropic send `max_tokens`. Explicit values, including temperature zero,
+  survive ordinary, structured, streaming and retry paths.
+- Unset fields leave model/server defaults intact. Anthropic requires an output
+  limit: registered Sonnet/Haiku 4.5 IDs and aliases use 64,000, unknown IDs use
+  4,096. oMLX omits unset output limits. OpenAI normalizes an explicit fixed
+  temperature to the registry's sole value and warns when it drops unsupported
+  reasoning effort.
+- Migration: replace `numPredict = n` with `maxTokens = n`; remove sentinel
+  assignments to use provider defaults. To retain the old injected limits set
+  `CompletionConfig(temperature = 1.0, numCtx = 32_768, maxTokens = 16_384)`.
+  Ollama may otherwise use a smaller context or unlimited generation; OpenAI
+  may generate longer reasoning/output at greater cost. Recovery policy,
+  reasoning profiles, retention and tool limits still survive config copies.
+  See `docs/use-cases/request-fidelity.md` for provider mappings.
+
+
 ### Breaking changes: native reasoning
 
 - Expose distinct Disabled, Enabled, Low, Medium, High and XHigh controls with
@@ -43,8 +67,7 @@ patch versions move independently.
   `LlmGatewayException`; coroutine cancellation propagates.
 - OpenAI reads exact existing registry entries without HTTP or fallback guesses.
   Add the pure Ollama `effectiveContextWindow` helper with explicit caller,
-  model parameter and advertised-capacity precedence. Completion defaults,
-  request bytes, registry behavior, reasoning and recovery are unchanged.
+  model parameter and advertised-capacity precedence. Discovery does not alter completion configuration, reasoning or recovery.
 - Execute the shared Elixir `context-window-v1` artifact through real gateway HTTP
   boundaries; section-1 conformance and external verification gaps are recorded
   in `CONFORMANCE-3.0.0.md`.

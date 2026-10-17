@@ -56,10 +56,11 @@ environment variable, then from the default.
 
 ## Chat requests
 
-The gateway sends `model`, `messages`, `temperature` and `max_tokens` from the
-`CompletionConfig`. It sends `reasoning_effort`, `response_format` and `tools`
-when you set them. It never sends `max_completion_tokens`. It does not send
-`numCtx` or `numPredict`, because oMLX sets the context length for each model.
+The gateway sends `model` and `messages`. It sends `temperature`, `max_tokens`,
+`reasoning_effort`, `response_format` and `tools` only when set in `CompletionConfig`.
+Unset output limits are omitted. It never sends `max_completion_tokens` or
+`numCtx`, because oMLX sets the context length for each model.
+See [request fidelity and migration](request-fidelity.md).
 
 ## Thinking
 

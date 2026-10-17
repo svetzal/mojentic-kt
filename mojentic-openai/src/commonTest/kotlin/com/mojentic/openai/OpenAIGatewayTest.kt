@@ -198,7 +198,7 @@ class OpenAIGatewayTest {
         gateway.complete(
             model = "o3-mini",
             messages = listOf(LlmMessage.user("solve")),
-            config = CompletionConfig(reasoningEffort = ReasoningEffort.HIGH),
+            config = CompletionConfig(maxTokens = 73, reasoningEffort = ReasoningEffort.HIGH),
         )
 
         val body = assertNotNull(requestBodyText)

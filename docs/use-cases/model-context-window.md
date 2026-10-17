@@ -36,8 +36,9 @@ The pure helper clamps advertised capacity by the caller's `numCtx` first, then
 by the model's `modelNumCtx`, then uses advertised capacity alone. Unknown
 capacity returns null even with a caller limit. To represent an omitted caller
 limit explicitly, use `effectiveContextWindow(advertised, numCtx = null)`.
-The overload accepting `CompletionConfig` uses its existing `numCtx`, including
-the unchanged default of 32,768. No request defaults change in this correction.
+The overload accepting `CompletionConfig` uses its nullable `numCtx`. With an
+unset config it uses the model parameter, then advertised capacity. It does not
+invent a 32,768-token limit. See [request fidelity](request-fidelity.md).
 
 Without a caller or model limit the result is an upper bound. The client cannot
 see `OLLAMA_CONTEXT_LENGTH` or the server's built-in default. For the actual

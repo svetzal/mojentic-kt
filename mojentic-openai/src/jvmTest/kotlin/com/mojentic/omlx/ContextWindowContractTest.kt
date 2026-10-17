@@ -96,7 +96,7 @@ class ContextWindowContractTest {
     }
 
     @Test
-    fun sharedEffectiveCasesAndUnchangedConfigurationDefaults() {
+    fun sharedEffectiveCasesAndUnsetConfigurationPrecedence() {
         for (element in contract.getValue("effective_cases").jsonArray) {
             val row = element.jsonObject
             assertEquals(
@@ -106,8 +106,8 @@ class ContextWindowContractTest {
             )
         }
         val capacity = ModelContextWindow(262144, "fixture", 65536)
-        assertEquals(32768, CompletionConfig().numCtx)
-        assertEquals(32768, effectiveContextWindow(capacity, CompletionConfig()))
+        assertNull(CompletionConfig().numCtx)
+        assertEquals(65536, effectiveContextWindow(capacity, CompletionConfig()))
         assertEquals(65536, effectiveContextWindow(capacity))
         assertFailsWith<IllegalArgumentException> { effectiveContextWindow(capacity, 0) }
     }

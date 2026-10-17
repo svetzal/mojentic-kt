@@ -121,7 +121,7 @@ class OpenAIRecoveryPayloadTest {
     }
 
     private fun expectedPayload(model: String, streaming: Boolean, structured: Boolean, tools: Boolean): String {
-        val controls = if (model == "o3") "\"max_completion_tokens\":17" else "\"temperature\":0.25,\"max_tokens\":17"
+        val controls = if (model == "o3") "\"temperature\":1.0,\"max_completion_tokens\":17" else "\"temperature\":0.25,\"max_tokens\":17"
         val toolBytes = if (tools) {
             ",\"tools\":[{\"type\":\"function\",\"function\":{\"name\":\"count-tool\",\"description\":\"counting tool\"," +
                 "\"parameters\":{\"type\":\"object\"}}}]"

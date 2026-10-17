@@ -318,7 +318,7 @@ public class AnthropicGateway(
         val adapted = messages.toAnthropicMessages()
         return AnthropicMessagesRequest(
             model = model,
-            maxTokens = config.maxTokens.takeIf { it > 0 } ?: DEFAULT_MAX_TOKENS,
+            maxTokens = config.maxTokens ?: AnthropicOutputLimits.forModel(model),
             messages = adapted.messages,
             system = adapted.system,
             temperature = config.temperature,

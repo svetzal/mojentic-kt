@@ -292,41 +292,31 @@ public final class com/mojentic/llm/ChatSession {
 
 public final class com/mojentic/llm/CompletionConfig {
 	public static final field Companion Lcom/mojentic/llm/CompletionConfig$Companion;
-	public static final field DEFAULT_MAX_TOKENS I
 	public static final field DEFAULT_MAX_TOOL_ITERATIONS I
-	public static final field DEFAULT_NUM_CTX I
-	public static final field DEFAULT_NUM_PREDICT I
-	public static final field DEFAULT_TEMPERATURE D
 	public fun <init> ()V
-	public fun <init> (DIIILcom/mojentic/llm/ReasoningEffort;Ljava/lang/Integer;Lcom/mojentic/llm/ResponseFormat;)V
-	public synthetic fun <init> (DIIILcom/mojentic/llm/ReasoningEffort;Ljava/lang/Integer;Lcom/mojentic/llm/ResponseFormat;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun <init> (DIIILcom/mojentic/llm/ReasoningEffort;Ljava/lang/Integer;Lcom/mojentic/llm/ResponseFormat;Lcom/mojentic/llm/recovery/RecoveryPolicy;Lcom/mojentic/llm/ReasoningProfile;Z)V
-	public synthetic fun <init> (DIIILcom/mojentic/llm/ReasoningEffort;Ljava/lang/Integer;Lcom/mojentic/llm/ResponseFormat;Lcom/mojentic/llm/recovery/RecoveryPolicy;Lcom/mojentic/llm/ReasoningProfile;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()D
-	public final fun component10 ()Z
-	public final fun component2 ()I
-	public final fun component3 ()I
-	public final fun component4 ()I
-	public final fun component5 ()Lcom/mojentic/llm/ReasoningEffort;
-	public final fun component6 ()Ljava/lang/Integer;
-	public final fun component7 ()Lcom/mojentic/llm/ResponseFormat;
-	public final fun component8 ()Lcom/mojentic/llm/recovery/RecoveryPolicy;
-	public final fun component9 ()Lcom/mojentic/llm/ReasoningProfile;
-	public final fun copy (DIIILcom/mojentic/llm/ReasoningEffort;Ljava/lang/Integer;Lcom/mojentic/llm/ResponseFormat;)Lcom/mojentic/llm/CompletionConfig;
-	public final fun copy (DIIILcom/mojentic/llm/ReasoningEffort;Ljava/lang/Integer;Lcom/mojentic/llm/ResponseFormat;Lcom/mojentic/llm/recovery/RecoveryPolicy;Lcom/mojentic/llm/ReasoningProfile;Z)Lcom/mojentic/llm/CompletionConfig;
-	public static synthetic fun copy$default (Lcom/mojentic/llm/CompletionConfig;DIIILcom/mojentic/llm/ReasoningEffort;Ljava/lang/Integer;Lcom/mojentic/llm/ResponseFormat;ILjava/lang/Object;)Lcom/mojentic/llm/CompletionConfig;
-	public static synthetic fun copy$default (Lcom/mojentic/llm/CompletionConfig;DIIILcom/mojentic/llm/ReasoningEffort;Ljava/lang/Integer;Lcom/mojentic/llm/ResponseFormat;Lcom/mojentic/llm/recovery/RecoveryPolicy;Lcom/mojentic/llm/ReasoningProfile;ZILjava/lang/Object;)Lcom/mojentic/llm/CompletionConfig;
+	public fun <init> (Ljava/lang/Double;Ljava/lang/Integer;Ljava/lang/Integer;Lcom/mojentic/llm/ReasoningEffort;Ljava/lang/Integer;Lcom/mojentic/llm/ResponseFormat;Lcom/mojentic/llm/recovery/RecoveryPolicy;Lcom/mojentic/llm/ReasoningProfile;Z)V
+	public synthetic fun <init> (Ljava/lang/Double;Ljava/lang/Integer;Ljava/lang/Integer;Lcom/mojentic/llm/ReasoningEffort;Ljava/lang/Integer;Lcom/mojentic/llm/ResponseFormat;Lcom/mojentic/llm/recovery/RecoveryPolicy;Lcom/mojentic/llm/ReasoningProfile;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/Double;
+	public final fun component2 ()Ljava/lang/Integer;
+	public final fun component3 ()Ljava/lang/Integer;
+	public final fun component4 ()Lcom/mojentic/llm/ReasoningEffort;
+	public final fun component5 ()Ljava/lang/Integer;
+	public final fun component6 ()Lcom/mojentic/llm/ResponseFormat;
+	public final fun component7 ()Lcom/mojentic/llm/recovery/RecoveryPolicy;
+	public final fun component8 ()Lcom/mojentic/llm/ReasoningProfile;
+	public final fun component9 ()Z
+	public final fun copy (Ljava/lang/Double;Ljava/lang/Integer;Ljava/lang/Integer;Lcom/mojentic/llm/ReasoningEffort;Ljava/lang/Integer;Lcom/mojentic/llm/ResponseFormat;Lcom/mojentic/llm/recovery/RecoveryPolicy;Lcom/mojentic/llm/ReasoningProfile;Z)Lcom/mojentic/llm/CompletionConfig;
+	public static synthetic fun copy$default (Lcom/mojentic/llm/CompletionConfig;Ljava/lang/Double;Ljava/lang/Integer;Ljava/lang/Integer;Lcom/mojentic/llm/ReasoningEffort;Ljava/lang/Integer;Lcom/mojentic/llm/ResponseFormat;Lcom/mojentic/llm/recovery/RecoveryPolicy;Lcom/mojentic/llm/ReasoningProfile;ZILjava/lang/Object;)Lcom/mojentic/llm/CompletionConfig;
 	public fun equals (Ljava/lang/Object;)Z
-	public final fun getMaxTokens ()I
+	public final fun getMaxTokens ()Ljava/lang/Integer;
 	public final fun getMaxToolIterations ()Ljava/lang/Integer;
-	public final fun getNumCtx ()I
-	public final fun getNumPredict ()I
+	public final fun getNumCtx ()Ljava/lang/Integer;
 	public final fun getPreserveReasoning ()Z
 	public final fun getReasoningEffort ()Lcom/mojentic/llm/ReasoningEffort;
 	public final fun getReasoningProfile ()Lcom/mojentic/llm/ReasoningProfile;
 	public final fun getRecovery ()Lcom/mojentic/llm/recovery/RecoveryPolicy;
 	public final fun getResponseFormat ()Lcom/mojentic/llm/ResponseFormat;
-	public final fun getTemperature ()D
+	public final fun getTemperature ()Ljava/lang/Double;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -2569,21 +2559,21 @@ public final class com/mojentic/tracer/EventStore {
 }
 
 public final class com/mojentic/tracer/LlmCallEvent : com/mojentic/tracer/TracerEvent {
-	public fun <init> (Lkotlin/time/Instant;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;DLjava/util/List;)V
-	public synthetic fun <init> (Lkotlin/time/Instant;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;DLjava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lkotlin/time/Instant;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/Double;Ljava/util/List;)V
+	public synthetic fun <init> (Lkotlin/time/Instant;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/Double;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Lkotlin/time/Instant;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()Ljava/lang/String;
 	public final fun component4 ()Ljava/util/List;
-	public final fun component5 ()D
+	public final fun component5 ()Ljava/lang/Double;
 	public final fun component6 ()Ljava/util/List;
-	public final fun copy (Lkotlin/time/Instant;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;DLjava/util/List;)Lcom/mojentic/tracer/LlmCallEvent;
-	public static synthetic fun copy$default (Lcom/mojentic/tracer/LlmCallEvent;Lkotlin/time/Instant;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;DLjava/util/List;ILjava/lang/Object;)Lcom/mojentic/tracer/LlmCallEvent;
+	public final fun copy (Lkotlin/time/Instant;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/Double;Ljava/util/List;)Lcom/mojentic/tracer/LlmCallEvent;
+	public static synthetic fun copy$default (Lcom/mojentic/tracer/LlmCallEvent;Lkotlin/time/Instant;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/Double;Ljava/util/List;ILjava/lang/Object;)Lcom/mojentic/tracer/LlmCallEvent;
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getCorrelationId ()Ljava/lang/String;
 	public final fun getMessages ()Ljava/util/List;
 	public final fun getModel ()Ljava/lang/String;
-	public final fun getTemperature ()D
+	public final fun getTemperature ()Ljava/lang/Double;
 	public fun getTimestamp ()Lkotlin/time/Instant;
 	public final fun getTools ()Ljava/util/List;
 	public fun hashCode ()I
@@ -2627,7 +2617,7 @@ public final class com/mojentic/tracer/LlmResponseEvent : com/mojentic/tracer/Tr
 public final class com/mojentic/tracer/NullTracer : com/mojentic/tracer/Tracer {
 	public static final field INSTANCE Lcom/mojentic/tracer/NullTracer;
 	public fun recordAgentInteraction (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun recordLlmCall (Ljava/lang/String;Ljava/util/List;DLjava/util/List;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun recordLlmCall (Ljava/lang/String;Ljava/util/List;Ljava/lang/Double;Ljava/util/List;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun recordLlmResponse-jW1FoMc (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;JLjava/lang/String;Lkotlinx/serialization/json/JsonObject;Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun recordToolBatch-Zb7fWow (Ljava/lang/String;Ljava/util/List;IIJLjava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun recordToolCall-mGOUYlo (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JZLjava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -2690,7 +2680,7 @@ public final class com/mojentic/tracer/ToolCallEvent : com/mojentic/tracer/Trace
 
 public abstract interface class com/mojentic/tracer/Tracer {
 	public fun recordAgentInteraction (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun recordLlmCall (Ljava/lang/String;Ljava/util/List;DLjava/util/List;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun recordLlmCall (Ljava/lang/String;Ljava/util/List;Ljava/lang/Double;Ljava/util/List;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun recordLlmResponse-jW1FoMc (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;JLjava/lang/String;Lkotlinx/serialization/json/JsonObject;Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun recordLlmResponse-jW1FoMc$default (Lcom/mojentic/tracer/Tracer;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;JLjava/lang/String;Lkotlinx/serialization/json/JsonObject;Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public fun recordToolBatch-Zb7fWow (Ljava/lang/String;Ljava/util/List;IIJLjava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -2701,7 +2691,7 @@ public abstract interface class com/mojentic/tracer/Tracer {
 
 public final class com/mojentic/tracer/Tracer$DefaultImpls {
 	public static fun recordAgentInteraction (Lcom/mojentic/tracer/Tracer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static fun recordLlmCall (Lcom/mojentic/tracer/Tracer;Ljava/lang/String;Ljava/util/List;DLjava/util/List;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static fun recordLlmCall (Lcom/mojentic/tracer/Tracer;Ljava/lang/String;Ljava/util/List;Ljava/lang/Double;Ljava/util/List;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static fun recordLlmResponse-jW1FoMc (Lcom/mojentic/tracer/Tracer;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;JLjava/lang/String;Lkotlinx/serialization/json/JsonObject;Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun recordLlmResponse-jW1FoMc$default (Lcom/mojentic/tracer/Tracer;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;JLjava/lang/String;Lkotlinx/serialization/json/JsonObject;Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static fun recordToolBatch-Zb7fWow (Lcom/mojentic/tracer/Tracer;Ljava/lang/String;Ljava/util/List;IIJLjava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -2726,7 +2716,7 @@ public final class com/mojentic/tracer/TracerSystem : com/mojentic/tracer/Tracer
 	public final fun getEnabled ()Z
 	public final fun getEventStore ()Lcom/mojentic/tracer/EventStore;
 	public fun recordAgentInteraction (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun recordLlmCall (Ljava/lang/String;Ljava/util/List;DLjava/util/List;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun recordLlmCall (Ljava/lang/String;Ljava/util/List;Ljava/lang/Double;Ljava/util/List;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun recordLlmResponse-jW1FoMc (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;JLjava/lang/String;Lkotlinx/serialization/json/JsonObject;Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun recordToolBatch-Zb7fWow (Ljava/lang/String;Ljava/util/List;IIJLjava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun recordToolCall-mGOUYlo (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JZLjava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;

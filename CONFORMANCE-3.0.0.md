@@ -813,3 +813,115 @@ run adds no suppression and does not claim those inherited entries were newly
 revalidated. NVD bulk-feed `modified.meta` was checked before the audit and
 reported `lastModifiedDate: 2026-10-16T18:00:09-04:00`; feed transport retains the
 existing audit scope and CVSS threshold. No fresh Maven publication was made.
+
+## Request fidelity correction — MODEL-METADATA section 3 (2026-10-17)
+
+This section supersedes earlier statements that completion numeric defaults stay
+unchanged. Scope is request fidelity only; context discovery and native reasoning
+retain their existing contracts, and first-token timing/recovery amendments are
+separate initiative work. The verified brief hash is
+`ea6a0efa56bfb3cd74b5ce728f80cc33c6fbd853114bec94b8aabe79f5d28e6e`.
+The binding MODEL-METADATA document hash is
+`a085da1c0d110f9d587a24ace6ac2854b653e1ac28905b3829d94d665b2c906e`.
+
+### Executable identity and scope
+
+Reuse the unchanged Elixir `request-fidelity-v1` artifact as
+`contracts/request_fidelity_v1.json`, SHA-256
+`6f02088311f50707b9c12154d888f844928c23d359043cb2e5d5654bf7e5eaea`.
+Both Kotlin contract classes verify this identity. Inputs, retryable 503 and
+response content/terminal semantics come from that artifact. Ollama responses
+add the assistant role required by Kotlin's existing decoder; Anthropic projects
+shared answer content into its native text/tool/SSE envelope. These local HTTP
+test doubles derive from the artifact; they are not evidence of external
+provider agreement. Existing recovery boundary tests still exercise errors,
+cancellation, admission, partial delivery and payload freezing.
+
+The shared artifact declares unreleased 3.0.0 and explicit migration from 2.1
+numeric defaults, rather than retaining the old binary ABI. Kotlin's correction
+covers temperature/context/output fields; `top_p` and `top_k` have no Kotlin
+configuration fields and their shared cases only exercise the supported subset.
+Adding sampling fields is outside this objective; full cross-port artifact
+coverage remains an initiative finding. No supported old wire protocol is
+removed: ordinary JSON, native structured output, SSE and Ollama NDJSON remain
+covered. The public numeric config/trace ABI intentionally breaks for 3.0.
+
+| Contract decision | Named tests |
+| --- | --- |
+| Outgoing absence through ordinary, structured, structured-response, stream and event entrypoints | `ContextWindowRequestFidelityTest.unsetSamplingAndLimitsAreAbsentThroughEveryEntrypoint` (Ollama/OpenAI/oMLX) |
+| Exact explicit values including zero; one provider output field; unchanged retry bytes | `RequestFidelityContractTest.ollamaOrdinaryStructuredAndStreamingPreserveExplicitAndUnsetFieldsAndRetryBytes`, `openaiOrdinaryStructuredAndStreamingPreserveExplicitAndUnsetFieldsAndRetryBytes`, `omlxOrdinaryStructuredAndStreamingPreserveExplicitAndUnsetFieldsAndRetryBytes` |
+| Anthropic absence, explicit values, forced tool schema, streaming and retry bytes | Anthropic `RequestFidelityContractTest.anthropicOrdinaryStructuredAndStreamingPreserveFieldsAndIdenticalRetryPayloads` |
+| Anthropic known exact IDs/aliases, unknown fallback, explicit override | Anthropic `RequestFidelityContractTest.knownRegistryIdsAndAliasesUseMaximumOutputAndUnknownNamesUse4096` |
+| OpenAI explicit fixed-temperature normalization and output selection | `RequestFidelityContractTest.fixedTemperatureIsNormalizedOnlyWhenSetAndReasoningUsesOneOutputField`; `OpenAIRecoveryPayloadTest.supportedPayloadIsFrozenBeforeAdmissionAcrossAllEntrypoints` |
+| Warn and drop unsupported effort | `RequestFidelityContractTest.droppedEffortWarnsAndIsAbsentOnTheWire` |
+| Recovery/profile/retention/format/tool limits survive copies | `CompletionConfigTest.depthCopyPreservesRecoveryReasoningRetentionAndUnsetSampling`; existing broker/session native-reasoning continuity and recovery tests |
+| Metadata lookup leaves request bytes unchanged; effective-window precedence | `ContextWindowRequestFidelityTest.discoveryPreservesOrdinaryStructuredAndBothStreamingRequestBytes`; `ContextWindowContractTest` (unset config now follows model parameter/capacity) |
+
+The initial real-HTTP rejection observed an unset Ollama ordinary request carrying
+`temperature: 1.0`, `num_ctx: 32768`, `num_predict: 16384`. The identical named
+absence probe then passed after changing nullable config defaults and adapter
+mapping, before expanding the contract fixtures/docs. Execution evidence retains
+both actual exit codes and complete logs. Recovery serialization continues to
+freeze each request before admission and reuses identical bytes on retry.
+
+### Local and paired verification
+
+Tested Kotlin base: `436c334d63c5477dbf9dda59ba1b66b58319124a` plus this
+uncommitted worktree, identified by
+`contracts/request_fidelity_v1.kotlin.manifest.sha256`. No commit or ref changes
+are made. Artifact source observed at Elixir
+`df29a1c36f6b4b172b3ff352d40201d6583a9890`; that observation is not a test run.
+
+Local command:
+`./gradlew :mojentic-openai:jvmTest :mojentic-anthropic:jvmTest --tests '*RequestFidelityContractTest*' --tests '*ContextWindowRequestFidelityTest*' --tests '*OpenAIRecoveryPayloadTest*'`.
+Execution uses writable `GRADLE_USER_HOME=/tmp/mojentic-reasoning-gradle`,
+`ANDROID_HOME=/home/svetzal/Android/Sdk`, `ANDROID_USER_HOME=/tmp/mojentic-android`,
+`-Pkotlin.compiler.execution.strategy=in-process --offline --console=plain`.
+These settings accommodate read-only host caches without changing dependencies.
+
+**Open initiative finding — paired verification unavailable:** no external
+provider or downstream consumer repository was authorized for changes or tested
+in this task. Elixir's counterpart command is
+`scripts/verify-request-fidelity-contract`; it was not run here, so no counterpart
+result or tested counterpart commit is claimed. Provider owners must execute the
+same versioned cases, including the Anthropic projection, and record commands,
+commits and results. This local Kotlin verification cannot close paired boundary
+conformance, cross-port sampling coverage, live-provider behavior or coordinated
+release readiness. No sibling repository was changed.
+
+Final local verification, 2026-10-17, on the Kotlin base plus worktree above:
+
+| Discovered `.hone-gates.json` command | Exit | Result |
+| --- | --- | --- |
+| `./gradlew ktlintCheck` | 0 | Pass |
+| `./gradlew detekt` | 0 | Pass, including all configured platform/test analysis |
+| `./gradlew build` | 0 | Pass, including examples and Android host checks |
+| `./gradlew allTests` | 0 | Pass |
+| `./gradlew apiCheck` | 0 | Pass against regenerated intentional 3.0 ABI snapshot |
+| `./gradlew dokkaGenerate` | 0 | Pass |
+
+The targeted local contract command above passed (exit 0); the final full gates
+include those same classes. Final test reports contain **525 JVM tests and 376
+Android host tests**, zero failures, errors or skips. KMP `allTests` and Dokka v2
+`dokkaGenerate` are this repository's test/documentation gates; a JaCoCo coverage
+report is not wired, so no coverage percentage is claimed. Existing Gradle
+10 deprecation messages, Android analytics cache notices, a redundant `else`
+compiler warning in the unchanged realtime gateway, and unresolved Dokka links in
+unchanged declarations remain visible. No new suppression or baseline was added.
+
+The tested source/API/test manifest SHA-256 is
+`f777e42d3650c79e0ec98da7af6e5ec538cdb10c1e6b30e25137fab12848c181`;
+`sha256sum -c contracts/request_fidelity_v1.kotlin.manifest.sha256` passes.
+The unchanged shared JSON artifact and both contract identity tests preserve the
+version/hash independently from this evolving Kotlin source manifest.
+
+Additional requested security verification passed (exit 0):
+`./gradlew dependencyCheckAggregate --no-parallel -PdependencyCheckDataDirectory=/tmp/mojentic-reasoning-audit-data`
+with the same writable environment/compiler/offline settings. Before execution,
+NVD `modified.meta` reported `lastModifiedDate:2026-10-16T18:00:09-04:00`.
+The existing feed transport, complete audit configuration and severity threshold
+were retained. No dependency, allowlist or suppression file was changed. The
+report's unsuppressed findings are zero; inherited suppressions were not newly
+revalidated. Audit output notes OSS Index lacks credentials and the .NET assembly
+analyzer lacks a runtime, so this is a passing configured audit rather than a
+claim of exhaustive vulnerability detection. No Maven publication was performed.

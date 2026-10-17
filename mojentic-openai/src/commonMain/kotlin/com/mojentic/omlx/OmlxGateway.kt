@@ -118,11 +118,9 @@ private const val RESPONSE_FORMAT_WARNING = "response_format_warning"
  *
  * ## Chat requests
  *
- * Requests send `model`, `messages`, `temperature` and `max_tokens` (never
- * `max_completion_tokens`) from the config, and `reasoning_effort`,
- * `response_format` and `tools` when they are set. [CompletionConfig.numCtx] and
- * [CompletionConfig.numPredict] are not sent, because oMLX sets the context
- * length per model.
+ * Requests send `model` and `messages`, plus `temperature`, `max_tokens`,
+ * `reasoning_effort`, `response_format` and `tools` only when set.
+ * `max_completion_tokens` and [CompletionConfig.numCtx] are omitted; oMLX sets context length per model.
  *
  * Disabled and Enabled send boolean `enable_thinking`; named efforts send exact
  * `reasoning_effort` strings (including `xhigh`). Explicit caller-selected profiles validate

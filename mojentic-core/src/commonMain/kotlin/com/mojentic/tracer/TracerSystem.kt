@@ -29,7 +29,7 @@ public class TracerSystem(
     override suspend fun recordLlmCall(
         model: String,
         messages: List<LlmMessage>,
-        temperature: Double,
+        temperature: Double?,
         tools: List<String>?,
         correlationId: String?,
     ) {

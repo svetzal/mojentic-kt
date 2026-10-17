@@ -82,6 +82,9 @@ dependencies {
 Dokka HTML output will be published to GitHub Pages on every `v*` tag.
 Handwritten use-case guides will live under `docs/use-cases/`.
 
+See [request fidelity and 3.0 migration](docs/use-cases/request-fidelity.md) for
+nullable completion settings and provider output limits.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).

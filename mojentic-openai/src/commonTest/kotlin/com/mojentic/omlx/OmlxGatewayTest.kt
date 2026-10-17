@@ -140,13 +140,13 @@ class OmlxGatewayTest {
     }
 
     @Test
-    fun maxTokensIsAlwaysSentAndNullReasoningEffortIsOmitted() = runTest {
+    fun unsetMaxTokensAndReasoningEffortAreOmitted() = runTest {
         val server = OmlxTestServer.answering(OmlxFixtures.CHAT_THINKING)
 
         server.open().complete(model, messages)
 
         val body = server.body
-        assertEquals(CompletionConfig.DEFAULT_MAX_TOKENS.toString(), body.string("max_tokens"))
+        assertFalse("max_tokens" in body)
         assertFalse("reasoning_effort" in body, "null reasoning effort must be omitted: $body")
         assertFalse("response_format" in body, "absent format must be omitted: $body")
         assertFalse("tools" in body, "no tools were given: $body")
