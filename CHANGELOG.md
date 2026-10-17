@@ -10,6 +10,35 @@ patch versions move independently.
 
 ## [Unreleased]
 
+### Breaking changes: invalid recovery policies
+
+- `RecoveryPolicy` construction now throws `InvalidRecoveryPolicyException`
+  (a `MojenticException`) instead of `IllegalArgumentException` for every existing
+  invalid constraint. Its `violation: RecoveryPolicyViolation` identifies the
+  failed constraint without retaining submitted values, callbacks or causes.
+  Validation still happens synchronously before any gateway, broker or session
+  request, admission, capture, lifecycle callback or tool execution. Valid
+  policies, defaults, cancellation and provider payloads are unchanged.
+- Migration: catch `InvalidRecoveryPolicyException` around policy/configuration
+  construction, rather than catching `IllegalArgumentException` around a later
+  completion call. Branch on `violation`, not the exception message. Consumers
+  with an exhaustive `when` on `MojenticException` must add the new subtype.
+
+```kotlin
+val policy = try {
+    RecoveryPolicy(maxAttempts = requestedAttempts)
+} catch (failure: InvalidRecoveryPolicyException) {
+    // Present or handle the safe constraint code; no request has started.
+    handleInvalidPolicy(failure.violation)
+    return
+}
+val config = CompletionConfig(recovery = policy)
+```
+
+The example uses `com.mojentic.llm.recovery.RecoveryPolicy`,
+`com.mojentic.llm.CompletionConfig` and
+`com.mojentic.errors.InvalidRecoveryPolicyException`.
+
 ### Removed
 
 - iOS targets and XCFramework distribution. This is a breaking change for

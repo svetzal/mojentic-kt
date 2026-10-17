@@ -18,6 +18,7 @@ import com.mojentic.llm.recovery.RecoveryPolicy
 import com.mojentic.llm.recovery.RecoveryReason
 import com.mojentic.llm.recovery.RecoveryStage
 import com.mojentic.llm.recovery.RecoveryWire
+import com.mojentic.llm.tools.LlmTool
 import com.mojentic.omlx.RecoveryTestFixtures.Provider
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
@@ -233,9 +234,11 @@ class AdmissionAmendmentHttpTest {
         assertEquals(2, failure.nextAttemptNumber)
     }
 
-    private enum class Entry {
+    internal enum class Entry {
         ORDINARY,
         STRUCTURED,
+        STRUCTURED_RESPONSE,
+        BROKER_RESPONSE,
         STREAM,
         EVENTS,
         BROKER_EVENTS,
@@ -247,7 +250,7 @@ class AdmissionAmendmentHttpTest {
         ;
 
         val streaming: Boolean get() = this in listOf(STREAM, EVENTS, BROKER_EVENTS, BROKER_STREAM, SESSION_STREAM)
-        val structured: Boolean get() = this == STRUCTURED || this == BROKER_STRUCTURED
+        val structured: Boolean get() = this in listOf(STRUCTURED, STRUCTURED_RESPONSE, BROKER_STRUCTURED)
         val operation: String get() = when {
             this == EVENTS || this == BROKER_EVENTS -> "streamEvents"
             streaming -> "stream"
@@ -282,12 +285,15 @@ class AdmissionAmendmentHttpTest {
             return content.toString()
         }
 
-        suspend fun call(gateway: RecoveryTestFixtures.OwnedGateway, policy: RecoveryPolicy) {
+        suspend fun call(gateway: RecoveryTestFixtures.OwnedGateway, policy: RecoveryPolicy, tools: List<LlmTool> = emptyList()) {
             val config = CompletionConfig(recovery = policy)
             val broker = LlmBroker(gateway.value)
-            val session = ChatSession(broker, "test-model", config = config)
+            val session = ChatSession(broker, "test-model", tools = tools, config = config)
             when (this) {
-                ORDINARY -> assertEquals("ok", gateway.value.complete("test-model", RecoveryTestFixtures.messages, config = config).content)
+                ORDINARY -> assertEquals(
+                    "ok",
+                    gateway.value.complete("test-model", RecoveryTestFixtures.messages, tools = tools, config = config).content,
+                )
 
                 STRUCTURED -> {
                     val response = gateway.value.completeJson(
@@ -299,7 +305,25 @@ class AdmissionAmendmentHttpTest {
                     assertEquals("\"ok\"", response["value"].toString())
                 }
 
-                STREAM -> assertEquals("ok", contentOf(gateway.value.stream("test-model", RecoveryTestFixtures.messages, config = config)))
+                STRUCTURED_RESPONSE -> assertEquals(
+                    Json.parseToJsonElement("""{"value":"ok"}"""),
+                    gateway.value.completeJsonResponse(
+                        "test-model",
+                        RecoveryTestFixtures.messages,
+                        RecoveryTestFixtures.schema,
+                        config,
+                    ).structuredJson,
+                )
+
+                BROKER_RESPONSE -> assertEquals(
+                    "ok",
+                    broker.generateResponse("test-model", RecoveryTestFixtures.messages, tools, config).content,
+                )
+
+                STREAM -> assertEquals(
+                    "ok",
+                    contentOf(gateway.value.stream("test-model", RecoveryTestFixtures.messages, tools = tools, config = config)),
+                )
 
                 EVENTS -> assertEquals(
                     "ok",
@@ -311,7 +335,10 @@ class AdmissionAmendmentHttpTest {
                     contentOf(broker.generateStreamEvents("test-model", RecoveryTestFixtures.messages, config)),
                 )
 
-                BROKER -> assertEquals("ok", broker.complete("test-model", RecoveryTestFixtures.messages, config = config).content)
+                BROKER -> assertEquals(
+                    "ok",
+                    broker.complete("test-model", RecoveryTestFixtures.messages, tools = tools, config = config).content,
+                )
 
                 BROKER_STRUCTURED -> assertEquals(
                     "\"ok\"",
@@ -320,7 +347,10 @@ class AdmissionAmendmentHttpTest {
 
                 SESSION -> assertEquals("ok", session.send("private-request").content)
 
-                BROKER_STREAM -> assertEquals("ok", contentOf(broker.stream("test-model", RecoveryTestFixtures.messages, config = config)))
+                BROKER_STREAM -> assertEquals(
+                    "ok",
+                    contentOf(broker.stream("test-model", RecoveryTestFixtures.messages, tools = tools, config = config)),
+                )
 
                 SESSION_STREAM -> assertEquals("ok", contentOf(session.stream("private-request")))
             }

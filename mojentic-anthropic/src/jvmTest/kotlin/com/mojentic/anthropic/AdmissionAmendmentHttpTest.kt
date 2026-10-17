@@ -16,9 +16,11 @@ import com.mojentic.llm.recovery.RecoveryPolicy
 import com.mojentic.llm.recovery.RecoveryReason
 import com.mojentic.llm.recovery.RecoveryStage
 import com.mojentic.llm.recovery.RecoveryWire
+import com.mojentic.llm.tools.LlmTool
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.Json
@@ -184,9 +186,11 @@ class AdmissionAmendmentHttpTest {
         assertFalse(failure.progress.semanticDelivered)
     }
 
-    private enum class Entry {
+    internal enum class Entry {
         ORDINARY,
         STRUCTURED,
+        STRUCTURED_RESPONSE,
+        BROKER_RESPONSE,
         STREAM,
         BROKER,
         BROKER_STRUCTURED,
@@ -196,7 +200,7 @@ class AdmissionAmendmentHttpTest {
         ;
 
         val operation: String get() = when (this) {
-            STRUCTURED, BROKER_STRUCTURED -> "structured"
+            STRUCTURED, STRUCTURED_RESPONSE, BROKER_STRUCTURED -> "structured"
             STREAM, BROKER_STREAM, SESSION_STREAM -> "stream"
             else -> "complete"
         }
@@ -212,46 +216,61 @@ class AdmissionAmendmentHttpTest {
                         "\n\ndata: " + """{"type":"message_delta","delta":{"stop_reason":"end_turn"}}""" +
                         "\n\ndata: " + """{"type":"message_stop"}""" + "\n\n"
 
-                STRUCTURED, BROKER_STRUCTURED ->
+                STRUCTURED, STRUCTURED_RESPONSE, BROKER_STRUCTURED ->
                     """{"content":[{"type":"tool_use","id":"t","name":"respond_in_json","input":{"value":"ok"}}]}"""
 
                 else -> """{"content":[{"type":"text","text":"ok"}],"stop_reason":"end_turn"}"""
             },
         )
 
-        suspend fun call(gateway: AnthropicGateway, policy: RecoveryPolicy) {
+        private suspend fun contentOf(source: Flow<*>): String {
+            val content = StringBuilder()
+            source.collect {
+                when (it) {
+                    is GatewayStreamEvent.Content -> content.append(it.text)
+                    is StreamEvent.TextChunk -> content.append(it.text)
+                }
+            }
+            return content.toString()
+        }
+
+        suspend fun call(gateway: AnthropicGateway, policy: RecoveryPolicy, tools: List<LlmTool> = emptyList()) {
             val config = CompletionConfig(recovery = policy)
             val messages = listOf(LlmMessage.user("private-request"))
             val broker = LlmBroker(gateway)
-            val session = ChatSession(broker, "claude", config = config)
-            val content = StringBuilder()
+            val session = ChatSession(broker, "claude", tools = tools, config = config)
             when (this) {
-                ORDINARY -> assertEquals("ok", gateway.complete("claude", messages, config = config).content)
+                ORDINARY -> assertEquals("ok", gateway.complete("claude", messages, tools = tools, config = config).content)
 
                 STRUCTURED -> {
                     val schema = buildJsonObject { put("type", "object") }
                     assertEquals("\"ok\"", gateway.completeJson("claude", messages, schema, config)["value"].toString())
                 }
 
-                STREAM -> gateway.stream("claude", messages, config = config).collect {
-                    if (it is GatewayStreamEvent.Content) content.append(it.text)
-                }
+                STRUCTURED_RESPONSE -> assertEquals(
+                    Json.parseToJsonElement("""{"value":"ok"}"""),
+                    gateway.completeJsonResponse(
+                        "claude",
+                        messages,
+                        buildJsonObject { put("type", "object") },
+                        config,
+                    ).structuredJson,
+                )
 
-                BROKER -> assertEquals("ok", broker.complete("claude", messages, config = config).content)
+                BROKER_RESPONSE -> assertEquals("ok", broker.generateResponse("claude", messages, tools, config).content)
+
+                STREAM -> assertEquals("ok", contentOf(gateway.stream("claude", messages, tools = tools, config = config)))
+
+                BROKER -> assertEquals("ok", broker.complete("claude", messages, tools = tools, config = config).content)
 
                 BROKER_STRUCTURED -> assertEquals("\"ok\"", broker.completeJson<JsonObject>("claude", messages, config)["value"].toString())
 
                 SESSION -> assertEquals("ok", session.send("private-request").content)
 
-                BROKER_STREAM -> broker.stream("claude", messages, config = config).collect {
-                    if (it is StreamEvent.TextChunk) content.append(it.text)
-                }
+                BROKER_STREAM -> assertEquals("ok", contentOf(broker.stream("claude", messages, tools = tools, config = config)))
 
-                SESSION_STREAM -> session.stream("private-request").collect {
-                    if (it is StreamEvent.TextChunk) content.append(it.text)
-                }
+                SESSION_STREAM -> assertEquals("ok", contentOf(session.stream("private-request")))
             }
-            if (this in listOf(STREAM, BROKER_STREAM, SESSION_STREAM)) assertEquals("ok", content.toString())
         }
     }
 }

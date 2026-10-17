@@ -20,6 +20,10 @@ import kotlinx.coroutines.sync.withLock
  *   once the flow completes.
  *
  * The session is the Kotlin analogue of the Python reference's `ChatSession`.
+ *
+ * Recovery configuration is validated when [com.mojentic.llm.recovery.RecoveryPolicy]
+ * is constructed. Invalid values throw [com.mojentic.errors.InvalidRecoveryPolicyException]
+ * before any completion, callback or tool execution; these APIs accept only validated policies.
  */
 public class ChatSession(
     private val broker: LlmBroker,

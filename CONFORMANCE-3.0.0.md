@@ -1,7 +1,7 @@
-# 3.0.0 admission conformance
+# 3.0.0 recovery conformance
 
-This record covers the October 12 admission guarantees only. It does not certify
-all of transient recovery or readiness to release 3.0.0. JVM and Android are the
+This record covers the October 12 admission and invalid-policy guarantees only.
+It does not certify all of transient recovery or readiness to release 3.0.0. JVM and Android are the
 supported targets. Provider wire formats and dependencies are unchanged.
 
 ## Contract identity and verification boundary
@@ -18,7 +18,8 @@ These are prose contract hashes, not executable shared-contract verification.
 The authoritative contract was read from initiative repository commit
 `4b08dcd1d87f520a4c70928c33a2bc84c228093d`; no change was made there.
 
-The local executable admission cases are versioned here as **kt-admission-v1**:
+The original local executable admission cases were versioned as **kt-admission-v1**
+at the admission correction recorded below (historical file hashes):
 
 | Executable cases | SHA-256 |
 | --- | --- |
@@ -137,6 +138,138 @@ work in the relevant authorized repositories; this task changes Kotlin only.
 - Shared executable contract distribution and provider verification remain
   initiative coordination work, as above.
 - Reasoning, metadata, capability citations, typed operation/provider vocabulary,
-  policy validation and remaining recovery amendments belong to separate scope.
+  remaining recovery amendments belong to separate scope. Invalid-policy validation
+  is covered by the correction below.
 - Other ports and consumer migrations are not verified here. No version bump,
   release, tag or publication is authorized by this correction.
+
+## Invalid-policy correction (October 12 Typed errors)
+
+Tested revision: `137a8b827faadd09d0d94c7dafa493df648094b2` plus this
+uncommitted correction. Foundry owns Git finalization. The initiative brief hash
+was verified as `ea6a0efa56bfb3cd74b5ce728f80cc33c6fbd853114bec94b8aabe79f5d28e6e`.
+The authoritative amendment hash remains
+`a53a3a4eb118fa4687dd703d6ce918dd40dd6cb4eda796abc6c429a6e932e7a3`.
+Its Typed errors decision requires invalid policies to fail with a typed policy
+error on every entrypoint. The older port copy does not include this amendment.
+
+`RecoveryPolicy` remains immutable and validates synchronously at construction.
+An invalid policy cannot be passed to a completion API. Each existing constraint
+now throws `InvalidRecoveryPolicyException`, a `MojenticException`, with a safe
+`RecoveryPolicyViolation` enum field, no cause and no retained caller values or
+callbacks. Parameter-order validation, accepted values and all valid request
+behavior are preserved. No gateway payload, recovery/admission logic or tool
+execution algorithm changed. The Unreleased changelog contains migration code.
+
+### Named executable evidence: kt-invalid-policy-v1
+
+| Constraint or behavior | `RecoveryPolicyTest` | `InvalidRecoveryPolicyHttpTest` in both `com.mojentic.omlx` and `com.mojentic.anthropic` |
+| --- | --- | --- |
+| Zero attempts | `zeroAttemptsHasTypedConstraint` | `zeroAttemptsRejectsBeforeEveryPublicSurface` |
+| Negative attempts | `negativeAttemptsHasTypedConstraint` | `negativeAttemptsRejectsBeforeEveryPublicSurface` |
+| Negative base delay | `negativeBaseDelayHasTypedConstraint` | `negativeBaseDelayRejectsBeforeEveryPublicSurface` |
+| Ceiling below base | `ceilingBelowBaseHasTypedConstraint` | `ceilingBelowBaseRejectsBeforeEveryPublicSurface` |
+| Negative ceiling | `negativeCeilingHasTypedConstraint` | `negativeCeilingRejectsBeforeEveryPublicSurface` |
+| Long.MAX_VALUE ceiling | `maximumLongCeilingHasTypedConstraint` | `maximumLongCeilingRejectsBeforeEveryPublicSurface` |
+| Negative budget | `negativeBudgetHasTypedConstraint` | `negativeBudgetRejectsBeforeEveryPublicSurface` |
+| Multiple invalid values | `multipleInvalidValuesReportFirstConstraintWithoutInvokingCallbacks` | Each HTTP case asserts actual exception subtype, violation, absent cause/suppressed errors and private-sentinel exclusion |
+| Zero delays and budget, no construction hooks | `zeroDelaysAndBudgetAreValidWithoutCallingHooks` | Each HTTP case follows rejection with a valid zero-delay success through the same surface |
+| Maximum valid values and equal delays | `maximumValidValuesAndEqualDelaysArePreserved` | Existing payload/retry regressions run in the full gate |
+| Optional defaults and unrestricted fields | `defaultsRemainOneAttemptWithOptionalLimitsAbsent`, `pastDeadlinesAndCallerStatusesRemainUnrestricted` | Existing default-one-attempt and cancellation/admission evidence above remains required |
+
+The HTTP cases cover OpenAI, Anthropic, Ollama and oMLX: ordinary completion,
+structured JSON and structured response, gateway streaming, broker completion,
+`generateResponse`, structured broker completion, broker streaming, session send
+and session streaming. OpenAI/Ollama/oMLX additionally cover gateway `streamEvents`
+and broker `generateStreamEvents`; Anthropic has no event-stream gateway surface.
+All stream results are collected and content is asserted. Each invalid call site
+constructs its policy as the public API argument, so rejection precedes entry
+into the request pipeline. Assertions establish zero server requests, admission,
+capture, lifecycle callbacks and tool execution. An instrumented tool is supplied
+where supported. A subsequent successful call verifies the same live socket and
+adapter path, lifecycle/capture wiring and absence of spurious tool execution.
+
+The proof-first `invalidPolicyRejectsBeforeSessionHttpAndCallbacks` probe failed
+with the original generic IllegalArgumentException (exit 1), then passed after
+the constructor correction (exit 0), including a successful real session HTTP
+response. The final probe additionally asserts the typed violation and cause.
+
+These are local executable consumer cases, not a provider-verified shared
+contract. The shared-contract coordination gap above remains open: no common
+executable contract version/hash, provider commits or provider verification
+commands/results are available for either supported old or new provider
+versions. Two-sided compatibility remains unverified; no sibling repository was
+changed. Other typed-error amendments remain separate work.
+
+The local **kt-invalid-policy-v1** executable set includes these tests and the
+shared admission surface helpers at the tested revision:
+
+| File | SHA-256 |
+| --- | --- |
+| `mojentic-core/src/commonTest/kotlin/com/mojentic/llm/recovery/RecoveryPolicyTest.kt` | `e967c26a1e2e5bc49595a52aea15cbdf983fb82a5f3d30e0181a1433ab5cd590` |
+| `mojentic-openai/src/jvmTest/kotlin/com/mojentic/omlx/InvalidRecoveryPolicyHttpTest.kt` | `ed016444d3fe8c040eb921a250decb51f690e4f5bed3163fd90bffdae8fcb520` |
+| `mojentic-anthropic/src/jvmTest/kotlin/com/mojentic/anthropic/InvalidRecoveryPolicyHttpTest.kt` | `ec511aaceaefb020fb1aff8112aab06f9c3fd445966a479d6a6126654adcc5cf` |
+| `mojentic-openai/src/jvmTest/kotlin/com/mojentic/omlx/AdmissionAmendmentHttpTest.kt` | `cca1cdaab29bab853ed5c98f3e28b1c99abcedcd41e45500fb5b1bdf427c947b` |
+| `mojentic-anthropic/src/jvmTest/kotlin/com/mojentic/anthropic/AdmissionAmendmentHttpTest.kt` | `a5a492b7348f156ac083cec8b3c419498417fc23235d5d59b77c70ab351d4075` |
+
+The historical kt-admission-v1 hashes above identify the earlier admission-only
+record. The helper files now also expose structured-response/native-response
+surfaces and accept instrumented tools; this correction reruns their original
+admission/cancellation/tool behavior tests as well as the invalid-policy cases.
+
+### Final verification of this correction
+
+The focused command passed (exit 0) after formatting:
+
+```sh
+./gradlew :mojentic-core:jvmTest --tests '*RecoveryPolicyTest*' \
+  :mojentic-openai:jvmTest --tests '*InvalidRecoveryPolicyHttpTest*' \
+  :mojentic-anthropic:jvmTest --tests '*InvalidRecoveryPolicyHttpTest*'
+```
+
+`apiDump` generated only the two new public types in the core JVM API baseline.
+The expanded Anthropic test dispatcher initially failed Detekt's complexity
+threshold; extracting stream-text collection resolved it without suppression.
+The final `./gradlew ktlintCheck detekt` passed (exit 0).
+
+Only the root `.hone-gates.json` was discovered. All six required gates and the
+applicable local build/security CI tasks passed together (exit 0, 3m 54s):
+
+```sh
+./gradlew ktlintCheck detekt build allTests apiCheck dokkaGenerate \
+  jvmJar assembleAndroidMain jvmTest testAndroidHostTest javaToolchains \
+  dependencyCheckAggregate --no-parallel \
+  -PdependencyCheckDataDirectory=/tmp/mojentic-kt-gradle/dependency-check-data \
+  '-PdependencyCheckNvdDatafeedUrl=https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-{0}.json.gz'
+```
+
+Foundry capture wrapped these runs. They used the existing writable Gradle cache
+at `GRADLE_USER_HOME=/tmp/mojentic-kt-gradle`, in-process Kotlin compilation,
+JDK 21 for Gradle and the JDK 17 compiler toolchain. Toolchain detection confirmed
+both installed JDKs. Cache reuse was enabled. No project build configuration,
+dependency or audit suppression changed. No publication task was run.
+
+The final reports contain 814 JVM/Android executions across 138 suites, with zero
+failures, errors or skips. These are executions across targets, not unique test
+counts. `RecoveryPolicyTest` passed all 12 methods on both JVM and Android host;
+the OpenAI/Ollama/oMLX invalid-policy class passed all 8 methods and the Anthropic
+class all 7. The original admission classes passed all 6 and 4 methods,
+respectively, including their expanded public-surface loops. Android device
+transport, hosted CI and macOS execution were not run. Coverage/JaCoCo is not
+wired in this KMP project; `allTests` is its required test gate. Dokka v2 uses
+`dokkaGenerate`; the configured security CI uses `dependencyCheckAggregate`.
+
+The configured audit reported 305 dependency entries, zero active vulnerabilities
+and 52 existing suppressed findings. NVD feed metadata was checked before the
+run: `lastModifiedDate:2026-10-16T18:00:09-04:00`. The report SHA-256 is
+`8123d0d95b636cb1c9ae012c682dea09f0c34906ac14f77b7e8103f29be8a00e`.
+OSS Index was disabled for missing credentials, and the .NET assembly analyzer
+could not initialize without its runtime. This is a configured-audit pass, not
+verification by unavailable analyzers or an unfiltered vulnerability claim.
+
+The build emitted existing unresolved Dokka links, a deprecated `readLine()`
+example warning, Android analytics filesystem and native-access warnings, and
+Gradle deprecation notices. No warning-free build claim is made. The generated
+policy-error page was checked for its typed violation field, privacy contract
+and enum link. Final diff whitespace and behavioral proof JSON/log checks passed.
+Shared provider-contract verification remains missing as recorded above.

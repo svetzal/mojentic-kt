@@ -48,6 +48,10 @@ private val logger = KotlinLogging.logger {}
  * The broker is stateless from the caller's point of view: each call carries
  * its own message list. Use `ChatSession` (Phase 2) when you want managed
  * conversation state.
+ *
+ * Recovery configuration is validated when [com.mojentic.llm.recovery.RecoveryPolicy]
+ * is constructed. Invalid values throw [com.mojentic.errors.InvalidRecoveryPolicyException]
+ * before any completion, callback or tool execution; these APIs accept only validated policies.
  */
 public class LlmBroker(
     private val gateway: LlmGateway,

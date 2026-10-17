@@ -231,6 +231,11 @@ public final class com/mojentic/context/SharedWorkingMemory {
 	public final fun replaceWorkingMemory (Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
+public final class com/mojentic/errors/InvalidRecoveryPolicyException : com/mojentic/errors/MojenticException {
+	public fun <init> (Lcom/mojentic/errors/RecoveryPolicyViolation;)V
+	public final fun getViolation ()Lcom/mojentic/errors/RecoveryPolicyViolation;
+}
+
 public final class com/mojentic/errors/LlmGatewayException : com/mojentic/errors/MojenticException {
 	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -248,6 +253,17 @@ public abstract class com/mojentic/errors/MojenticException : java/lang/RuntimeE
 public final class com/mojentic/errors/RealtimeGatewayException : com/mojentic/errors/MojenticException {
 	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class com/mojentic/errors/RecoveryPolicyViolation : java/lang/Enum {
+	public static final field CEILING_BELOW_BASE_DELAY Lcom/mojentic/errors/RecoveryPolicyViolation;
+	public static final field NEGATIVE_BASE_DELAY Lcom/mojentic/errors/RecoveryPolicyViolation;
+	public static final field NEGATIVE_BUDGET Lcom/mojentic/errors/RecoveryPolicyViolation;
+	public static final field NON_POSITIVE_MAX_ATTEMPTS Lcom/mojentic/errors/RecoveryPolicyViolation;
+	public static final field UNBOUNDED_DELAY_CEILING Lcom/mojentic/errors/RecoveryPolicyViolation;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/mojentic/errors/RecoveryPolicyViolation;
+	public static fun values ()[Lcom/mojentic/errors/RecoveryPolicyViolation;
 }
 
 public final class com/mojentic/errors/ToolExecutionException : com/mojentic/errors/MojenticException {

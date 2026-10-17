@@ -14,6 +14,10 @@ import kotlinx.serialization.json.JsonObject
  *
  * All methods are `suspend` or return a `Flow`. Cancellation of the calling
  * coroutine propagates to the underlying HTTP request.
+ *
+ * Recovery configuration is validated when [com.mojentic.llm.recovery.RecoveryPolicy]
+ * is constructed. Invalid values throw [com.mojentic.errors.InvalidRecoveryPolicyException]
+ * before any completion, callback or tool execution; these APIs accept only validated policies.
  */
 public interface LlmGateway {
     /**

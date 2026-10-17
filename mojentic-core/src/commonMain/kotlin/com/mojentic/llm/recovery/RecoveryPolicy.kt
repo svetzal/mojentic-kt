@@ -1,5 +1,7 @@
 package com.mojentic.llm.recovery
 
+import com.mojentic.errors.InvalidRecoveryPolicyException
+import com.mojentic.errors.RecoveryPolicyViolation
 import com.mojentic.llm.CompletionEvidence
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
@@ -9,7 +11,18 @@ import kotlin.time.Clock
 import kotlin.time.TimeSource
 import kotlin.uuid.Uuid
 
-/** Completion recovery is opt-in; admission owns permission to resend local inference. */
+/**
+ * Completion recovery is opt-in; admission owns permission to resend local inference.
+ *
+ * Validation is synchronous and invokes no caller callbacks. Only valid policies
+ * can reach ordinary, structured or streaming gateway, broker and session calls.
+ * The first violated constraint is reported in parameter order.
+ *
+ * @throws InvalidRecoveryPolicyException if maxAttempts is nonpositive, baseDelayMillis
+ * is negative, delayCeilingMillis is below the base or equals Long.MAX_VALUE,
+ * or a non-null budgetMillis is negative. Zero delays and budgets are valid;
+ * deadlineEpochMillis and retryableStatuses retain their existing unrestricted values.
+ */
 public class RecoveryPolicy(
     public val maxAttempts: Int = 1,
     public val baseDelayMillis: Long = 100,
@@ -28,9 +41,15 @@ public class RecoveryPolicy(
     public val jitter: (Long) -> Long = { ceiling -> Random.nextLong(ceiling + 1) },
 ) {
     init {
-        require(maxAttempts > 0)
-        require(baseDelayMillis >= 0 && delayCeilingMillis >= baseDelayMillis && delayCeilingMillis < Long.MAX_VALUE)
-        require(budgetMillis == null || budgetMillis >= 0)
+        val violation = when {
+            maxAttempts <= 0 -> RecoveryPolicyViolation.NON_POSITIVE_MAX_ATTEMPTS
+            baseDelayMillis < 0 -> RecoveryPolicyViolation.NEGATIVE_BASE_DELAY
+            delayCeilingMillis < baseDelayMillis -> RecoveryPolicyViolation.CEILING_BELOW_BASE_DELAY
+            delayCeilingMillis == Long.MAX_VALUE -> RecoveryPolicyViolation.UNBOUNDED_DELAY_CEILING
+            budgetMillis != null && budgetMillis < 0 -> RecoveryPolicyViolation.NEGATIVE_BUDGET
+            else -> null
+        }
+        if (violation != null) throw InvalidRecoveryPolicyException(violation)
     }
 
     override fun toString(): String = "RecoveryPolicy(maxAttempts=$maxAttempts)"

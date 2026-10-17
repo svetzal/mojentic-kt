@@ -6,7 +6,9 @@ package com.mojentic.llm
  * Provides a unified, immutable configuration value across providers. Mirrors
  * `mojentic.llm.completion_config.CompletionConfig` in the Python reference.
  *
- * @property recovery Opt-in ordinary/structured/streaming recovery for OpenAI, Ollama and oMLX; null preserves legacy behavior.
+ * @property recovery Opt-in ordinary/structured/streaming recovery for OpenAI, Anthropic, Ollama and oMLX;
+ * null preserves legacy behavior. [com.mojentic.llm.recovery.RecoveryPolicy] validates at construction,
+ * throwing [com.mojentic.errors.InvalidRecoveryPolicyException] before a completion can start.
  * @property temperature Sampling temperature. Higher values produce more random output.
  * @property numCtx Context window size in tokens.
  * @property maxTokens Maximum tokens to generate in the response.
