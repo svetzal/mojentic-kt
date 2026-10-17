@@ -11,7 +11,9 @@ import com.mojentic.llm.StreamErrorReason
 import com.mojentic.llm.StreamEventsGateway
 import com.mojentic.llm.recovery.RecoveryCapabilities
 import com.mojentic.llm.recovery.RecoveryHttp
+import com.mojentic.llm.recovery.RecoveryOperation
 import com.mojentic.llm.recovery.RecoveryPolicy
+import com.mojentic.llm.recovery.RecoveryProvider
 import com.mojentic.llm.recovery.recoveryHttpClient
 import com.mojentic.llm.tools.LlmTool
 import io.ktor.client.HttpClient
@@ -271,7 +273,7 @@ public class OpenAIGateway(
         return json.encodeToString(OpenAIChatRequest.serializer(), request)
     }
 
-    private fun recoveryBoundary(): RecoveryHttp = RecoveryHttp(recoveryClient, "openai", "$host/chat/completions", apiKey)
+    private fun recoveryBoundary(): RecoveryHttp = RecoveryHttp(recoveryClient, RecoveryProvider.OPENAI, "$host/chat/completions", apiKey)
 
     private fun recoveryStream(
         model: String,
@@ -280,7 +282,7 @@ public class OpenAIGateway(
         config: CompletionConfig,
     ): Flow<GatewayStreamEvent> = flow {
         val payload = recoveryRequest(model, messages, tools, config)
-        recoveryBoundary().executeStream(payload, "stream", requireNotNull(config.recovery)) { stream ->
+        recoveryBoundary().executeStream(payload, RecoveryOperation.STREAM, requireNotNull(config.recovery)) { stream ->
             OpenAIRecoveryStreamParser(json, retainCompletionEvidence = true).consume(stream, allowTools = true) { emit(it) }
         }
     }
@@ -292,7 +294,7 @@ public class OpenAIGateway(
     ): Flow<CompletionStreamEvent> = flow {
         val payload = recoveryRequest(model, messages, tools = null, config)
         var completed: CompletionStreamEvent.Completed? = null
-        recoveryBoundary().executeStream(payload, "streamEvents", requireNotNull(config.recovery)) { stream ->
+        recoveryBoundary().executeStream(payload, RecoveryOperation.STREAM_EVENTS, requireNotNull(config.recovery)) { stream ->
             val evidence = OpenAIRecoveryStreamParser(json, retainCompletionEvidence = true).consume(stream, allowTools = false) { event ->
                 if (event is GatewayStreamEvent.Content) emit(CompletionStreamEvent.Content(event.text))
             }
@@ -344,7 +346,8 @@ public class OpenAIGateway(
     ): OpenAIChatResponse {
         if (policy != null) {
             val payload = json.encodeToString(OpenAIChatRequest.serializer(), request)
-            return recoveryBoundary().execute(payload, if (structured) "structured" else "complete", policy) { body, _ ->
+            val operation = if (structured) RecoveryOperation.STRUCTURED else RecoveryOperation.COMPLETE
+            return recoveryBoundary().execute(payload, operation, policy) { body, _ ->
                 val parsed = json.decodeFromString(OpenAIChatResponse.serializer(), body)
                 val message = requireNotNull(parsed.choices.firstOrNull()?.message)
                 // Structured JSON is validated inside the boundary to retain private decoding evidence.

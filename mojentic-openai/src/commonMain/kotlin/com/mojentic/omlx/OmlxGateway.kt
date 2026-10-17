@@ -13,7 +13,9 @@ import com.mojentic.llm.StreamErrorReason
 import com.mojentic.llm.StreamEventsGateway
 import com.mojentic.llm.recovery.RecoveryCapabilities
 import com.mojentic.llm.recovery.RecoveryHttp
+import com.mojentic.llm.recovery.RecoveryOperation
 import com.mojentic.llm.recovery.RecoveryPolicy
+import com.mojentic.llm.recovery.RecoveryProvider
 import com.mojentic.llm.recovery.recoveryHttpClient
 import com.mojentic.llm.tools.LlmTool
 import com.mojentic.openai.OpenAIChatRequest
@@ -329,9 +331,9 @@ public class OmlxGateway internal constructor(
     ): Flow<GatewayStreamEvent> = flow {
         val request = chatRequest(model, messages, tools, config, stream = true)
             .copy(streamOptions = OpenAIStreamOptions(includeUsage = true))
-        RecoveryHttp(recoveryClient, "omlx", "${settings.baseUrl}/chat/completions", settings.apiKey).executeStream(
+        RecoveryHttp(recoveryClient, RecoveryProvider.OMLX, "${settings.baseUrl}/chat/completions", settings.apiKey).executeStream(
             json.encodeToString(OpenAIChatRequest.serializer(), request),
-            "stream",
+            RecoveryOperation.STREAM,
             requireNotNull(config.recovery),
         ) { stream ->
             OpenAIRecoveryStreamParser(json).consume(stream, allowTools = true) { emit(it) }
@@ -347,9 +349,9 @@ public class OmlxGateway internal constructor(
             .copy(streamOptions = OpenAIStreamOptions(includeUsage = true))
 
         var completed: CompletionStreamEvent.Completed? = null
-        RecoveryHttp(recoveryClient, "omlx", "${settings.baseUrl}/chat/completions", settings.apiKey).executeStream(
+        RecoveryHttp(recoveryClient, RecoveryProvider.OMLX, "${settings.baseUrl}/chat/completions", settings.apiKey).executeStream(
             json.encodeToString(OpenAIChatRequest.serializer(), request),
-            "streamEvents",
+            RecoveryOperation.STREAM_EVENTS,
             requireNotNull(config.recovery),
         ) { stream ->
             val evidence = OpenAIRecoveryStreamParser(json).consume(stream, allowTools = false) { event ->
@@ -475,9 +477,9 @@ public class OmlxGateway internal constructor(
     ): Pair<OpenAIChatResponse, String?> {
         if (policy != null) {
             val payload = json.encodeToString(OpenAIChatRequest.serializer(), request)
-            return RecoveryHttp(recoveryClient, "omlx", "${settings.baseUrl}/chat/completions", settings.apiKey).execute(
+            return RecoveryHttp(recoveryClient, RecoveryProvider.OMLX, "${settings.baseUrl}/chat/completions", settings.apiKey).execute(
                 payload,
-                if (structured) "structured" else "complete",
+                if (structured) RecoveryOperation.STRUCTURED else RecoveryOperation.COMPLETE,
                 policy,
             ) { body, headers ->
                 val parsed = json.decodeFromString(OpenAIChatResponse.serializer(), body)

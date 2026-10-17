@@ -12,6 +12,7 @@ import com.mojentic.llm.recovery.RecoveryCategory
 import com.mojentic.llm.recovery.RecoveryEvent
 import com.mojentic.llm.recovery.RecoveryException
 import com.mojentic.llm.recovery.RecoveryFailure
+import com.mojentic.llm.recovery.RecoveryOperation
 import com.mojentic.llm.recovery.RecoveryPolicy
 import com.mojentic.llm.recovery.RecoveryReason
 import com.mojentic.llm.recovery.RecoverySemanticProgress
@@ -166,7 +167,7 @@ class PermanentHttpBoundaryTest {
         assertEquals(1, failure.wireAttempts)
         assertEquals(RecoveryReason.HTTP_PERMANENT, failure.reason)
         val attempt = failure.failures.single()
-        assertEquals(caller.operation, attempt.operation)
+        assertEquals(Json.decodeFromString<RecoveryOperation>(Json.encodeToString(caller.operation)), attempt.operation)
         assertFailure(attempt, status)
         assertLifecycle(attempt, events, wires, expected)
         assertContentEquals(expected.encodeToByteArray(), server.requests.single())

@@ -18,7 +18,9 @@ import com.mojentic.llm.LlmMessage
 import com.mojentic.llm.LlmToolCall
 import com.mojentic.llm.recovery.RecoveryCapabilities
 import com.mojentic.llm.recovery.RecoveryHttp
+import com.mojentic.llm.recovery.RecoveryOperation
 import com.mojentic.llm.recovery.RecoveryPolicy
+import com.mojentic.llm.recovery.RecoveryProvider
 import com.mojentic.llm.recovery.recoveryHttpClient
 import com.mojentic.llm.tools.LlmTool
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -128,7 +130,7 @@ public class AnthropicGateway(
             config = config,
             stream = false,
         )
-        val response = postMessages(request, config.recovery, "complete")
+        val response = postMessages(request, config.recovery, RecoveryOperation.COMPLETE)
         return response.toGatewayResponse()
     }
 
@@ -152,7 +154,7 @@ public class AnthropicGateway(
             stream = false,
         )
         if (config.recovery != null) {
-            return recoveryBoundary().execute(encode(request), "structured", requireNotNull(config.recovery)) { body, _ ->
+            return recoveryBoundary().execute(encode(request), RecoveryOperation.STRUCTURED, requireNotNull(config.recovery)) { body, _ ->
                 structuredOutput(decodeRecoveryResponse(body))
             }
         }
@@ -215,7 +217,7 @@ public class AnthropicGateway(
 
     private fun recoveryBoundary(): RecoveryHttp = RecoveryHttp(
         recoveryClient,
-        "anthropic",
+        RecoveryProvider.ANTHROPIC,
         "$host/v1/messages",
         apiKey,
         mapOf("x-api-key" to apiKey, "anthropic-version" to anthropicVersion),
@@ -237,7 +239,7 @@ public class AnthropicGateway(
         config: CompletionConfig,
     ): Flow<GatewayStreamEvent> = flow {
         val payload = encode(buildMessagesRequest(model, messages, tools?.toAnthropicTools(), null, config, true))
-        recoveryBoundary().executeStream(payload, "stream", requireNotNull(config.recovery)) { stream ->
+        recoveryBoundary().executeStream(payload, RecoveryOperation.STREAM, requireNotNull(config.recovery)) { stream ->
             AnthropicRecoveryStreamParser(json).consume(stream) { emit(it) }
         }
     }
@@ -272,7 +274,7 @@ public class AnthropicGateway(
     private suspend fun postMessages(
         request: AnthropicMessagesRequest,
         policy: RecoveryPolicy? = null,
-        operation: String = "complete",
+        operation: RecoveryOperation = RecoveryOperation.COMPLETE,
     ): AnthropicMessagesResponse {
         if (policy != null) {
             return recoveryBoundary().execute(encode(request), operation, policy) { body, _ ->

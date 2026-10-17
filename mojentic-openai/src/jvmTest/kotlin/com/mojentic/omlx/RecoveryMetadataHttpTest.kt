@@ -11,6 +11,7 @@ import com.mojentic.llm.StreamEventsGateway
 import com.mojentic.llm.recovery.RecoveryEvent
 import com.mojentic.llm.recovery.RecoveryException
 import com.mojentic.llm.recovery.RecoveryFailure
+import com.mojentic.llm.recovery.RecoveryOperation
 import com.mojentic.llm.recovery.RecoveryPolicy
 import com.mojentic.llm.recovery.RecoveryStage
 import com.mojentic.llm.recovery.RecoveryWire
@@ -390,7 +391,7 @@ class RecoveryMetadataHttpTest {
         assertEquals(failures.size, failedEvents.size)
         failures.forEachIndexed { index, failure ->
             val response = responses[index]
-            assertEquals("complete", failure.operation)
+            assertEquals(RecoveryOperation.COMPLETE, failure.operation)
             assertEquals(response.status, failure.status)
             val expectedCode = when (response.status) {
                 401 -> "invalid_api_key"

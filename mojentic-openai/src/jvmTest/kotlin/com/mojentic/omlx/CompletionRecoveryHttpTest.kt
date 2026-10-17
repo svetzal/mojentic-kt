@@ -8,7 +8,9 @@ import com.mojentic.llm.LlmBroker
 import com.mojentic.llm.recovery.RecoveryCancellationException
 import com.mojentic.llm.recovery.RecoveryEvent
 import com.mojentic.llm.recovery.RecoveryException
+import com.mojentic.llm.recovery.RecoveryOperation
 import com.mojentic.llm.recovery.RecoveryPolicy
+import com.mojentic.llm.recovery.RecoveryProvider
 import com.mojentic.llm.recovery.RecoveryReason
 import com.mojentic.llm.recovery.RecoveryRetryAfter
 import com.mojentic.llm.recovery.RecoveryStage
@@ -42,6 +44,21 @@ import kotlin.test.assertTrue
 
 /** Acceptance matrix uses actual public adapters and their default OkHttp engine. */
 class CompletionRecoveryHttpTest {
+    @Test
+    fun httpFailureUsesClosedProviderAndOperation(): Unit = runBlocking {
+        matrix { provider, structured ->
+            RecoveryScriptedServer(listOf(ScriptedReply(503, "private-error"))).use { server ->
+                provider.gateway(server.url).use { gateway ->
+                    val failure = assertFailsWith<RecoveryException> {
+                        call(gateway.value, structured, RecoveryPolicy(maxAttempts = 1))
+                    }.failures.single()
+                    assertEquals(RecoveryProvider.valueOf(provider.name), failure.provider)
+                    assertEquals(if (structured) RecoveryOperation.STRUCTURED else RecoveryOperation.COMPLETE, failure.operation)
+                }
+            }
+        }
+    }
+
     @Test
     fun recover503PreservesExactPayloadIdentityAndLifecycle(): Unit = runBlocking {
         matrix { provider, structured ->

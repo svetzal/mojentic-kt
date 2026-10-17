@@ -12,7 +12,9 @@ import com.mojentic.llm.StreamErrorReason
 import com.mojentic.llm.StreamEventsGateway
 import com.mojentic.llm.recovery.RecoveryCapabilities
 import com.mojentic.llm.recovery.RecoveryHttp
+import com.mojentic.llm.recovery.RecoveryOperation
 import com.mojentic.llm.recovery.RecoveryPolicy
+import com.mojentic.llm.recovery.RecoveryProvider
 import com.mojentic.llm.recovery.RecoveryStreamClosedException
 import com.mojentic.llm.recovery.RecoveryStreamException
 import com.mojentic.llm.recovery.recoveryHttpClient
@@ -257,9 +259,9 @@ public class OllamaGateway(
             think = if (config.reasoningEffort != null) true else null,
         )
 
-        RecoveryHttp(recoveryClient, "ollama", "$host/api/chat").executeStream(
+        RecoveryHttp(recoveryClient, RecoveryProvider.OLLAMA, "$host/api/chat").executeStream(
             json.encodeToString(OllamaChatRequest.serializer(), request),
-            "stream",
+            RecoveryOperation.STREAM,
             requireNotNull(config.recovery),
         ) { stream ->
             var terminal = false
@@ -302,9 +304,9 @@ public class OllamaGateway(
         )
 
         var completed: CompletionStreamEvent.Completed? = null
-        RecoveryHttp(recoveryClient, "ollama", "$host/api/chat").executeStream(
+        RecoveryHttp(recoveryClient, RecoveryProvider.OLLAMA, "$host/api/chat").executeStream(
             json.encodeToString(OllamaChatRequest.serializer(), request),
-            "streamEvents",
+            RecoveryOperation.STREAM_EVENTS,
             requireNotNull(config.recovery),
         ) { stream ->
             val parser = OllamaStreamEventParser(json)
@@ -359,9 +361,9 @@ public class OllamaGateway(
     ): OllamaChatResponse {
         if (policy != null) {
             val payload = json.encodeToString(OllamaChatRequest.serializer(), request)
-            return RecoveryHttp(recoveryClient, "ollama", "$host/api/chat").execute(
+            return RecoveryHttp(recoveryClient, RecoveryProvider.OLLAMA, "$host/api/chat").execute(
                 payload,
-                if (structured) "structured" else "complete",
+                if (structured) RecoveryOperation.STRUCTURED else RecoveryOperation.COMPLETE,
                 policy,
             ) { body, _ ->
                 val parsed = json.decodeFromString(OllamaChatResponse.serializer(), body)

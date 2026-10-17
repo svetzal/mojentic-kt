@@ -11,9 +11,13 @@ import com.mojentic.llm.recovery.RecoveryCategory
 import com.mojentic.llm.recovery.RecoveryEvent
 import com.mojentic.llm.recovery.RecoveryException
 import com.mojentic.llm.recovery.RecoveryFailure
+import com.mojentic.llm.recovery.RecoveryLifecycleSummary
+import com.mojentic.llm.recovery.RecoveryOperation
 import com.mojentic.llm.recovery.RecoveryPhase
 import com.mojentic.llm.recovery.RecoveryPolicy
+import com.mojentic.llm.recovery.RecoveryProvider
 import com.mojentic.llm.recovery.RecoveryReason
+import com.mojentic.llm.recovery.RecoveryReport
 import com.mojentic.llm.recovery.RecoveryStage
 import com.mojentic.llm.recovery.RecoveryWire
 import com.mojentic.llm.tools.LlmTool
@@ -23,9 +27,13 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -35,6 +43,78 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class AdmissionAmendmentHttpTest {
+    @Test
+    fun typedFailuresPreserveLegacySerializedReports(): Unit = runBlocking {
+        for (entry in Entry.entries) {
+            RecoveryScriptedServer(listOf(ScriptedReply(400, "private-error"))).use { server ->
+                val gateway = AnthropicGateway("key", server.url)
+                try {
+                    val events = mutableListOf<RecoveryEvent>()
+                    val policy = RecoveryPolicy(observer = { events += it })
+                    val failure = assertFailsWith<RecoveryException> { entry.call(gateway, policy) }
+                    val expectedProvider = RecoveryProvider.ANTHROPIC
+                    val providerName = "anthropic"
+                    val operation = when (entry.operation) {
+                        "complete" -> RecoveryOperation.COMPLETE
+                        "structured" -> RecoveryOperation.STRUCTURED
+                        "stream" -> RecoveryOperation.STREAM
+                        "streamEvents" -> RecoveryOperation.STREAM_EVENTS
+                        else -> error("Unknown test operation")
+                    }
+                    val attempt = failure.failures.single()
+                    assertEquals(expectedProvider, attempt.provider)
+                    assertEquals(operation, attempt.operation)
+                    assertEquals(400, attempt.status)
+                    assertEquals(RecoveryReason.HTTP_PERMANENT, attempt.reason)
+                    assertSerializedReports(failure, events, providerName, entry.operation)
+                    assertEquals(1, server.requests.size)
+                } finally {
+                    gateway.close()
+                }
+            }
+        }
+    }
+
+    private fun assertSerializedReports(
+        failure: RecoveryException,
+        events: List<RecoveryEvent>,
+        providerName: String,
+        operationName: String,
+    ) {
+        val attempt = failure.failures.single()
+        val report = failure.summary()
+        val encoded = Json.encodeToString(report)
+        assertEquals(report, Json.decodeFromString<RecoveryReport>(encoded))
+        val fields = Json.parseToJsonElement(encoded).jsonObject.getValue("failures").jsonArray.single().jsonObject
+        assertEquals(providerName, fields.getValue("provider").jsonPrimitive.content)
+        assertEquals(operationName, fields.getValue("operation").jsonPrimitive.content)
+        assertFalse("providerCode" in fields)
+        assertFalse("providerRequestId" in fields)
+        assertFalse("private" in encoded)
+        assertEquals(
+            listOf(RecoveryStage.STARTED, RecoveryStage.FAILED, RecoveryStage.EXHAUSTED),
+            events.map { it.stage },
+        )
+        assertTrue(attempt.toString().startsWith("RecoveryFailure(provider=$providerName,"))
+        for (event in events.filter { it.failure != null }) {
+            assertEquals(attempt.provider, event.failure?.provider)
+            assertEquals(attempt.operation, event.failure?.operation)
+            val summary = event.summary()
+            assertEquals(report.failures, summary.failures)
+            assertEquals(summary, Json.decodeFromString<RecoveryLifecycleSummary>(Json.encodeToString(summary)))
+        }
+        assertFailsWith<SerializationException> {
+            Json.decodeFromString<RecoveryReport>(
+                encoded.replace("\"provider\":\"$providerName\"", "\"provider\":\"future\""),
+            )
+        }
+        assertFailsWith<SerializationException> {
+            Json.decodeFromString<RecoveryReport>(
+                encoded.replace("\"operation\":\"${operationName}\"", "\"operation\":\"future\""),
+            )
+        }
+    }
+
     @Test
     fun remoteNoHookRetriesAcrossPublicEntrypoints(): Unit = runBlocking {
         for (entry in Entry.entries) {
@@ -59,8 +139,8 @@ class AdmissionAmendmentHttpTest {
                         assertFalse(events.any { it.stage == RecoveryStage.ADMISSION_PENDING })
                         val retained = events.last().failures.single()
                         assertSafe(retained, status)
-                        assertEquals("anthropic", retained.provider)
-                        assertEquals(entry.operation, retained.operation)
+                        assertEquals(RecoveryProvider.ANTHROPIC, retained.provider)
+                        assertEquals(Json.decodeFromString<RecoveryOperation>(Json.encodeToString(entry.operation)), retained.operation)
                         assertTrue(events.filter { it.stage == RecoveryStage.SCHEDULED }.all { it.delayMillis == 0L })
                         assertFalse("private" in Json.encodeToString(events.last().summary()))
                     } finally {

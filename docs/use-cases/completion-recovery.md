@@ -323,3 +323,44 @@ No new progress/metrics stream events are invented for Anthropic.
 Linux production-transport scripts establish JVM behavior. Injected engines
 must independently disable retries and redirects. Remote inference termination
 remains unknown.
+
+## Typed provider and operation migration
+
+Recovery evidence uses `RecoveryProvider` and `RecoveryOperation` from
+`com.mojentic.llm.recovery`. The same types appear on `RecoveryFailure`,
+`RecoveryFailureSummary`, report histories and lifecycle summary histories.
+`RecoveryHttp` accepts these types at its public request boundary too.
+
+| Adapter | Provider |
+| --- | --- |
+| Ollama | `RecoveryProvider.OLLAMA` |
+| oMLX | `RecoveryProvider.OMLX` |
+| OpenAI Chat Completions | `RecoveryProvider.OPENAI` |
+| Anthropic Messages | `RecoveryProvider.ANTHROPIC` |
+
+Ordinary gateway, broker and session completions report `COMPLETE`. Structured
+calls (including `completeJsonResponse` and broker structured calls) report
+`STRUCTURED`. Gateway, broker and session streams report `STREAM`.
+The separate `StreamEventsGateway` entrypoint and broker event stream report
+`STREAM_EVENTS` on OpenAI, Ollama and oMLX. Anthropic has no separate gateway
+event API. These values describe the completion request that failed, including
+follow-up completions after tool execution; they do not describe tool execution.
+
+Replace comparisons such as `failure.operation == "stream"` with
+`failure.operation == RecoveryOperation.STREAM`, and use enum constants in
+summary constructors, `copy` calls and direct `RecoveryHttp` calls. Recompile
+callers because the Kotlin and JVM signatures have changed. Arbitrary strings
+are no longer valid provider or operation arguments.
+
+`@SerialName` preserves existing JSON: providers are `ollama`, `omlx`, `openai`,
+`anthropic`; operations are `complete`, `structured`, `stream`, `streamEvents`.
+Old reports with this vocabulary remain readable, and newly encoded reports
+retain it. Unknown provider/operation values fail decoding rather than enter
+the closed model. Absent optional provider metadata remains absent. Lifecycle
+and terminal report serialization excludes raw requests, responses and causes.
+
+This type migration does not change payload encoding or recovery decisions.
+The local HTTP tests cover public gateway, broker and session failures and
+serialized projections. Paired consumer/provider verification in another
+repository remains an initiative coordination gap, recorded in
+`CONFORMANCE-3.0.0.md`; these tests do not certify external provider behavior.

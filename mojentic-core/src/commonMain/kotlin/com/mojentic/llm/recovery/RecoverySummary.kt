@@ -5,8 +5,8 @@ import kotlinx.serialization.Serializable
 /** Serializable failure evidence with validated metadata and no raw provider text, headers, bytes, or cause messages. */
 @Serializable
 public data class RecoveryFailureSummary(
-    val provider: String,
-    val operation: String,
+    val provider: RecoveryProvider,
+    val operation: RecoveryOperation,
     val identity: RecoveryIdentity,
     val category: RecoveryCategory,
     val status: Int?,
@@ -20,11 +20,11 @@ public data class RecoveryFailureSummary(
     val providerCode: String? = null,
     val providerRequestId: String? = null,
 ) {
-    /** Retains the original constructor for existing binary callers. */
-    @Suppress("LongParameterList") // The published constructor must retain every original argument.
+    /** Convenience constructor without provider metadata. */
+    @Suppress("LongParameterList") // The summary constructor includes all safe failure fields.
     public constructor(
-        provider: String,
-        operation: String,
+        provider: RecoveryProvider,
+        operation: RecoveryOperation,
         identity: RecoveryIdentity,
         category: RecoveryCategory,
         status: Int?,
@@ -40,10 +40,10 @@ public data class RecoveryFailureSummary(
         null, null,
     )
 
-    /** Retains the original copy signature and preserves validated metadata. */
+    /** Copies the failure fields while preserving validated provider metadata. */
     public fun copy(
-        provider: String = this.provider,
-        operation: String = this.operation,
+        provider: RecoveryProvider = this.provider,
+        operation: RecoveryOperation = this.operation,
         identity: RecoveryIdentity = this.identity,
         category: RecoveryCategory = this.category,
         status: Int? = this.status,

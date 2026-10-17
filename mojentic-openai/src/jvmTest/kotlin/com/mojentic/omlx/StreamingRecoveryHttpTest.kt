@@ -151,9 +151,9 @@ class StreamingRecoveryHttpTest {
             RecoveryScriptedServer(listOf(ScriptedReply(200, "\n"), ScriptedReply(200, "second"))).use { server ->
                 recoveryHttpClient().use { client ->
                     val failure = assertFailsWith<RecoveryException> {
-                        RecoveryHttp(client, "test", server.url).executeStream(
+                        RecoveryHttp(client, com.mojentic.llm.recovery.RecoveryProvider.OPENAI, server.url).executeStream(
                             "{}",
-                            "stream",
+                            com.mojentic.llm.recovery.RecoveryOperation.STREAM,
                             RecoveryPolicy(maxAttempts = 2, admission = { error("delivered replay") }, observer = { events += it }),
                         ) { stream ->
                             assertEquals("", stream.readLine())

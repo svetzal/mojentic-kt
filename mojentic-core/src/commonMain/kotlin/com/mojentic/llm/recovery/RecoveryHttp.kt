@@ -34,18 +34,18 @@ public expect fun recoveryHttpClient(engine: HttpClientEngine? = null): HttpClie
  */
 public expect fun recoveryHttpClient(engine: HttpClientEngine?, timeoutMillis: Long?): HttpClient
 
-/** Encoded request boundary shared only by opt-in ordinary and structured local-provider completions. */
+/** Encoded request boundary shared by opt-in ordinary, structured and streaming completion adapters. */
 public class RecoveryHttp(
     private val client: HttpClient,
-    private val provider: String,
+    private val provider: RecoveryProvider,
     private val url: String,
     private val apiKey: String?,
     private val requestHeaders: Map<String, String>,
 ) {
-    /** Existing bearer-auth boundary remains compatible. */
+    /** Bearer-auth boundary with a closed completion-adapter identity. */
     public constructor(
         client: HttpClient,
-        provider: String,
+        provider: RecoveryProvider,
         url: String,
         apiKey: String? = null,
     ) : this(client, provider, url, apiKey, emptyMap())
@@ -53,7 +53,7 @@ public class RecoveryHttp(
     /** Decode is inside the recovery boundary so malformed replies have bounded, private failure evidence. */
     public suspend fun <T> execute(
         payload: String,
-        operation: String,
+        operation: RecoveryOperation,
         policy: RecoveryPolicy,
         decode: (String, Map<String, List<String>>) -> T,
     ): T = executeInternal(payload, operation, policy, decode, null)
@@ -61,14 +61,14 @@ public class RecoveryHttp(
     /** Incremental streaming boundary; the consumer validates terminal evidence before returning. */
     public suspend fun executeStream(
         payload: String,
-        operation: String,
+        operation: RecoveryOperation,
         policy: RecoveryPolicy,
         consume: suspend (RecoveryStream) -> Unit,
     ): Unit = executeInternal(payload, operation, policy, { _, _ -> }, consume)
 
     private suspend fun <T> executeInternal(
         payload: String,
-        operation: String,
+        operation: RecoveryOperation,
         policy: RecoveryPolicy,
         decode: (String, Map<String, List<String>>) -> T,
         consume: (suspend (RecoveryStream) -> Unit)?,
@@ -284,7 +284,7 @@ public class RecoveryHttp(
     ) {
         val identity = failure.identity
         if (policy.admission == null) {
-            val remote = provider == "openai" || provider == "anthropic"
+            val remote = provider == RecoveryProvider.OPENAI || provider == RecoveryProvider.ANTHROPIC
             if (!remote && failure.acceptance != RecoveryAcceptance.NO) {
                 terminal(policy, identity, failures, RecoveryReason.ADMISSION_REQUIRED)
             }
@@ -353,7 +353,7 @@ public class RecoveryHttp(
         reason: RecoveryReason,
     ): Nothing {
         val last = failures.lastOrNull()
-        val streaming = last?.operation == "stream" || last?.operation == "streamEvents"
+        val streaming = last?.operation == RecoveryOperation.STREAM || last?.operation == RecoveryOperation.STREAM_EVENTS
         val stage = if (streaming &&
             (last.progress.replayUnsafe || last.progress.semanticDelivered)
         ) {
@@ -416,8 +416,8 @@ internal class ResponseEvidence(private val payload: String = "", private val ap
         )
 
     fun failure(
-        provider: String,
-        operation: String,
+        provider: RecoveryProvider,
+        operation: RecoveryOperation,
         identity: RecoveryIdentity,
         policy: RecoveryPolicy,
         cause: Throwable?,

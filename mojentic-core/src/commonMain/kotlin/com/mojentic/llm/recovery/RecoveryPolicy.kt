@@ -169,8 +169,8 @@ public sealed interface RecoveryRetryAfter {
 
 /** Safe failure summary. Raw evidence is accessible only through explicit inspection. */
 public class RecoveryFailure internal constructor(
-    public val provider: String,
-    public val operation: String,
+    public val provider: RecoveryProvider,
+    public val operation: RecoveryOperation,
     public val identity: RecoveryIdentity,
     private val details: RecoveryDetails,
     private val evidence: SensitiveRecoveryEvidence,
@@ -224,7 +224,8 @@ public class RecoveryFailure internal constructor(
 
     /** Unfiltered headers; caller owns privacy and storage. */
     public fun inspectHeaders(): Map<String, List<String>> = evidence.receivedHeaders.mapValues { it.value.toList() }
-    override fun toString(): String = "RecoveryFailure(provider=$provider, status=$status, reason=$reason, identity=$identity)"
+    override fun toString(): String =
+        "RecoveryFailure(provider=${provider.name.lowercase()}, status=$status, reason=$reason, identity=$identity)"
 }
 
 /** Terminal bounded recovery report, with no unsafe Throwable cause chain. */

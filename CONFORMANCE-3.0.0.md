@@ -1,7 +1,7 @@
 # 3.0.0 recovery conformance
 
 This record covers the October 12 admission, invalid-policy and completion-adapter
-Capabilities guarantees.
+Capabilities and Operation/provider guarantees.
 It does not certify all of transient recovery or readiness to release 3.0.0. JVM and Android are the
 supported targets. Provider wire formats and dependencies are unchanged.
 
@@ -400,3 +400,127 @@ Its SHA-256 is
 OSS Index was disabled for missing credentials; the .NET analyzer could not
 initialize without its runtime. This is a configured-audit pass, not unfiltered
 or unavailable-analyzer verification. No suppression or dependency was changed.
+
+## October 12 Operation and provider correction
+
+The authoritative amendment at `mojentic-unify` commit
+`4b08dcd1d87f520a4c70928c33a2bc84c228093d` was inspected again for this
+correction; its SHA-256 remains
+`a53a3a4eb118fa4687dd703d6ce918dd40dd6cb4eda796abc6c429a6e932e7a3`.
+The initiative brief was read and its supplied SHA-256 verified as
+`ea6a0efa56bfb3cd74b5ce728f80cc33c6fbd853114bec94b8aabe79f5d28e6e`.
+
+Before migration, public failure and summary fields, HTTP boundary parameters,
+adapter operation literals, remote admission and streaming interruption checks
+used strings. The behavioral probe observed an actual adapter HTTP 503 failure
+with a String provider, rejected that result, then passed with closed enums.
+That first probe used a runtime enum-kind assertion so it could execute against
+the pre-migration API; the retained regression test now asserts exact enum values.
+The migration covers all these coupled paths. Report JSON retains its existing
+provider and operation vocabulary. Stream and streamEvents remain distinct;
+Anthropic retains its existing stream-only surface. No provider capability
+claim, payload, retry timing, admission or tool behavior was amended here.
+
+| Guarantee | Named executable tests |
+| --- | --- |
+| Actual ordinary and structured HTTP failures expose closed provider and operation values | `CompletionRecoveryHttpTest.httpFailureUsesClosedProviderAndOperation` (OpenAI, Ollama, oMLX) |
+| Every supported gateway/broker/session completion and stream entrypoint exposes concrete enum values | OpenAI/Ollama/oMLX and Anthropic `AdmissionAmendmentHttpTest.typedFailuresPreserveLegacySerializedReports` |
+| Lifecycle failure fields and serializable histories retain the same typed values | Both `typedFailuresPreserveLegacySerializedReports` matrices |
+| Old/new serialized vocabulary, absent optional metadata, report/lifecycle round trips, unknown-value rejection and privacy | Both `typedFailuresPreserveLegacySerializedReports` matrices use actual HTTP 400 failures |
+| Remote/local admission semantics retain the same identities | `AdmissionAmendmentHttpTest.noHookDistinguishesRemoteAndLocalAcrossPublicEntrypoints`; Anthropic `remoteNoHookRetriesAcrossPublicEntrypoints` |
+| Permanent truncated failures retain request bytes, typed operations, lifecycle and tool/session behavior | Both `PermanentHttpBoundaryTest.truncatedPermanentAllPublicBoundaries` matrices |
+| Delivered semantic progress still interrupts streaming without replay | `StreamingRecoveryHttpTest.deliveredProgressIndependentlyPreventsHttpReplay`, `AdmissionAmendmentHttpTest.semanticDeliveryWithoutHookPreventsReplayThroughBrokerAndSession`; Anthropic `deliveredContentWithoutHookPreventsReplayThroughBrokerAndSession` |
+
+The local executable set is identified as **kt-recovery-identity-v1**: the new
+probe and report matrices above, alongside the migrated admission/permanent
+boundary assertions. Its file hashes and verification results are recorded
+below after the final gates. Kotlin source identity starts at
+`384d7a0aaa7140814a5d2c594f873add29bf0134` plus the uncommitted correction.
+
+### Initiative finding: paired verification still unavailable
+
+This changes the public Kotlin recovery API and retains its existing JSON
+vocabulary. No versioned executable contract shared with an external consumer
+was found in this repository. The local socket scripts are independently
+maintained behavior fixtures, not doubles derived from provider-verified
+contracts. They establish local adapter behavior only.
+
+Counterpart repository, tested source identity, shared contract version/hash,
+provider verification command and consumer verification result are unavailable
+for this correction. Initiative coordination must assign that counterpart and
+run the same identifiable executable contract set in both repositories before
+claiming compatibility. No counterpart repository was modified. The previously
+relayed paired-capability-verification and endpoint-specific client-abort
+citation findings remain separate initiative work; this correction neither
+resolves nor re-certifies them.
+
+### Executable identity for this correction
+
+`kt-recovery-identity-v1` identifies the probe, both typed-report matrices and
+both permanent-boundary matrices listed above. The files are:
+
+| Executable source | SHA-256 |
+| --- | --- |
+| `mojentic-anthropic/src/jvmTest/kotlin/com/mojentic/anthropic/AdmissionAmendmentHttpTest.kt` | `75623c9dd6ec5bdde6573af657d4480d2baeed3804a402df7d44c89a0020c561` |
+| `mojentic-anthropic/src/jvmTest/kotlin/com/mojentic/anthropic/PermanentHttpBoundaryTest.kt` | `87bfc202f6ce7167e4f9c819e7a86fb7059db4141f59fb69be2e0e7025eed754` |
+| `mojentic-openai/src/jvmTest/kotlin/com/mojentic/omlx/AdmissionAmendmentHttpTest.kt` | `18ceb21b40108d5955554d30f54beb7c252f457144b2aac315af2914b4349b07` |
+| `mojentic-openai/src/jvmTest/kotlin/com/mojentic/omlx/CompletionRecoveryHttpTest.kt` | `5b16530c26647868e977f3676eb5c070528a6afd951c0446064629a941b2eccc` |
+| `mojentic-openai/src/jvmTest/kotlin/com/mojentic/omlx/PermanentHttpBoundaryTest.kt` | `3040a4fe56c2cdf0fcce8af2671030625860f5801e780a3efbef68ce0313d7fe` |
+
+The SHA-256 of the sorted `sha256sum`-format file manifest (UTF-8, LF, two spaces
+between hash and path, trailing LF) is `775edbce3e7d328875ae307d762df24633860867bf1b0087f613ff456259669a`.
+The same manifest recipe for this correction's changed Kotlin source, test and
+API baseline files gives `c91762f50b0c0dfba95cf8428bfe0104ebc77976e7baf525b00f1addadcdebd5`. This identifies the tested uncommitted
+source on base `384d7a0aaa7140814a5d2c594f873add29bf0134`; it is not a new commit.
+External counterpart source and verification results remain unavailable.
+
+### Final local verification for Operation and provider
+
+All six required `.hone-gates.json` commands passed on this uncommitted source.
+Commands used `GRADLE_USER_HOME=/tmp/mojentic-c4-gradle`, JDK 21 for the Gradle
+daemon, the configured JDK 17 compiler toolchain and in-process Kotlin
+compilation. The writable Gradle home changes build execution storage only.
+
+| Gate command | Exit code | Duration |
+| --- | --- | --- |
+| `./gradlew ktlintCheck` | 0 | 51s |
+| `./gradlew detekt` | 0 | 1m 16s |
+| `./gradlew build` | 0 | 2m 15s |
+| `./gradlew allTests` | 0 | 9s |
+| `./gradlew apiCheck` | 0 | 5s |
+| `./gradlew dokkaGenerate` | 0 | 1m 59s |
+
+`./gradlew allTests` verified all five named tests in `kt-recovery-identity-v1`:
+the HTTP identity probe, both serialized-report matrices and both permanent
+boundary matrices. Existing payload, admission, cancellation, streaming,
+privacy and tool-execution regressions passed in the same build/test gates.
+Initial formatting and Detekt method-length findings were fixed without
+suppressions; the table records the complete final run after those changes.
+API baseline changes are confined to the two enums and the typed failure,
+summary and HTTP boundary signatures. KDoc and the recovery migration guide
+were updated with them.
+
+These are Linux/JVM HTTP results and Android compilation/build checks. No
+Android device, macOS or hosted CI verification was performed. Existing Gradle,
+Android analytics, Kotlin example/realtime and unresolved Dokka-link warnings
+remain; no warning-free build claim is made. Paired external contract
+verification remains unavailable as recorded in the initiative finding above.
+The behavioral proof's JSON shape, recorded nonzero/zero probe exits and both
+log files were validated. Changes remain uncommitted; versions, refs,
+dependencies, capability claims and publication were not changed.
+
+The configured dependency audit also passed (exit 0, 1m 21s):
+
+```sh
+GRADLE_USER_HOME=/tmp/mojentic-c4-gradle ./gradlew dependencyCheckAggregate \
+  --no-parallel \
+  -PdependencyCheckDataDirectory=/tmp/mojentic-c4-gradle/dependency-check-data
+```
+
+The existing NVD bulk-feed transport was used after checking modified-feed
+metadata (`lastModifiedDate:2026-10-16T18:00:09-04:00`). The report has 305
+dependency entries, zero active findings and 52 existing suppressed findings;
+its SHA-256 is `83cea66657f93c5dd2974bf4bd05e4f3d0f43c0f26b5aa23edfc0a53be755909`.
+OSS Index lacked credentials and the .NET analyzer lacked its runtime. This
+is a configured-audit pass with those existing limits; no dependencies,
+suppressions, analyzer settings or advisory policy were changed.

@@ -22,6 +22,26 @@ patch versions move independently.
   unknown with absent inspection metadata. Model features, payloads, retries and
   admission are unchanged. See the completion recovery guide for endpoint limits.
 
+### Breaking changes: recovery provider and operation
+
+- `RecoveryFailure`, `RecoveryFailureSummary` and `RecoveryHttp` now use the
+  closed `RecoveryProvider` and `RecoveryOperation` enums instead of strings.
+  All four completion adapters share the same vocabulary: providers `OLLAMA`,
+  `OMLX`, `OPENAI`, `ANTHROPIC`; operations `COMPLETE`, `STRUCTURED`, `STREAM`,
+  `STREAM_EVENTS`. The event stream operation remains distinct where supported;
+  Anthropic continues to expose its existing `STREAM` entrypoint.
+- Migration: replace string arguments and comparisons with the enum constants
+  from `com.mojentic.llm.recovery`, and recompile callers. Custom users of
+  `RecoveryHttp` must select one of the four adapter identities; arbitrary
+  provider and operation labels are no longer accepted. Summary constructors
+  and `copy` arguments also take enums. Exhaustive `when` expressions can now
+  handle every supported provider and operation.
+- Serialized reports retain the existing lowercase provider names and operation
+  names `complete`, `structured`, `stream`, `streamEvents`. Existing reports
+  using these values still decode; unknown values fail deserialization. Request
+  bytes, retry eligibility, admission, cancellation, timing and tool execution
+  retain their existing behavior.
+
 ### Breaking changes: invalid recovery policies
 
 - `RecoveryPolicy` construction now throws `InvalidRecoveryPolicyException`
