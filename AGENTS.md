@@ -1,30 +1,17 @@
 # Mojentic Kotlin — Agent Guidance
 
-## Coordinated 2.1.0 release authorization
+## Coordinated 3.0.0 scope authorization
 
-Stacey authorized this release on September 30, 2026. If `v2.1.0` does not
-exist yet, the next release is exactly **2.1.0**, even when a normal major or
-minor bump would choose a different version. All six ports are ready at their
-audited main commits. Use September 30, 2026 as the changelog date.
+Stacey authorized the coordinated 3.0.0 scope in
+[../RELEASE-3.0.0.md](../RELEASE-3.0.0.md). That plan supersedes the 2.1.0
+release-preparation authorization. All six ports must satisfy the binding
+contracts and required gates before the coordinated release.
 
-Keep scope to release preparation. Disabled reasoning parity is deferred to
-2.2.0. Ordinary generate finish handling is deferred to a later major release.
-Swift and Kotlin keep whole-text embeddings as the accepted 2.1.0 exception.
-Do not add features, update dependencies, or change runtime behavior.
-
-This AGENTS.md section is the release coordinator's known, authorized edit.
-The clone was synced before it was added. Preserve it and include it in the
-release commit after all required gates pass. Do not stash or revert it.
-Fetch again before work; rebase only if the tree permits it and stop on conflicts.
-
-Update all actual package versions and lockfile root versions, finalize the
-Unreleased changelog as 2.1.0, then commit on main and tag that commit v2.1.0.
-Create and publish a GitHub release using those changelog notes so workflows
-that require the release-published event run. No branch or PR.
-For Kotlin use gradle.properties version=2.1.0 and the configured
-com.vetzal.mojentic group. Tag push runs the Maven Central workflow. For Swift,
-the git tag is the package version; do not change swift-tools-version.
-Verify the tag points at the version/changelog HEAD commit before pushing.
+This correction implements only the October 12 transient-recovery admission
+guarantees. Reasoning, metadata and other recovery amendments remain separate
+initiative work. Do not bump versions, tag or publish in this task. Foundry owns
+Git finalization: leave changes in the worktree without committing, pushing,
+rebasing or modifying refs. Change this repository only.
 
 This file provides Kotlin-specific guidance for AI agents working in this
 sub-project. The monorepo root `AGENTS.md` covers shared cross-port principles;

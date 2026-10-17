@@ -47,8 +47,15 @@ Opt-in failures use `RecoveryException`, independently of the legacy
 failed actual attempts available through `failures`. Cancellation must propagate;
 do not catch it to restart a session.
 
-A missing admission hook refuses every resend. A suspending hook remains pending
-until it returns an explicit Boolean; `false` rejects. Cancellation interrupts
+Without a hook, eligible OpenAI and Anthropic failures can retry when the policy
+allows more than one attempt. Ollama and oMLX require admission unless exact-attempt
+evidence establishes acceptance `NO`; current adapters conservatively report
+`UNKNOWN`, including socket closure and HTTP errors. A suspending hook remains
+pending until it returns: `true` allows, `false` rejects, and `null` ends recovery
+with `ADMISSION_UNDECIDED`, distinct from `ADMISSION_REJECTED`. Returning `null`
+does not keep the hook pending. Existing Boolean-returning hooks remain valid;
+update exhaustive `RecoveryReason` handling and configure a hook if remote retries
+must also require approval. Cancellation interrupts
 active requests, admission and backoff. Policy duration budgets start at the first
 failure and use a monotonic clock. Absolute deadlines use wall time. Both constrain
 admission, delay and retry start, and do not impose a timeout on healthy generation.
@@ -140,7 +147,7 @@ history. It never executes tools. `Completed` requires Ollama `done: true` with
 `done_reason: "stop"`, or OpenAI/oMLX normal finish plus `[DONE]`. EOF, a keepalive or
 local socket closure never proves completion or remote inference termination.
 
-A keepalive-only transport failure can recover after explicit caller admission.
+A keepalive-only transport failure can recover subject to the provider admission rules above.
 The encoded request is identical across admitted attempts, including all history
 supported by the existing message model. Native reasoning-history fields remain
 unsupported. The broker collects gateway tools before dispatching them; recovery
@@ -182,7 +189,7 @@ for scripted boundary assertions.
 | OpenAI Chat Completions | Opt-in on all four paths; event stream remains tool-free | No endpoint-specific facility established; unknown for custom hosts |
 | Ollama | Opt-in on all four paths | Ownership and termination unknown; caller admission required |
 | oMLX | Opt-in on all four paths | Ownership and termination unknown; caller admission required |
-| Anthropic Messages | Opt-in ordinary / forced-tool structured / stream; no separate streamEvents API | No endpoint-specific cancellation, status or idempotency facility established; caller admission required |
+| Anthropic Messages | Opt-in ordinary / forced-tool structured / stream; no separate streamEvents API | No endpoint-specific cancellation, status or idempotency facility established; eligible retries may omit admission |
 | Embeddings / realtime / model management | Outside completion recovery | Not investigated in this slice |
 
 OpenAI uses its existing model registry: supported reasoning models omit temperature
@@ -195,9 +202,11 @@ Opt-in structured responses also retain the provider's available reasoning text;
 legacy structured responses keep their existing behavior. No additional native
 reasoning-history representation is introduced.
 
-The hook is required for OpenAI as well as compatible custom hosts. A local client
-ID is not an idempotency key. This implementation neither sends a provider
-idempotency key nor calls a provider cancellation/status API. Socket cancellation
+OpenAI and Anthropic adapters use remote-provider no-hook admission behavior even
+with a custom host. If that host serves local inference, configure an explicit
+admission hook to enforce ownership checks. A local client ID is not an
+idempotency key. This implementation neither sends a provider idempotency key
+nor calls a provider cancellation/status API. Socket cancellation
 closes client-owned resources; the caller must decide whether another request is
 safe. No inference status or remote termination claim follows from a 503, 504 or EOF.
 Exact capture refers to bytes Ktor receives after the engine's normal HTTP decoding,
@@ -238,7 +247,7 @@ handling. With a recovery policy, malformed frames, missing terminal evidence
 and semantic interruption fail explicitly. Content-block starts and deltas are
 observed before caller capture. Reasoning, text, tool fragments and completed
 calls veto resending even if nothing reached the consumer. Keepalive-only EOF
-can recover after explicit admission. Completed tools are delivered only after
+can recover under the provider admission rules above. Completed tools are delivered only after
 valid `message_delta` / `message_stop` evidence and run in the existing broker.
 Cancellation while the consumer is paused prevents attempt success.
 

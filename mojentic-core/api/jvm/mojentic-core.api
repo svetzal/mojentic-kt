@@ -1176,6 +1176,7 @@ public final class com/mojentic/llm/recovery/RecoveryProviderResponseException :
 public final class com/mojentic/llm/recovery/RecoveryReason : java/lang/Enum {
 	public static final field ADMISSION_REJECTED Lcom/mojentic/llm/recovery/RecoveryReason;
 	public static final field ADMISSION_REQUIRED Lcom/mojentic/llm/recovery/RecoveryReason;
+	public static final field ADMISSION_UNDECIDED Lcom/mojentic/llm/recovery/RecoveryReason;
 	public static final field BUDGET Lcom/mojentic/llm/recovery/RecoveryReason;
 	public static final field CANCELLATION Lcom/mojentic/llm/recovery/RecoveryReason;
 	public static final field CAPTURE Lcom/mojentic/llm/recovery/RecoveryReason;

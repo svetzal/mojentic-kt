@@ -217,15 +217,6 @@ class CompletionRecoveryHttpTest {
                     }
                 }
             }
-            RecoveryScriptedServer(listOf(ScriptedReply(503, "busy", mapOf("Retry-After" to "0")))).use { server ->
-                provider.gateway(server.url).use { gateway ->
-                    val failure = assertFailsWith<RecoveryException> {
-                        call(gateway.value, structured, RecoveryPolicy(maxAttempts = 3))
-                    }
-                    assertEquals(RecoveryReason.ADMISSION_REQUIRED, failure.reason)
-                    assertEquals(1, server.requests.size)
-                }
-            }
         }
     }
 

@@ -18,7 +18,8 @@ public class RecoveryPolicy(
     public val deadlineEpochMillis: Long? = null,
     public val retryableStatuses: Set<Int> = setOf(TOO_MANY_REQUESTS, SERVER_ERROR, BAD_GATEWAY, UNAVAILABLE, GATEWAY_TIMEOUT),
     public val retryTransport: Boolean = true,
-    public val admission: (suspend (RecoveryFailure) -> Boolean)? = null,
+    /** True allows, false rejects, null ends undecided; suspend to keep admission pending. */
+    public val admission: (suspend (RecoveryFailure) -> Boolean?)? = null,
     public val observer: (RecoveryEvent) -> Unit = {},
     public val capture: ((RecoveryWire) -> Unit)? = null,
     public val clock: () -> Long = { Clock.System.now().toEpochMilliseconds() },
@@ -56,6 +57,7 @@ public enum class RecoveryReason {
     EXHAUSTED,
     ADMISSION_REJECTED,
     ADMISSION_REQUIRED,
+    ADMISSION_UNDECIDED,
     BUDGET,
     PROVIDER_MINIMUM,
     CANCELLATION,

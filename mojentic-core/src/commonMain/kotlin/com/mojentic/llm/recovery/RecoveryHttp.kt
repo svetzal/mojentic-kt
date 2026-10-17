@@ -96,15 +96,7 @@ public class RecoveryHttp(
                 if (cause is CancellationException) throw cause
                 currentCoroutineContext().ensureActive()
                 val wait = retryDelay(policy, failure, requireNotNull(started), failures)
-                if (policy.admission == null) terminal(policy, identity, failures, RecoveryReason.ADMISSION_REQUIRED)
-                policy.observer(RecoveryEvent(RecoveryStage.ADMISSION_PENDING, identity, failure = failure, failures = failures.toList()))
-                val allowed = admit(policy, failure, requireNotNull(started), failures)
-                currentCoroutineContext().ensureActive()
-                if (!allowed) {
-                    policy.observer(RecoveryEvent(RecoveryStage.REJECTED, identity, failure = failure, failures = failures.toList()))
-                    terminal(policy, identity, failures, RecoveryReason.ADMISSION_REJECTED)
-                }
-                policy.observer(RecoveryEvent(RecoveryStage.ADMITTED, identity, failure = failure, failures = failures.toList()))
+                authorizeRetry(policy, failure, requireNotNull(started), failures)
                 checkBudget(policy, requireNotNull(started), wait, identity, failures)
                 policy.observer(RecoveryEvent(RecoveryStage.SCHEDULED, identity, wait, failure, failures.toList()))
                 policy.sleep(wait)
@@ -284,12 +276,41 @@ public class RecoveryHttp(
         return wait
     }
 
+    private suspend fun authorizeRetry(
+        policy: RecoveryPolicy,
+        failure: RecoveryFailure,
+        started: Long,
+        failures: List<RecoveryFailure>,
+    ) {
+        val identity = failure.identity
+        if (policy.admission == null) {
+            val remote = provider == "openai" || provider == "anthropic"
+            if (!remote && failure.acceptance != RecoveryAcceptance.NO) {
+                terminal(policy, identity, failures, RecoveryReason.ADMISSION_REQUIRED)
+            }
+            return
+        }
+        policy.observer(RecoveryEvent(RecoveryStage.ADMISSION_PENDING, identity, failure = failure, failures = failures.toList()))
+        val allowed = admit(policy, failure, started, failures)
+        currentCoroutineContext().ensureActive()
+        when (allowed) {
+            null -> terminal(policy, identity, failures, RecoveryReason.ADMISSION_UNDECIDED)
+
+            false -> {
+                policy.observer(RecoveryEvent(RecoveryStage.REJECTED, identity, failure = failure, failures = failures.toList()))
+                terminal(policy, identity, failures, RecoveryReason.ADMISSION_REJECTED)
+            }
+
+            true -> policy.observer(RecoveryEvent(RecoveryStage.ADMITTED, identity, failure = failure, failures = failures.toList()))
+        }
+    }
+
     private suspend fun admit(
         policy: RecoveryPolicy,
         failure: RecoveryFailure,
         started: Long,
         failures: List<RecoveryFailure>,
-    ): Boolean {
+    ): Boolean? {
         checkBudget(policy, started, 0, failure.identity, failures)
         val elapsed = remainingMillis(policy.monotonicClock(), started)
         val remaining = minOf(
@@ -300,8 +321,10 @@ public class RecoveryHttp(
         return if (remaining == Long.MAX_VALUE) {
             hook(failure)
         } else {
-            withTimeoutOrNull(remaining) { hook(failure) }
+            // Wrap the nullable decision so only timeout, not undecided admission, means budget exhaustion.
+            val decision = withTimeoutOrNull(remaining) { listOf(hook(failure)) }
                 ?: terminal(policy, failure.identity, failures, RecoveryReason.BUDGET)
+            decision.single()
         }
     }
 

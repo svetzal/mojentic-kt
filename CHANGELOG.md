@@ -16,6 +16,20 @@ patch versions move independently.
   consumers of the 2.1.0 iOS klibs. Native Apple apps should use `mojentic-sw`;
   Kotlin continues to support JVM and Android.
 
+### Recovery admission and migration
+
+- Eligible OpenAI and Anthropic failures can retry without an admission hook
+  when recovery is explicitly configured with more than one attempt. Ollama
+  and oMLX still require caller admission while acceptance is unknown; neither
+  HTTP status nor socket closure proves that inference was not accepted.
+- Admission hooks now return `Boolean?`: `true` allows, `false` rejects, and
+  `null` ends recovery with `ADMISSION_UNDECIDED`, distinct from
+  `ADMISSION_REJECTED`. Suspend the hook to wait for a decision. Existing
+  Boolean-returning hooks remain valid. Update exhaustive `RecoveryReason`
+  handling for the new case; callers wanting remote approval must configure a
+  hook. Budgets, cancellation and semantic-delivery replay protection still
+  apply before any resend. The default remains one attempt.
+
 ### Changed
 
 - Kotlin 2.4.21 (patch update from 2.4.20).
