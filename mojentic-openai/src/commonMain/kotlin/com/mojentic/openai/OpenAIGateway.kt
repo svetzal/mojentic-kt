@@ -7,6 +7,7 @@ import com.mojentic.llm.GatewayStreamEvent
 import com.mojentic.llm.LlmGateway
 import com.mojentic.llm.LlmGatewayResponse
 import com.mojentic.llm.LlmMessage
+import com.mojentic.llm.ModelContextWindow
 import com.mojentic.llm.StreamErrorReason
 import com.mojentic.llm.StreamEventsGateway
 import com.mojentic.llm.recovery.RecoveryCapabilities
@@ -52,6 +53,8 @@ public const val DEFAULT_OPENAI_HOST: String = "https://api.openai.com/v1"
 
 /**
  * Ktor-Client backed gateway to the OpenAI chat-completions API.
+ *
+ * [modelContextWindow] reads only exact existing registry entries without HTTP or fallback guesses.
  *
  * Completion recovery is opt-in through [CompletionConfig.recovery]. Requests are encoded once;
  * retries require caller admission and cannot replay observed or delivered semantic output.
@@ -327,6 +330,9 @@ public class OpenAIGateway(
             reasoningEffort = reasoningEffortFor(config, model),
         )
     }
+
+    override suspend fun modelContextWindow(model: String): ModelContextWindow? =
+        OpenAIModelRegistry.info(model)?.contextWindow?.let { ModelContextWindow(it, "registry") }
 
     override suspend fun availableModels(): List<String> {
         val response: HttpResponse = httpClient.get("$host/models") {

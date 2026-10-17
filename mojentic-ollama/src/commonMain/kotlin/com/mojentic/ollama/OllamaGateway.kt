@@ -8,6 +8,7 @@ import com.mojentic.llm.LlmGateway
 import com.mojentic.llm.LlmGatewayResponse
 import com.mojentic.llm.LlmMessage
 import com.mojentic.llm.LlmToolCall
+import com.mojentic.llm.ModelContextWindow
 import com.mojentic.llm.StreamErrorReason
 import com.mojentic.llm.StreamEventsGateway
 import com.mojentic.llm.recovery.RecoveryCapabilities
@@ -37,6 +38,7 @@ import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.utils.io.readLine
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
@@ -45,6 +47,8 @@ import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 private val logger = KotlinLogging.logger {}
 
@@ -55,6 +59,9 @@ public const val DEFAULT_OLLAMA_HOST: String = "http://localhost:11434"
 
 /**
  * Ktor-Client backed gateway to a local or remote Ollama server.
+ *
+ * [modelContextWindow] discovers architecture capacity and optional model `num_ctx` through `/api/show`.
+ * [effectiveContextWindow] computes a pure upper bound without changing completion defaults.
  *
  * @param host Base URL of the Ollama HTTP API. Default is [DEFAULT_OLLAMA_HOST].
  * @param engine Optional Ktor engine override. Tests pass a `MockEngine` here.
@@ -71,6 +78,8 @@ public class OllamaGateway(
         get() = ollamaRecoveryCapabilities
 
     private val httpClient: HttpClient = buildHttpClient(engine)
+    private val metadataClientDelegate = lazy { httpClient.config { followRedirects = false } }
+    private val metadataClient: HttpClient by metadataClientDelegate
     private val recoveryClientDelegate = lazy { recoveryHttpClient(engine) }
     private val recoveryClient: HttpClient by recoveryClientDelegate
 
@@ -79,6 +88,7 @@ public class OllamaGateway(
      * apps that keep one gateway around for the process lifetime can skip this.
      */
     public fun close() {
+        if (metadataClientDelegate.isInitialized()) metadataClient.close()
         httpClient.close()
         if (recoveryClientDelegate.isInitialized()) recoveryClient.close()
     }
@@ -344,6 +354,21 @@ public class OllamaGateway(
         }
         emit(checkNotNull(completed))
     }.catch { failure -> emit(CompletionStreamEvent.Error(StreamErrorReason.RequestFailed(failure))) }
+
+    override suspend fun modelContextWindow(model: String): ModelContextWindow? = try {
+        val response = metadataClient.post("$host/api/show") {
+            contentType(ContentType.Application.Json)
+            setBody(buildJsonObject { put("model", model) }.toString())
+        }
+        if (!response.status.isSuccess()) throw LlmGatewayException("Ollama metadata HTTP ${response.status.value}")
+        parseContextWindow(response.bodyAsText())
+    } catch (failure: CancellationException) {
+        throw failure
+    } catch (failure: LlmGatewayException) {
+        throw failure
+    } catch (failure: Exception) {
+        throw LlmGatewayException("Ollama metadata lookup failed", failure)
+    }
 
     override suspend fun availableModels(): List<String> {
         val response: HttpResponse = httpClient.get("$host/api/tags")

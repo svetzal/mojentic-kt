@@ -1,4 +1,4 @@
-# 3.0.0 recovery conformance
+# 3.0.0 recovery and model metadata conformance
 
 This record covers the October 12 admission, invalid-policy and completion-adapter
 Capabilities and Operation/provider guarantees.
@@ -524,3 +524,173 @@ its SHA-256 is `83cea66657f93c5dd2974bf4bd05e4f3d0f43c0f26b5aa23edfc0a53be755909
 OSS Index lacked credentials and the .NET analyzer lacked its runtime. This
 is a configured-audit pass with those existing limits; no dependencies,
 suppressions, analyzer settings or advisory policy were changed.
+
+## Model metadata section 1: context-window discovery (2026-10-17)
+
+This correction covers only section 1 of `MODEL-METADATA-2026-10.md` and the
+context-window portion of release part 3. Timing, request-default migration,
+reasoning, remaining recovery amendments and coordinated release readiness are
+separate initiative work. No versions, refs or published artifacts change.
+
+### Authority and executable identity
+
+- Initiative brief / release plan SHA-256:
+  `ea6a0efa56bfb3cd74b5ce728f80cc33c6fbd853114bec94b8aabe79f5d28e6e`.
+- Model metadata prose SHA-256:
+  `a085da1c0d110f9d587a24ace6ac2854b653e1ac28905b3829d94d665b2c906e`;
+  initiative repository source `4b08dcd1d87f520a4c70928c33a2bc84c228093d`.
+- Executable **context-window-v1** is copied byte-for-byte from Elixir
+  `test/contracts/context_window_v1.json` at inspected source
+  `df29a1c36f6b4b172b3ff352d40201d6583a9890` to
+  [contracts/context_window_v1.json](contracts/context_window_v1.json).
+  Its SHA-256 is
+  `9327502962112a020bafb46c6a677366df732f5a29cd44c92f17e8f632281395`.
+  The differently hashed Python artifact was not used.
+- Kotlin tested source starts at
+  `b663e6a600c5e4c80edc994347b5d40e1f1eb63c` plus this uncommitted correction.
+  The final implementation/test/API manifest hash is recorded below.
+
+`ContextWindowContractTest.artifactIdentity` checks the version and full artifact
+hash on every run. Discovery socket replies come directly from its `cases`;
+expected values, field provenance and optional `model_num_ctx` are read from
+those same cases. All 42 HTTP rows, four registry rows and eight effective rows
+execute through the public methods or public pure helper. No independently
+authored discovery fixtures substitute for this shared set. Additional malformed
+shape tests are explicitly local extensions. The v1 parameter strings contain
+literal escaped separators; the parser accepts those and ordinary newline/tab
+text, with the latter separately tested.
+
+### Section-1 mapping
+
+Test classes are in `mojentic-openai/src/jvmTest/kotlin/com/mojentic/omlx/`
+unless qualified. JVM tests execute in both `build` and `allTests` gates and
+CI's `jvmTest`.
+
+| Binding behavior | Executable evidence |
+| --- | --- |
+| Optional operation, legacy custom gateways return not advertised | `ContextWindowContractTest.legacyGatewayInheritsNotAdvertised` implements the old source interface without a metadata override |
+| Exact oMLX selection, configured host, GET path, Bearer key and absent key | `ContextWindowProofTest.exactSelectionThroughHttp`; `sharedHttpCases` executes artifact `exact-selection-without-api-key`, HTTP errors and 201 success; checks exact request line, body and authorization |
+| Ollama POST body, both architecture prefixes, full field provenance, `model_num_ctx` | `sharedHttpCases`: `qwen3_5`, `qwen4_exp`, `model-num-ctx`, `whitespace-num-ctx`; asserts method/path, JSON content type, exact selected model and sole request body field |
+| Missing fields / matching keys / models return null | `sharedHttpCases` missing-info, no-matching-key, no-architecture-from-num-ctx; `additionalMalformedShapesMissingModelsAndOptionalFields` adds absent oMLX model/field |
+| Present malformed fields/shapes, nonpositive/noninteger values and malformed parameters fail | `sharedHttpCases` invalid-window, invalid-num-ctx, malformed and reject-json-string-object rows; local additional shape/value matrix; all assert `LlmGatewayException` |
+| Non-2xx status is an error, all 2xx accepted, transport cause retained | `sharedHttpCases` 401/404/418 and 201 rows; `transportFailuresRetainTypedCause` exercises closed real sockets and retained cause; `redirectsAreHttpErrorsWithoutChangingCompletionClients` prevents a 302 from consuming a sentinel |
+| Request-free exact OpenAI registry lookup, unknown model returns null | `registryLookupHasAnActiveZeroRequestObserverAndNegativeControl`: shared registry rows plus live listener; `availableModels` negative control produces an observed request and typed rejection |
+| Other gateways return not advertised | `legacyGatewayInheritsNotAdvertised`; common `AnthropicGatewayTest.contextWindowIsNotAdvertisedWithoutRequests` rejects unexpected I/O |
+| Pure effective calculation: unknown, caller precedence, model limit, capacity, all clamp branches | `sharedEffectiveCasesAndUnchangedConfigurationDefaults`: all eight shared rows, explicit config overload and unchanged 32,768 default |
+| Lookup leaves subsequent ordinary, structured and streaming bytes unchanged | `ContextWindowRequestFidelityTest.discoveryPreservesOrdinaryStructuredAndBothStreamingRequestBytes`: three providers, five public entrypoints, two configs; compares exact body bytes, headers and request lines before/after lookup and verifies completion outcomes |
+
+The existing oMLX completion characterization suite passed before implementing
+discovery. The behavioral proof then rejected the inherited null result for the
+shared exact-model HTTP case (exit 1) and passed after implementing the real
+GET/selection boundary (exit 0). Final tests retain that case.
+
+The artifact's ancillary `lookup_cases` concern existing model-list behavior,
+not the new metadata operation. Existing `availableModels` ordering remains
+unchanged: Kotlin sorts Ollama names; the artifact's Ollama list row preserves
+provider order and supplies only `name`, whereas Kotlin's existing parser
+requires `model`. `ancillaryModelListCasesCharacterizeExistingBoundaryDifferences`
+executes those three rows, checks the two conforming list results and records
+the known Ollama typed rejection. These pre-existing list differences are
+retained for initiative coordination; no full-artifact or model-list parity
+claim is made.
+
+### Initiative findings: external verification remains unfinished
+
+Kotlin's public metadata adapter is locally verified against the identifiable
+Elixir shared cases. Real loopback HTTP tests verify local consumer behavior;
+they do not verify a live oMLX/Ollama provider or an external application's use
+of the new Kotlin API. Completion reply fixtures reused from existing Kotlin
+regressions prove local request stability and successful outcomes only.
+
+Elixir's inspected source identity is recorded above, but its paired verification
+was not run in this Kotlin-only task. The external command to coordinate is:
+
+```sh
+scripts/verify-context-window-contract
+```
+
+Its result and the tested Elixir implementation identity must be supplied by the
+Elixir initiative work, against the exact shared artifact hash above. Provider
+server identities, live verification commands/results and a paired Kotlin
+consumer repository/commit are also unavailable. Coordination must assign those
+repositories and run the same versioned cases in their gates. Compatibility
+across repositories is unfinished until both sides are verified. No other
+repository was modified.
+
+The existing recovery-API gap recorded above remains open: no shared executable
+external recovery contract/counterpart has been verified for the typed provider,
+operation and capability API changes. This metadata contract does not resolve
+that gap, endpoint-specific client-abort evidence, publication prerequisites or
+the consumer migrations described in the initiative brief.
+
+### Kotlin executable source identity
+
+The 23-file manifest
+[contracts/context_window_v1.kotlin.manifest.sha256](contracts/context_window_v1.kotlin.manifest.sha256)
+has SHA-256
+`53b64999288898efbb80908dc8acdd978b7d639e5a62a3b17e757106c5dc628d`.
+It identifies the new provider implementations, pure parsers/helper, public
+API baselines, shared artifact, tests and reused socket/completion fixtures,
+plus the unchanged completion configuration, registry, oMLX settings and gate
+configuration. `sha256sum -c contracts/context_window_v1.kotlin.manifest.sha256`
+passed with exit 0. Together with the base commit above, this identifies the
+tested uncommitted source without modifying refs.
+
+### Local verification results
+
+Linux verification on 2026-10-17 used JDK 21 for Gradle, the configured JDK 17
+compiler toolchain, a writable isolated Gradle cache and in-process Kotlin
+compilation. No toolchain, dependency, plugin, suppression or completion-default
+files were changed.
+
+All six `.hone-gates.json` tasks passed in one invocation (exit 0, 2m 43s):
+
+```sh
+./gradlew ktlintCheck detekt build allTests apiCheck dokkaGenerate
+```
+
+This includes the shared section-1 artifact cases in the ordinary JVM test gate.
+The final reports contain 499 JVM and 373 Android host tests, with zero failures,
+errors or skips. The metadata contract class has nine passing test methods,
+the HTTP proof has one and the 30-scenario completion fidelity matrix has one.
+The additional common Anthropic default test passes on both targets.
+
+The explicit applicable build-CI tasks and toolchain check also passed (exit 0,
+20s):
+
+```sh
+./gradlew javaToolchains jvmJar assembleAndroidMain apiCheck jvmTest \
+  testAndroidHostTest --no-daemon
+```
+
+The toolchain output confirms both JDK 17 and 21 are installed. Dokka generated
+the model value, gateway operation and effective-window pages. Existing Gradle
+deprecations, Android analytics permissions, example/realtime warnings and
+Dokka cross-module link warnings remain; this is not a warning-free build claim.
+No macOS, Android device or hosted CI run was performed.
+
+Initial Detekt throw-count findings were fixed by splitting parser validation,
+and the Anthropic inherited-method API baseline was regenerated. No findings
+were suppressed. Final `git diff --check` and the behavioral proof JSON/type,
+observed nonzero/zero exit and combined-log checks passed. The work remains
+uncommitted for Foundry finalization.
+
+The applicable security-CI audit passed (exit 0, 33s):
+
+```sh
+./gradlew dependencyCheckAggregate --no-parallel --no-daemon \
+  -PdependencyCheckDataDirectory="$GRADLE_USER_HOME/dependency-check-data" \
+  '-PdependencyCheckNvdDatafeedUrl=https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-{0}.json.gz'
+```
+
+The NVD modified-feed metadata was checked first and reported
+`lastModifiedDate:2026-10-16T18:00:09-04:00`. This changes data transport only.
+Dependency-Check 13.0.0 reports 305 dependencies, zero active findings and 52
+existing suppressed findings. The generated report SHA-256 is
+`dbb0b33b69796a9c9adc5226654054b90287d27e0dff62d76ccadf98dadc3824`.
+OSS Index lacked credentials and the .NET analyzer lacked its runtime; the
+audit retains those configured analyzer and suppression limits. No suppression,
+advisory acceptance or dependency change
+was introduced. This configured-audit pass does not establish the absence of
+all vulnerabilities. Publication/install checks were not run because publishing
+is outside this correction's authorization.

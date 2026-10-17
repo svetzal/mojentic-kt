@@ -10,6 +10,24 @@ patch versions move independently.
 
 ## [Unreleased]
 
+### Model context-window discovery
+
+- Add `LlmGateway.modelContextWindow(model)` and immutable `ModelContextWindow`
+  values with field provenance and optional Ollama `modelNumCtx`. Existing custom
+  gateways and Anthropic inherit a request-free not-advertised (`null`) default.
+- Query oMLX's exact model through authenticated `GET /v1/models`; query Ollama's
+  architecture-independent context length and model `num_ctx` through
+  `POST /api/show`. Malformed responses, HTTP and transport failures use
+  `LlmGatewayException`; coroutine cancellation propagates.
+- OpenAI reads exact existing registry entries without HTTP or fallback guesses.
+  Add the pure Ollama `effectiveContextWindow` helper with explicit caller,
+  model parameter and advertised-capacity precedence. Completion defaults,
+  request bytes, registry behavior, reasoning and recovery are unchanged.
+- Execute the shared Elixir `context-window-v1` artifact through real gateway HTTP
+  boundaries; section-1 conformance and external verification gaps are recorded
+  in `CONFORMANCE-3.0.0.md`.
+
+
 ### Added
 
 - `LlmGateway.recoveryCapabilities` exposes local request cancellation, remote

@@ -1,3 +1,9 @@
+public final class com/mojentic/ollama/ContextWindowMetadataKt {
+	public static final fun effectiveContextWindow (Lcom/mojentic/llm/ModelContextWindow;Lcom/mojentic/llm/CompletionConfig;)Ljava/lang/Integer;
+	public static final fun effectiveContextWindow (Lcom/mojentic/llm/ModelContextWindow;Ljava/lang/Integer;)Ljava/lang/Integer;
+	public static synthetic fun effectiveContextWindow$default (Lcom/mojentic/llm/ModelContextWindow;Ljava/lang/Integer;ILjava/lang/Object;)Ljava/lang/Integer;
+}
+
 public final class com/mojentic/ollama/OllamaGateway : com/mojentic/llm/LlmGateway, com/mojentic/llm/StreamEventsGateway {
 	public static final field Companion Lcom/mojentic/ollama/OllamaGateway$Companion;
 	public fun <init> ()V
@@ -9,6 +15,7 @@ public final class com/mojentic/ollama/OllamaGateway : com/mojentic/llm/LlmGatew
 	public fun completeJson (Ljava/lang/String;Ljava/util/List;Lkotlinx/serialization/json/JsonObject;Lcom/mojentic/llm/CompletionConfig;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun completeJsonResponse (Ljava/lang/String;Ljava/util/List;Lkotlinx/serialization/json/JsonObject;Lcom/mojentic/llm/CompletionConfig;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getRecoveryCapabilities ()Lcom/mojentic/llm/recovery/RecoveryCapabilities;
+	public fun modelContextWindow (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun stream (Ljava/lang/String;Ljava/util/List;Ljava/util/List;Lcom/mojentic/llm/CompletionConfig;)Lkotlinx/coroutines/flow/Flow;
 	public fun streamEvents (Ljava/lang/String;Ljava/util/List;Lcom/mojentic/llm/CompletionConfig;)Lkotlinx/coroutines/flow/Flow;
 }

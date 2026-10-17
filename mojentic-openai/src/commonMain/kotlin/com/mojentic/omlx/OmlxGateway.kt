@@ -8,6 +8,7 @@ import com.mojentic.llm.GatewayStreamEvent
 import com.mojentic.llm.LlmGateway
 import com.mojentic.llm.LlmGatewayResponse
 import com.mojentic.llm.LlmMessage
+import com.mojentic.llm.ModelContextWindow
 import com.mojentic.llm.ResponseFormat
 import com.mojentic.llm.StreamErrorReason
 import com.mojentic.llm.StreamEventsGateway
@@ -53,6 +54,7 @@ import io.ktor.http.contentType
 import io.ktor.http.encodeURLParameter
 import io.ktor.http.isSuccess
 import io.ktor.utils.io.readLine
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
@@ -190,6 +192,8 @@ public class OmlxGateway internal constructor(
         get() = omlxRecoveryCapabilities
 
     private val httpClient: HttpClient = buildHttpClient(engine)
+    private val metadataClientDelegate = lazy { httpClient.config { followRedirects = false } }
+    private val metadataClient: HttpClient by metadataClientDelegate
     private val recoveryClientDelegate = lazy { recoveryHttpClient(engine, settings.timeout.inWholeMilliseconds) }
     private val recoveryClient: HttpClient by recoveryClientDelegate
 
@@ -197,6 +201,7 @@ public class OmlxGateway internal constructor(
      * Closes the underlying Ktor client.
      */
     public fun close() {
+        if (metadataClientDelegate.isInitialized()) metadataClient.close()
         httpClient.close()
         if (recoveryClientDelegate.isInitialized()) recoveryClient.close()
     }
@@ -361,6 +366,23 @@ public class OmlxGateway internal constructor(
         }
         emit(checkNotNull(completed))
     }.catch { failure -> emit(CompletionStreamEvent.Error(StreamErrorReason.RequestFailed(failure))) }
+
+    /**
+     * Reads the exact model's advertised `max_model_len` using the configured host and key.
+     * Returns null for an absent model or field, without changing completion requests.
+     * @throws LlmGatewayException On non-2xx HTTP, malformed metadata or transport failure.
+     */
+    override suspend fun modelContextWindow(model: String): ModelContextWindow? = try {
+        val response = metadataClient.get("${settings.baseUrl}/models") { authorize() }
+        if (!response.status.isSuccess()) throw LlmGatewayException("oMLX metadata HTTP ${response.status.value}")
+        parseOmlxContextWindow(response.bodyAsText(), model)
+    } catch (failure: CancellationException) {
+        throw failure
+    } catch (failure: LlmGatewayException) {
+        throw failure
+    } catch (failure: Exception) {
+        throw LlmGatewayException("oMLX metadata lookup failed", failure)
+    }
 
     /**
      * Lists the models oMLX serves, from `GET /v1/models`, sorted.

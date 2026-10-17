@@ -29,6 +29,7 @@ internal class RecoveryScriptedServer(private val replies: List<ScriptedReply>) 
     private val server = ServerSocket(0)
     val url = "http://127.0.0.1:${server.localPort}"
     val requestLines: MutableList<String> = Collections.synchronizedList(mutableListOf())
+    val requestHeaders: MutableList<Map<String, String>> = Collections.synchronizedList(mutableListOf())
     val requests: MutableList<ByteArray> = Collections.synchronizedList(mutableListOf())
     val errors: MutableList<Throwable> = Collections.synchronizedList(mutableListOf())
     private val worker = thread(isDaemon = true) {
@@ -37,12 +38,15 @@ internal class RecoveryScriptedServer(private val replies: List<ScriptedReply>) 
                 server.accept().use { socket ->
                     val input = socket.getInputStream().buffered()
                     requestLines += input.line()
+                    val headers = mutableMapOf<String, String>()
                     var length = 0
                     while (true) {
                         val line = input.line()
                         if (line.isEmpty()) break
+                        headers[line.substringBefore(':').lowercase()] = line.substringAfter(':').trim()
                         if (line.startsWith("Content-Length:", true)) length = line.substringAfter(':').trim().toInt()
                     }
+                    requestHeaders += headers
                     requests += input.readNBytes(length)
                     val reply = replies.getOrElse(requests.size - 1) { ScriptedReply(500, "unexpected-request") }
                     if (reply.status != 0) respond(socket.getOutputStream(), reply)

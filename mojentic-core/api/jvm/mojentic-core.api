@@ -495,6 +495,7 @@ public abstract interface class com/mojentic/llm/LlmGateway {
 	public fun completeJsonResponse (Ljava/lang/String;Ljava/util/List;Lkotlinx/serialization/json/JsonObject;Lcom/mojentic/llm/CompletionConfig;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun completeJsonResponse$default (Lcom/mojentic/llm/LlmGateway;Ljava/lang/String;Ljava/util/List;Lkotlinx/serialization/json/JsonObject;Lcom/mojentic/llm/CompletionConfig;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public fun getRecoveryCapabilities ()Lcom/mojentic/llm/recovery/RecoveryCapabilities;
+	public fun modelContextWindow (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun stream (Ljava/lang/String;Ljava/util/List;Ljava/util/List;Lcom/mojentic/llm/CompletionConfig;)Lkotlinx/coroutines/flow/Flow;
 	public static synthetic fun stream$default (Lcom/mojentic/llm/LlmGateway;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Lcom/mojentic/llm/CompletionConfig;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
 }
@@ -505,6 +506,7 @@ public final class com/mojentic/llm/LlmGateway$DefaultImpls {
 	public static fun completeJsonResponse (Lcom/mojentic/llm/LlmGateway;Ljava/lang/String;Ljava/util/List;Lkotlinx/serialization/json/JsonObject;Lcom/mojentic/llm/CompletionConfig;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun completeJsonResponse$default (Lcom/mojentic/llm/LlmGateway;Ljava/lang/String;Ljava/util/List;Lkotlinx/serialization/json/JsonObject;Lcom/mojentic/llm/CompletionConfig;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static fun getRecoveryCapabilities (Lcom/mojentic/llm/LlmGateway;)Lcom/mojentic/llm/recovery/RecoveryCapabilities;
+	public static fun modelContextWindow (Lcom/mojentic/llm/LlmGateway;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun stream$default (Lcom/mojentic/llm/LlmGateway;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Lcom/mojentic/llm/CompletionConfig;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
 }
 
@@ -634,6 +636,22 @@ public final class com/mojentic/llm/MessageRole$Companion {
 
 public final class com/mojentic/llm/MessagesKt {
 	public static final fun messageText (Lcom/mojentic/llm/LlmMessage;)Ljava/lang/String;
+}
+
+public final class com/mojentic/llm/ModelContextWindow {
+	public fun <init> (ILjava/lang/String;Ljava/lang/Integer;)V
+	public synthetic fun <init> (ILjava/lang/String;Ljava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()I
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/Integer;
+	public final fun copy (ILjava/lang/String;Ljava/lang/Integer;)Lcom/mojentic/llm/ModelContextWindow;
+	public static synthetic fun copy$default (Lcom/mojentic/llm/ModelContextWindow;ILjava/lang/String;Ljava/lang/Integer;ILjava/lang/Object;)Lcom/mojentic/llm/ModelContextWindow;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getField ()Ljava/lang/String;
+	public final fun getMaxContextTokens ()I
+	public final fun getModelNumCtx ()Ljava/lang/Integer;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class com/mojentic/llm/ReasoningEffort : java/lang/Enum {

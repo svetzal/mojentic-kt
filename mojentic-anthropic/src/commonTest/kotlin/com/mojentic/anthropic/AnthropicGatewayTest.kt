@@ -49,6 +49,12 @@ class AnthropicGatewayTest {
     }
 
     @Test
+    fun contextWindowIsNotAdvertisedWithoutRequests() = runTest {
+        gateway = AnthropicGateway(apiKey = "test", engine = MockEngine { error("Unexpected metadata request") })
+        assertNull(gateway.modelContextWindow("claude"))
+    }
+
+    @Test
     fun systemAndAssistantPartsKeepTextAndIgnoreImages() = runTest {
         gateway = AnthropicGateway(
             apiKey = "test",

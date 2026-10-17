@@ -141,3 +141,11 @@ the HTTP status and the response body without change. Examples are a wrong
 API key (401), an unknown model (404, the body lists the models) and a chat
 model used for embeddings (400). In `generateStreamEvents`, the same response
 is a `ProviderError` with the status and the body.
+
+## Advertised context capacity
+
+Use `gateway.modelContextWindow(model)` for the exact model's `max_model_len`
+from the authenticated `/v1/models` response. It returns null when the model or
+field is absent and throws `LlmGatewayException` for malformed metadata, HTTP
+or transport failures. Discovery leaves later requests unchanged. See
+[Model Context Windows](model-context-window.md).

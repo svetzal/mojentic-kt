@@ -85,6 +85,14 @@ public interface LlmGateway {
     ): Flow<GatewayStreamEvent>
 
     /**
+     * Returns advertised capacity for the exact [model], or null when not advertised.
+     * Lookup never changes subsequent completion configuration or requests.
+     * Existing custom gateways inherit the request-free null default.
+     * @throws com.mojentic.errors.LlmGatewayException On transport, HTTP or malformed metadata responses.
+     */
+    public suspend fun modelContextWindow(model: String): ModelContextWindow? = null
+
+    /**
      * List models the provider currently advertises.
      *
      * Some providers (e.g. OpenAI) only return models the API key is licensed
