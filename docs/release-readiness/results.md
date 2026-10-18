@@ -1,38 +1,24 @@
 # Current verification results
 
-Tested source: Kotlin `b420c1feb4d305e2df32f7f0d46814ef7a2eece3` plus the uncommitted corrections identified by
-[source.sha256](source.sha256), SHA-256 `ae586802575b0d91ff9f5e4f10a61c962c99f376e77d208aec52411245b99a6a` (337 files).
+Tested source: Kotlin `357a6eab1e0a69b26aa93a1364309d7dbabb3c2a` plus the uncommitted corrections identified by
+[source.sha256](source.sha256), SHA-256 `321d38616d1916b34aef0b21c470f85e471eb88c8d12a22d751cb818331e978d` (337 files).
 Authority remains mojentic-unify `4ae2f73a0a5465b0f6509b87e1148d254f3f64cd`.
 Production source, public API/dumps, shared contract decisions/fixtures,
 dependencies, version **3.0.0** and release state are unchanged. No refs were changed.
 
-## Corrected behavioral acceptance
+## Timeout-fixture acceptance
 
-The public `OpenAIGateway.complete` probe uses the preserved shared
-`RecoveryScriptedTransport` with `StandardTestDispatcher`, injected epoch and
-monotonic clocks, and an injected sleeper. The rejecting run (exit **1**) uses
-a sleeper that records the delay without advancing virtual time. It fails:
+`RecoveryTransportHttpTest.transportTimeoutRetainsCauseWithoutUnauthorizedResend`
+passed (exit **0**) through the public gateway with the preserved in-process
+`RecoveryScriptedTransport` / Ktor `MockEngine`. The injected exception remains
+`java.net.SocketTimeoutException`, imported as `TransportTimeoutException` so its
+construction is explicit fixture input. `assertSame` verifies the exact injected
+cause instance for both ordinary and structured completion. Existing admission,
+single-dispatch, payload, identity and lifecycle assertions remain intact.
 
-```kotlin
-assertEquals(100L, testScheduler.currentTime, "Recovery backoff must advance the injected clock by 100 ms")
-// expected: 100; actual: 0
-```
-
-The corrected run (exit **0**) adds `testScheduler.advanceTimeBy(it)` to that
-sleeper. Both runs keep exactly the same 503 `private-failure` and 200 `ok`
-response bytes. This detects an injected-time fixture defect: a recorded delay
-alone does not prove backoff advances the monotonic clock. The earlier
-`incorrect`-to-`ok` toggle is withdrawn as acceptance evidence.
-
-The passing assertions verify literal serialized request bytes on both attempts
-and every capture; full stable logical IDs and distinct attempt IDs with attempt
-numbers; exact lifecycle order; response bytes/status bound to each identity;
-original failure bytes, the same failure object retained through success, and
-the original cause object; 100 ms virtual backoff; no raw request/failure/token
-in formatted events, summaries or wires; no authorization in captured headers.
-No identifiers are masked and no library internals are mocked. The actual proof
-logs are archived by Foundry; their hashes and command/exit results are in
-[verification.json](verification.json).
+This is non-behavioral test cleanup; direct acceptance evidence and log hashes are
+recorded in [verification.json](verification.json). The preceding virtual-backoff
+behavioral proof is retained there as prior evidence with its original results.
 
 ## Library/provider gates
 
@@ -57,7 +43,9 @@ independent consumer sources retain their assertions and coverage.
 ## Independent packaged consumer
 
 `tools/verify-distribution.sh` passed (exit **0**) with **7 tests**, zero
-failures/errors/skips, for the same tested source identity above. Both Gradle
+failures/errors/skips, for the preceding source `b420c1feb4d305e2df32f7f0d46814ef7a2eece3`, manifest
+`ae586802575b0d91ff9f5e4f10a61c962c99f376e77d208aec52411245b99a6a`. It was not rerun for this test-only correction; production,
+consumer sources and contracts are unchanged. Both Gradle
 invocations use `--offline`; candidate artifacts are freshly published into
 `build/distribution-verification/candidate.9ibXim/maven`.
 The unchanged consumer's `verifyCandidateResolution` verifies each actual resolved

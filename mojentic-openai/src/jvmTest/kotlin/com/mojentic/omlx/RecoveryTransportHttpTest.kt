@@ -18,8 +18,9 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
-import kotlin.test.assertTrue
+import kotlin.test.assertSame
 import kotlin.time.Duration.Companion.milliseconds
+import java.net.SocketTimeoutException as TransportTimeoutException
 
 /** Public ordinary and structured adapter behavior at the injected HTTP boundary. */
 class RecoveryTransportHttpTest {
@@ -134,10 +135,11 @@ class RecoveryTransportHttpTest {
     @Test
     fun transportTimeoutRetainsCauseWithoutUnauthorizedResend(): Unit = runTest {
         for (structured in listOf(false, true)) {
+            val timeout = TransportTimeoutException("private-timeout")
             val events = mutableListOf<RecoveryEvent>()
             val wires = mutableListOf<RecoveryWire>()
             RecoveryScriptedTransport(
-                listOf(Provider.OMLX.success(structured).copy(failure = java.net.SocketTimeoutException("private-timeout"))),
+                listOf(Provider.OMLX.success(structured).copy(failure = timeout)),
             ).use { server ->
                 Provider.OMLX.gateway(server.url, 200.milliseconds, engine = server.engine).use { gateway ->
                     val failure = assertFailsWith<RecoveryException> {
@@ -155,7 +157,7 @@ class RecoveryTransportHttpTest {
                     assertEquals(1, failure.wireAttempts)
                     assertEquals(1, server.requests.size)
                     val retained = failure.failures.single()
-                    assertTrue(retained.inspectCause() is java.net.SocketTimeoutException)
+                    assertSame(timeout, retained.inspectCause())
                     assertNull(retained.status)
                     assertEquals(RecoveryReason.TRANSPORT, retained.reason)
                     assertEquals(retained.identity, wires.first().identity)

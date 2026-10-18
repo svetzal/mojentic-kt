@@ -1,5 +1,5 @@
 {
-  "source_base": "b420c1feb4d305e2df32f7f0d46814ef7a2eece3",
+  "source_base": "357a6eab1e0a69b26aa93a1364309d7dbabb3c2a",
   "authority_revision": "4ae2f73a0a5465b0f6509b87e1148d254f3f64cd",
   "authority_files": {
     "AGENTS.md": "d157d18f0848735cab9b15ce2dbd81239f600fe664ab6d9a4a1b0d64f20b9506",
@@ -8,10 +8,10 @@
     "MODEL-METADATA-2026-10.md": "d9945dca45ce09e2163843263a75b5e93028b00ee1baf191fc3ff13396830e9c",
     "RELEASE-3.0.0.md": "54260316363be7f365161cb734aa33e22bdc1286ef640a7ec532e83f5811fd5f"
   },
-  "source_manifest_sha256": "ae586802575b0d91ff9f5e4f10a61c962c99f376e77d208aec52411245b99a6a",
+  "source_manifest_sha256": "321d38616d1916b34aef0b21c470f85e471eb88c8d12a22d751cb818331e978d",
   "source_manifest_files": 337,
-  "verified_at_utc": "2026-10-18T23:46:59.276410+00:00",
-  "scope": "Acceptance-evidence repair of preserved no-network migration; uncommitted test/documentation corrections only. Production implementation/API/dumps/contracts/version/release state unchanged.",
+  "verified_at_utc": "2026-10-18T23:54:25.109932+00:00",
+  "scope": "Test-only timeout-fixture source disambiguation and exact injected cause-instance retention for ordinary and structured completion. Production implementation/API/contracts/dependencies/version unchanged.",
   "contracts": [
     {
       "version": "context-window-v1",
@@ -36,43 +36,43 @@
     }
   ],
   "library_provider_verification": {
-    "implementation_commit": "b420c1feb4d305e2df32f7f0d46814ef7a2eece3",
-    "test_worktree_manifest_sha256": "ae586802575b0d91ff9f5e4f10a61c962c99f376e77d208aec52411245b99a6a",
+    "implementation_commit": "357a6eab1e0a69b26aa93a1364309d7dbabb3c2a",
+    "test_worktree_manifest_sha256": "321d38616d1916b34aef0b21c470f85e471eb88c8d12a22d751cb818331e978d",
     "gates": [
       {
         "command": "./gradlew ktlintCheck --offline",
         "exit_code": 0,
-        "stdout_sha256": "187970d7c0845b380e45f3ae94ee7985db28f7e4f5a9b484f5bbf2cb159f1a82",
+        "stdout_sha256": "c5f04a141a50b2a8d30d3a5757796a4809371639538d67ea619eab1ef4c03bd1",
         "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
       },
       {
         "command": "./gradlew detekt --offline",
         "exit_code": 0,
-        "stdout_sha256": "e72c0d58029414218779fa8c19ba9f6f7da5e1060a18390df7116d91d21f434d",
+        "stdout_sha256": "64deb43932b33d946513ca90dfa2f6a2eef6eb9ad5a1a9d2caab77599df85460",
         "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
       },
       {
         "command": "./gradlew build --offline",
         "exit_code": 0,
-        "stdout_sha256": "e7acb427d3039f69fb4eb09315d358aec25fad1772ec6a55891aa554df957859",
+        "stdout_sha256": "0788f990807143ffbcf24c7856789bde1de4bb1f310d008881caf233e19788b1",
         "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
       },
       {
         "command": "./gradlew allTests --offline",
         "exit_code": 0,
-        "stdout_sha256": "b40e99ca05f686318eec75dc91fc5a59cb5a14f69467d5143f119d9b3fda16f4",
+        "stdout_sha256": "750cb9d512089466c22ea054bce280ba95daeb639a73459cfdf693033ea20087",
         "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
       },
       {
         "command": "./gradlew apiCheck --offline",
         "exit_code": 0,
-        "stdout_sha256": "0c8ed764d03366686d87176f20c09ac000174565211400e9114e16304c497972",
+        "stdout_sha256": "613a1a1864878d6553e9d6ad6459f1cd47b70ee935edd5fade6bde10494d341e",
         "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
       },
       {
         "command": "./gradlew dokkaGenerate --offline",
         "exit_code": 0,
-        "stdout_sha256": "453b718a5dee74a9cf02fbd2cdbe2d9155b1017502129816bef280cd36dd06ff",
+        "stdout_sha256": "daaff99e565a19cfbaae0118f35f4fef5262a0342204dd93a23dfac4871da12a",
         "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
       }
     ],
@@ -137,8 +137,8 @@
         "errors": 0,
         "skipped": 0,
         "suites": 43,
-        "earliest_timestamp": "2026-10-18T23:44:32.381Z",
-        "latest_timestamp": "2026-10-18T23:44:42.187Z"
+        "earliest_timestamp": "2026-10-18T23:53:54.482Z",
+        "latest_timestamp": "2026-10-18T23:54:05.082Z"
       },
       "mojentic-openai/testAndroidHostTest": {
         "tests": 127,
@@ -267,23 +267,8 @@
         "sha256": "034177291246286c73ae14cea7217417d2b20101d66059f05837cf6e6d106ed9",
         "resolved_file": "/home/svetzal/.foundry/worktrees/mojentic-kt/mojentic-kt-no-network-tests-c2-17401b/build/distribution-verification/candidate.9ibXim/maven/com/vetzal/mojentic/mojentic-websearch-serpapi-jvm/3.0.0/mojentic-websearch-serpapi-jvm-3.0.0.jar"
       }
-    ]
-  },
-  "proof": {
-    "kind": "behavioral",
-    "source_change": "mojentic-openai/src/jvmTest/kotlin/com/mojentic/omlx/DeterministicRecoveryProofTest.kt: replace a recording-only injected sleeper with testScheduler.advanceTimeBy(it); assert exactly 100 ms of virtual backoff through public OpenAIGateway.complete with unchanged 503 private-failure and 200 ok replies, shared in-process transport, exact bytes/full identities/lifecycle/original failure/privacy assertions.",
-    "rejecting": {
-      "command": "env GRADLE_USER_HOME=/tmp/mojentic-no-network-gradle ./gradlew :mojentic-openai:jvmTest --tests '*DeterministicRecoveryProofTest' --offline",
-      "exit_code": 1,
-      "evidence_log_sha256": "fc46ac4d03b54f758e6028b3ccf68cefc61e75d455c4373c54c37e038a68aa39"
-    },
-    "corrected": {
-      "command": "env GRADLE_USER_HOME=/tmp/mojentic-no-network-gradle ./gradlew :mojentic-openai:jvmTest --tests '*DeterministicRecoveryProofTest' --offline",
-      "exit_code": 0,
-      "evidence_log_sha256": "17fce9c655f9d5763229551b378efdf77f62d2c6da40256978d8ec598243cf66"
-    },
-    "failing_assertion": "assertEquals(100L, testScheduler.currentTime, \"Recovery backoff must advance the injected clock by 100 ms\"): expected 100, actual 0",
-    "defect_detected": "A recording-only injected sleeper reports a delay without advancing the injected monotonic clock. Advancing virtual time repairs the fixture; both runs keep identical failure and success responses."
+    ],
+    "provenance": "Inherited verification at source b420c1feb4d305e2df32f7f0d46814ef7a2eece3 with manifest ae586802575b0d91ff9f5e4f10a61c962c99f376e77d208aec52411245b99a6a; not rerun for this test-only timeout correction. Production and consumer sources and contracts are unchanged."
   },
   "dependency_audit": {
     "command": "./gradlew dependencyCheckAggregate --no-parallel --offline -PdependencyCheckDataDirectory=/tmp/mojentic-no-network-gradle/dependency-check-data",
@@ -340,6 +325,32 @@
     "No upstream live-provider certification is claimed.",
     "JVM and Android host tests and Maven/AAR inspection; no Android device run is claimed.",
     "ci-base.json records a historical hosted run; no hosted verification of this worktree is claimed.",
-    "Dependency audit evidence is inherited from the prior migration, not rerun for this dependency-neutral correction; the prior configured audit reported an unavailable optional .NET analyzer."
-  ]
+    "Dependency audit evidence is inherited from the prior migration, not rerun for this dependency-neutral correction; the prior configured audit reported an unavailable optional .NET analyzer.",
+    "Packaged-consumer evidence is inherited from the preceding verification and retains its tested source identity; this timeout-test-only correction changes no application or repository boundary."
+  ],
+  "prior_behavioral_proof": {
+    "kind": "behavioral",
+    "source_change": "mojentic-openai/src/jvmTest/kotlin/com/mojentic/omlx/DeterministicRecoveryProofTest.kt: replace a recording-only injected sleeper with testScheduler.advanceTimeBy(it); assert exactly 100 ms of virtual backoff through public OpenAIGateway.complete with unchanged 503 private-failure and 200 ok replies, shared in-process transport, exact bytes/full identities/lifecycle/original failure/privacy assertions.",
+    "rejecting": {
+      "command": "env GRADLE_USER_HOME=/tmp/mojentic-no-network-gradle ./gradlew :mojentic-openai:jvmTest --tests '*DeterministicRecoveryProofTest' --offline",
+      "exit_code": 1,
+      "evidence_log_sha256": "fc46ac4d03b54f758e6028b3ccf68cefc61e75d455c4373c54c37e038a68aa39"
+    },
+    "corrected": {
+      "command": "env GRADLE_USER_HOME=/tmp/mojentic-no-network-gradle ./gradlew :mojentic-openai:jvmTest --tests '*DeterministicRecoveryProofTest' --offline",
+      "exit_code": 0,
+      "evidence_log_sha256": "17fce9c655f9d5763229551b378efdf77f62d2c6da40256978d8ec598243cf66"
+    },
+    "failing_assertion": "assertEquals(100L, testScheduler.currentTime, \"Recovery backoff must advance the injected clock by 100 ms\"): expected 100, actual 0",
+    "defect_detected": "A recording-only injected sleeper reports a delay without advancing the injected monotonic clock. Advancing virtual time repairs the fixture; both runs keep identical failure and success responses."
+  },
+  "proof": {
+    "kind": "direct",
+    "reason": "Test-only fixture disambiguation and a stronger cause-identity assertion; production behavior and executable contracts are unchanged. The public gateway probe covers ordinary and structured completion with an injected MockEngine failure.",
+    "corrected": {
+      "command": "env GRADLE_USER_HOME=/tmp/mojentic-no-network-gradle ./gradlew :mojentic-openai:jvmTest --tests '*RecoveryTransportHttpTest.transportTimeoutRetainsCauseWithoutUnauthorizedResend' --offline",
+      "exit_code": 0,
+      "evidence_log_sha256": "9d05603f1b2da835f7057bbfdb2ac84517f216196a7c1e1c79eb65fdb1bd420a"
+    }
+  }
 }
