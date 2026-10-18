@@ -18,6 +18,7 @@ concurrency:
 
 jobs:
   build-docs:
+    timeout-minutes: 20
     name: Build Dokka site
     runs-on: ubuntu-latest
     steps:
@@ -65,6 +66,7 @@ jobs:
           path: build/dokka
 
   deploy:
+    timeout-minutes: 20
     name: Deploy to GitHub Pages
     needs: build-docs
     # Publish only for a v* tag. A manual run builds and uploads the site

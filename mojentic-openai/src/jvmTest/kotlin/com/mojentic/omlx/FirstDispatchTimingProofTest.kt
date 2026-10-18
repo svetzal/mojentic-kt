@@ -5,7 +5,7 @@ import com.mojentic.llm.CompletionStreamEvent
 import com.mojentic.llm.LlmMessage
 import com.mojentic.llm.recovery.RecoveryPolicy
 import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.JsonPrimitive
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.test.Test
@@ -13,10 +13,10 @@ import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 
-/** Baseline-compatible consumer probe: real sockets, first dispatch, retry admission and mixed-frame precedence. */
+/** Baseline-compatible consumer probe: in-process transport, first dispatch, retry admission and mixed-frame precedence. */
 class FirstDispatchTimingProofTest {
     @Test
-    fun delayedCollectionRetryAndMixedFrameUseOneDispatchClock(): Unit = runBlocking {
+    fun delayedCollectionRetryAndMixedFrameUseOneDispatchClock(): Unit = runTest {
         val now = AtomicLong(0)
         val first = ScriptedReply(503, "busy", beforeReply = { now.addAndGet(10) })
         val second = ScriptedReply(
@@ -27,8 +27,8 @@ class FirstDispatchTimingProofTest {
                 "data: {\"choices\":[{\"delta\":{},\"finish_reason\":\"stop\"}]}\n\ndata: [DONE]\n\n",
             beforeReply = { now.addAndGet(20) },
         )
-        RecoveryScriptedServer(listOf(first, second)).use { server ->
-            val gateway = OmlxGateway(host = server.url, apiKey = "test")
+        RecoveryScriptedTransport(listOf(first, second)).use { server ->
+            val gateway = OmlxGateway(host = server.url, apiKey = "test", engine = server.engine)
             try {
                 val policy = RecoveryPolicy(
                     maxAttempts = 2,

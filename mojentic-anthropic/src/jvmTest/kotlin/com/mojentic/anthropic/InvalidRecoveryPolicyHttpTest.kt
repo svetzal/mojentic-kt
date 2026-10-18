@@ -6,7 +6,7 @@ import com.mojentic.errors.RecoveryPolicyViolation
 import com.mojentic.llm.recovery.RecoveryPolicy
 import com.mojentic.llm.tools.LlmTool
 import com.mojentic.llm.tools.ToolDescriptor
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.JsonObject
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -110,10 +110,10 @@ class InvalidRecoveryPolicyHttpTest {
         )
     }
 
-    private fun verify(violation: RecoveryPolicyViolation, invalid: (MutableList<String>) -> RecoveryPolicy): Unit = runBlocking {
+    private fun verify(violation: RecoveryPolicyViolation, invalid: (MutableList<String>) -> RecoveryPolicy): Unit = runTest {
         for (entry in Entry.entries) {
-            RecoveryScriptedServer(listOf(entry.success())).use { server ->
-                val gateway = AnthropicGateway("credential-secret", server.url)
+            RecoveryScriptedTransport(listOf(entry.success())).use { server ->
+                val gateway = AnthropicGateway("credential-secret", server.url, engine = server.engine)
                 try {
                     val callbacks = mutableListOf<String>()
                     val tools = listOf(object : LlmTool {

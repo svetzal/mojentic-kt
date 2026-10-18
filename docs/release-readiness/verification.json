@@ -1,59 +1,221 @@
 {
-  "source_base": "fa9694903ab083f7d97e331b7f723f65dc2976a9",
-  "source_manifest_sha256": "d782d3dfb7693b60291671dd6d4f0f7a5ea8012ac907b405f8090f328c1a575a",
-  "source_manifest_files": 325,
-  "verified_at_utc": "2026-10-18T00:41:27.784910+00:00",
-  "focus": "Caller-selected retry eligibility proof only; no runtime behavior change.",
-  "contract": {
-    "version": "kt-retry-eligibility-v1",
-    "source": "mojentic-openai/src/jvmTest/kotlin/com/mojentic/omlx/RetryEligibilityHttpTest.kt",
-    "sha256": "fcd4793948bfbe010dbd26e3af396db83f38c0cf6c3f171254053d22f5b10ef7",
-    "differential_scenarios": 48,
-    "focused_stream_scenarios": 1
+  "source_base": "6d0de37f6520a77fb5f81b7f03e8bc263b97ba1b",
+  "authority_revision": "4ae2f73a0a5465b0f6509b87e1148d254f3f64cd",
+  "authority_files": {
+    "AGENTS.md": "d157d18f0848735cab9b15ce2dbd81239f600fe664ab6d9a4a1b0d64f20b9506",
+    "TRANSIENT-RECOVERY-2026-10.md": "141d4ee5fcfbc18c940a7e7fe8d5ba9e381abc41a6d03f300f541e0fd5236f9d",
+    "REASONING-PROTOTYPE-2026-10.md": "0a40f3ad45c593bc779411021e45db569e73d3ecce86c99b201e7f8ebb656809",
+    "MODEL-METADATA-2026-10.md": "d9945dca45ce09e2163843263a75b5e93028b00ee1baf191fc3ff13396830e9c",
+    "RELEASE-3.0.0.md": "54260316363be7f365161cb734aa33e22bdc1286ef640a7ec532e83f5811fd5f"
   },
-  "gates": [
+  "source_manifest_sha256": "56fd0cee163515e0f91e0aa78c418e753f91ccdc977bc6c2ff2d196d6cb84fdb",
+  "source_manifest_files": 337,
+  "verified_at_utc": "2026-10-18T23:15:45.667559+00:00",
+  "scope": "No-network deterministic-time correction for release parts 1-3; uncommitted worktree. Production implementation/API/dumps/version/release state unchanged.",
+  "contracts": [
     {
-      "command": "./gradlew ktlintCheck",
-      "exit_code": 0,
-      "stdout_sha256": "7e3d020b637cfc2b535d5b2e221dd7150018b434e7d52be912a8e10f39b77c8b",
-      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      "version": "context-window-v1",
+      "path": "contracts/context_window_v1.json",
+      "sha256": "9327502962112a020bafb46c6a677366df732f5a29cd44c92f17e8f632281395",
+      "library_provider_verification": "passed",
+      "packaged_consumer_verification": "passed"
     },
     {
-      "command": "./gradlew detekt",
-      "exit_code": 0,
-      "stdout_sha256": "46742e4a9fe0c543dc36ab1af6a8cf8448688fa7d9a1ad6cc71c8c17aba804a2",
-      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      "version": "native-reasoning-v1",
+      "path": "contracts/native_reasoning_v1.json",
+      "sha256": "d5539eb334b69e0f8b698e8cd2c1402772dfabd09af92c652e1d1dc35f34e127",
+      "library_provider_verification": "passed",
+      "packaged_consumer_verification": "passed"
     },
     {
-      "command": "./gradlew build",
-      "exit_code": 0,
-      "stdout_sha256": "063c7cf8070281c2ec18051b67ac2875314a68b4d10a4f5d063f0991f6cc03b4",
-      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-    },
-    {
-      "command": "./gradlew allTests",
-      "exit_code": 0,
-      "stdout_sha256": "990990b9035aa3312dc544d4849cefb306ba8c5acdd7bcd5adf79677aa6096ce",
-      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-    },
-    {
-      "command": "./gradlew apiCheck",
-      "exit_code": 0,
-      "stdout_sha256": "b882835431c709e4ed3d744e6bc77e0ff0a016b2593174b758976c620ff16101",
-      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-    },
-    {
-      "command": "./gradlew dokkaGenerate",
-      "exit_code": 0,
-      "stdout_sha256": "c595b7df32edaeb0028b8bc627acc710f5b3b7cb261097c403b718ec7cf2edd6",
-      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      "version": "request-fidelity-v1",
+      "path": "contracts/request_fidelity_v1.json",
+      "sha256": "6f02088311f50707b9c12154d888f844928c23d359043cb2e5d5654bf7e5eaea",
+      "library_provider_verification": "passed",
+      "packaged_consumer_verification": "passed"
     }
   ],
+  "library_provider_verification": {
+    "implementation_commit": "6d0de37f6520a77fb5f81b7f03e8bc263b97ba1b",
+    "test_worktree_manifest_sha256": "56fd0cee163515e0f91e0aa78c418e753f91ccdc977bc6c2ff2d196d6cb84fdb",
+    "gates": [
+      {
+        "command": "./gradlew ktlintCheck --offline",
+        "exit_code": 0,
+        "stdout_sha256": "d793715d3ee5d6e4afcb37dbae75dde766a36ddc6f7f0eeec9097a91961b7d80",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "command": "./gradlew detekt --offline",
+        "exit_code": 0,
+        "stdout_sha256": "edbd1af96141226928bcb8b77ec5134f7a2777cce3d0f74f75d917643b20d564",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "command": "./gradlew build --offline",
+        "exit_code": 0,
+        "stdout_sha256": "196906da57826716897da2c2e25f977f6221988e65dc2b8aa7302ef17fba5461",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "command": "./gradlew allTests --offline",
+        "exit_code": 0,
+        "stdout_sha256": "a491f58f190a674b4a22ee9587f6c9c4b6766da92588b962441ed03128ae644b",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "command": "./gradlew apiCheck --offline",
+        "exit_code": 0,
+        "stdout_sha256": "dc6ad417ba965577f9721521c1700cd1c5bfe74023b13e05b91fc0cc8c034a5c",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "command": "./gradlew dokkaGenerate --offline",
+        "exit_code": 0,
+        "stdout_sha256": "106721eb6458db325c2b4a0e952067e68e5bb5720044af992da3f0a90dc82f55",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "tests": {
+      "mojentic-openai/testAndroidHostTest": {
+        "tests": 127,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "suites": 16,
+        "earliest_timestamp": "2026-10-18T23:10:57.457Z",
+        "latest_timestamp": "2026-10-18T23:10:58.917Z"
+      },
+      "mojentic-openai/jvmTest": {
+        "tests": 251,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "suites": 43,
+        "earliest_timestamp": "2026-10-18T23:10:25.730Z",
+        "latest_timestamp": "2026-10-18T23:10:53.576Z"
+      },
+      "mojentic-anthropic/testAndroidHostTest": {
+        "tests": 27,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "suites": 7,
+        "earliest_timestamp": "2026-10-18T23:10:37.880Z",
+        "latest_timestamp": "2026-10-18T23:10:40.881Z"
+      },
+      "mojentic-anthropic/jvmTest": {
+        "tests": 63,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "suites": 14,
+        "earliest_timestamp": "2026-10-18T23:10:24.578Z",
+        "latest_timestamp": "2026-10-18T23:10:31.870Z"
+      },
+      "mojentic-realtime-openai/testAndroidHostTest": {
+        "tests": 13,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "suites": 1,
+        "earliest_timestamp": "2026-10-18T23:10:29.274Z",
+        "latest_timestamp": "2026-10-18T23:10:29.274Z"
+      },
+      "mojentic-realtime-openai/jvmTest": {
+        "tests": 13,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "suites": 1,
+        "earliest_timestamp": "2026-10-18T23:10:25.076Z",
+        "latest_timestamp": "2026-10-18T23:10:25.076Z"
+      },
+      "mojentic-ollama/testAndroidHostTest": {
+        "tests": 35,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "suites": 8,
+        "earliest_timestamp": "2026-10-18T23:10:31.779Z",
+        "latest_timestamp": "2026-10-18T23:10:34.995Z"
+      },
+      "mojentic-ollama/jvmTest": {
+        "tests": 37,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "suites": 9,
+        "earliest_timestamp": "2026-10-18T23:10:24.554Z",
+        "latest_timestamp": "2026-10-18T23:10:27.706Z"
+      },
+      "mojentic-core/testAndroidHostTest": {
+        "tests": 176,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "suites": 34,
+        "earliest_timestamp": "2026-10-18T23:10:32.824Z",
+        "latest_timestamp": "2026-10-18T23:10:37.361Z"
+      },
+      "mojentic-core/jvmTest": {
+        "tests": 176,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "suites": 34,
+        "earliest_timestamp": "2026-10-18T23:10:24.234Z",
+        "latest_timestamp": "2026-10-18T23:10:28.253Z"
+      },
+      "mojentic-websearch-serpapi/testAndroidHostTest": {
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "suites": 1,
+        "earliest_timestamp": "2026-10-18T23:10:29.540Z",
+        "latest_timestamp": "2026-10-18T23:10:29.540Z"
+      },
+      "mojentic-websearch-serpapi/jvmTest": {
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "suites": 1,
+        "earliest_timestamp": "2026-10-18T23:10:25.150Z",
+        "latest_timestamp": "2026-10-18T23:10:25.150Z"
+      }
+    },
+    "totals": {
+      "tests": 926,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 169
+    },
+    "assertion_mapping": [
+      "RECOVERY-CONFORMANCE.md",
+      "CONFORMANCE-3.0.0.md"
+    ]
+  },
   "packaged_consumer": {
-    "command": "tools/verify-distribution.sh --offline",
+    "command": "tools/verify-distribution.sh",
     "exit_code": 0,
-    "stdout_sha256": "2ff43176a0c21fab9b7f71c73bcf9ca1e38d3e18c51b48ac94999e7b12301006",
+    "stdout_sha256": "67d3ff32c5680ed2a2ca2ebd0f3fa47a6f69702c9134ab0275545ae8b0d36273",
     "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "implementation_commit": "6d0de37f6520a77fb5f81b7f03e8bc263b97ba1b",
+    "artifact_source_manifest_sha256": "56fd0cee163515e0f91e0aa78c418e753f91ccdc977bc6c2ff2d196d6cb84fdb",
+    "consumer_source_manifest_sha256": "b97fee40c8408ca8ec1472589448b9c52af0ea4efed608ac0a66763fa3bb0135",
+    "consumer_source_files": {
+      "build.gradle.kts": "e8e2623d03ccf899e2714d54e84c9956b49d7b1584fc946b3258314f24de207b",
+      "gradle/gradle-daemon-jvm.properties": "f3ea33b10c1b511a239fc24d51e30c8f5a0e17ae70cf4b16c6d184e53753f292",
+      "gradle/libs.versions.toml": "cf281665c665c90be077525688a87307531dcfcb896a18a4d19e25cbb4bf67c0",
+      "gradle.properties": "ef33b740af90cf7fdda484de3397561e343d52dac49dba22555c30d2302ec168",
+      "settings.gradle.kts": "512c00edd9596b3c1c91531c3b73b4e43e9a37981867ddb8bc5f4f4d64346c7d",
+      "src/test/kotlin/com/mojentic/omlx/FirstDispatchTimingProofTest.kt": "7219a9fa40fced3d86765b0edb42b7ac74e77d5f12d6d7dcb2e120dbeb373ede",
+      "src/test/kotlin/com/mojentic/omlx/PackagedApiTest.kt": "1f7e8f32807f346c53ee4b7f4ed1c6b30d256ed54a160d27fae7bbbdd02d7798",
+      "src/test/kotlin/com/mojentic/omlx/RecoveryScriptedTransport.kt": "03f176a7a525a16935f2a1fd024d985a851ca141f3afcc20c5e05deb87956e87"
+    },
     "tests": {
       "com.mojentic.omlx.PackagedApiTest": {
         "tests": 6,
@@ -68,59 +230,72 @@
         "skipped": 0
       }
     },
-    "coordinates": [
-      "com.vetzal.mojentic:mojentic-anthropic-android:2.1.0",
-      "com.vetzal.mojentic:mojentic-anthropic-jvm:2.1.0",
-      "com.vetzal.mojentic:mojentic-anthropic:2.1.0",
-      "com.vetzal.mojentic:mojentic-core-android:2.1.0",
-      "com.vetzal.mojentic:mojentic-core-jvm:2.1.0",
-      "com.vetzal.mojentic:mojentic-core:2.1.0",
-      "com.vetzal.mojentic:mojentic-ollama-android:2.1.0",
-      "com.vetzal.mojentic:mojentic-ollama-jvm:2.1.0",
-      "com.vetzal.mojentic:mojentic-ollama:2.1.0",
-      "com.vetzal.mojentic:mojentic-openai-android:2.1.0",
-      "com.vetzal.mojentic:mojentic-openai-jvm:2.1.0",
-      "com.vetzal.mojentic:mojentic-openai:2.1.0",
-      "com.vetzal.mojentic:mojentic-realtime-openai-android:2.1.0",
-      "com.vetzal.mojentic:mojentic-realtime-openai-jvm:2.1.0",
-      "com.vetzal.mojentic:mojentic-realtime-openai:2.1.0",
-      "com.vetzal.mojentic:mojentic-websearch-serpapi-android:2.1.0",
-      "com.vetzal.mojentic:mojentic-websearch-serpapi-jvm:2.1.0",
-      "com.vetzal.mojentic:mojentic-websearch-serpapi:2.1.0"
-    ],
-    "artifact_manifest_sha256": "7561426afcf7a20442fdffd730b4bb74da9f3b72ab485735103de100bc3e9abb",
-    "runtime_graph_sha256": "1d4cad3c3846ff8d4c9331d91e15e9cf1abd02f87eba0fdbcc2387035811fbe6"
+    "candidate_version": "3.0.0",
+    "candidate_directory": "build/distribution-verification/candidate.ywQEnB",
+    "artifact_manifest_sha256": "ec849511992c980d20d8a2e957ae9c7aabf6f6c422725db19b01db8d4f3df91d",
+    "artifact_files": 90,
+    "runtime_graph_sha256": "1d49e3ebb064cdf4c11490542f584f163f268e1f91de9c4e33323caa39c48101",
+    "resolution": "Both Gradle invocations offline; fresh exclusive local file Maven repository; actual resolved files checked; no source/project/composite substitution.",
+    "resolved_artifacts": [
+      {
+        "coordinate": "com.vetzal.mojentic:mojentic-anthropic-jvm:3.0.0",
+        "sha256": "19bfd0778777b70f54fdca33ec92b2baa7d22a3b6df82ba1d82aca756faf011a",
+        "resolved_file": "/home/svetzal/.foundry/worktrees/mojentic-kt/mojentic-kt-no-network-tests-c1-fb6876/build/distribution-verification/candidate.ywQEnB/maven/com/vetzal/mojentic/mojentic-anthropic-jvm/3.0.0/mojentic-anthropic-jvm-3.0.0.jar"
+      },
+      {
+        "coordinate": "com.vetzal.mojentic:mojentic-core-jvm:3.0.0",
+        "sha256": "fb61a2d026f9f9452fa4b8963151dcd473b7a32ab9417db034881455c8897919",
+        "resolved_file": "/home/svetzal/.foundry/worktrees/mojentic-kt/mojentic-kt-no-network-tests-c1-fb6876/build/distribution-verification/candidate.ywQEnB/maven/com/vetzal/mojentic/mojentic-core-jvm/3.0.0/mojentic-core-jvm-3.0.0.jar"
+      },
+      {
+        "coordinate": "com.vetzal.mojentic:mojentic-ollama-jvm:3.0.0",
+        "sha256": "d3ae5b82a33fd3e9eb4bab46d7b3f420ce3da95152e6ee5a58462f29ddc662ec",
+        "resolved_file": "/home/svetzal/.foundry/worktrees/mojentic-kt/mojentic-kt-no-network-tests-c1-fb6876/build/distribution-verification/candidate.ywQEnB/maven/com/vetzal/mojentic/mojentic-ollama-jvm/3.0.0/mojentic-ollama-jvm-3.0.0.jar"
+      },
+      {
+        "coordinate": "com.vetzal.mojentic:mojentic-openai-jvm:3.0.0",
+        "sha256": "3522bec91a2e1834b74731c702e0a700f24b971a0efb2131699414d3c5833695",
+        "resolved_file": "/home/svetzal/.foundry/worktrees/mojentic-kt/mojentic-kt-no-network-tests-c1-fb6876/build/distribution-verification/candidate.ywQEnB/maven/com/vetzal/mojentic/mojentic-openai-jvm/3.0.0/mojentic-openai-jvm-3.0.0.jar"
+      },
+      {
+        "coordinate": "com.vetzal.mojentic:mojentic-realtime-openai-jvm:3.0.0",
+        "sha256": "d7066e9af730db930c2def891bb7a1ec6acb48d2ab4b9b60172cbab36414f3ca",
+        "resolved_file": "/home/svetzal/.foundry/worktrees/mojentic-kt/mojentic-kt-no-network-tests-c1-fb6876/build/distribution-verification/candidate.ywQEnB/maven/com/vetzal/mojentic/mojentic-realtime-openai-jvm/3.0.0/mojentic-realtime-openai-jvm-3.0.0.jar"
+      },
+      {
+        "coordinate": "com.vetzal.mojentic:mojentic-websearch-serpapi-jvm:3.0.0",
+        "sha256": "034177291246286c73ae14cea7217417d2b20101d66059f05837cf6e6d106ed9",
+        "resolved_file": "/home/svetzal/.foundry/worktrees/mojentic-kt/mojentic-kt-no-network-tests-c1-fb6876/build/distribution-verification/candidate.ywQEnB/maven/com/vetzal/mojentic/mojentic-websearch-serpapi-jvm/3.0.0/mojentic-websearch-serpapi-jvm-3.0.0.jar"
+      }
+    ]
   },
-  "library_tests": {
-    "jvmTest": {
-      "suites": 101,
-      "tests": 543,
-      "failures": 0,
-      "errors": 0,
-      "skipped": 0
+  "proof": {
+    "kind": "behavioral",
+    "source_change": "mojentic-openai/src/jvmTest/kotlin/com/mojentic/omlx/DeterministicRecoveryProofTest.kt: replace the in-process transport response content incorrect with ok; drive public OpenAIGateway recovery and verify exact request bytes, logical/attempt identities, failure evidence, lifecycle and privacy.",
+    "rejecting": {
+      "command": "GRADLE_USER_HOME=/tmp/mojentic-no-network-gradle ANDROID_HOME=/home/svetzal/Android/Sdk ./gradlew :mojentic-openai:jvmTest --tests '*DeterministicRecoveryProofTest' --offline",
+      "exit_code": 1,
+      "stdout_sha256": "0c7b06595aa69a162534cd9fbcebf25f1a23914adc03eaf34ed6d9d59158d685"
     },
-    "testAndroidHostTest": {
-      "suites": 67,
-      "tests": 382,
-      "failures": 0,
-      "errors": 0,
-      "skipped": 0
+    "corrected": {
+      "command": "GRADLE_USER_HOME=/tmp/mojentic-no-network-gradle ANDROID_HOME=/home/svetzal/Android/Sdk ./gradlew :mojentic-openai:jvmTest --tests '*DeterministicRecoveryProofTest' --offline",
+      "exit_code": 0,
+      "stdout_sha256": "6b45e65ef3730c4ac478bf1d73ff675860d4acb754b5b445e7a7dbe181c920b3"
     }
   },
-  "security": {
-    "command": "./gradlew dependencyCheckAggregate --no-parallel -PdependencyCheckDataDirectory=/tmp/mojentic-kt-timing-gradle/dependency-check-data --offline",
+  "dependency_audit": {
+    "command": "./gradlew dependencyCheckAggregate --no-parallel --offline -PdependencyCheckDataDirectory=/tmp/mojentic-no-network-gradle/dependency-check-data",
     "exit_code": 0,
-    "stdout_sha256": "52cda715cde6506498358eb22eabaa5e8f5dde447c12eff10e46b996525edd79",
+    "stdout_sha256": "95cc4d20cedf7dab8aac4a52334fac772a26ca521aa646a581651ecd69a9b32c",
     "stderr_sha256": "97a1e664167bc4b9afdafa6ec01617687d6d29ad7cf1b0cb51a0406ba519b8f5",
-    "report_sha256": "45cd4de5189f73e4dcf425a2f3cb929ebf80dbae6e50f0c79210d0ce83ccaf7f",
+    "report_sha256": "d7ce67a17ee72b0b4449f584d2c6d626390e7709952b8ee7c85dd1db84a08ecd",
     "dependencies": 305,
-    "unsuppressed_findings": 0,
+    "active_findings": 0,
     "inherited_suppressed_findings": 47,
-    "unchanged_suppressions_sha256": "7cee0a8efe513e2b45d3d01e723c4c93355b7e6e9c020e0a8f9adfae59106db1",
     "data_sources": [
       {
         "name": "NVD API Last Checked",
-        "timestamp": "2026-10-17T23:52:06Z"
+        "timestamp": "2026-10-18T23:13:47Z"
       },
       {
         "name": "NVD API Last Modified",
@@ -128,13 +303,40 @@
       },
       {
         "name": "NVD Cache Last Checked",
-        "timestamp": "2026-10-17T23:52:06Z"
+        "timestamp": "2026-10-18T23:13:47Z"
       },
       {
         "name": "NVD Cache Last Modified",
         "timestamp": "2026-10-16T18:00:09-04"
       }
-    ]
+    ],
+    "limitation": "The configured audit passed, but its .NET assembly analyzer warned that dotnet 8 was unavailable; native-access and existing Gradle/Android/Dokka warnings also remain. No audit scope or suppression change was made."
   },
-  "hosted_ci_scope": "Historical ci-base.json refers to f6913fc only; current base plus source manifest verified locally. Foundry owns finalized-source hosted validation."
+  "review": {
+    "inventory": "docs/testing.md",
+    "root_contract_copy_exact": true,
+    "workflow_job_timeouts": {
+      ".github/workflows/release.yml": {
+        "publish": 20
+      },
+      ".github/workflows/build.yml": {
+        "build-jvm-android": 20
+      },
+      ".github/workflows/security.yml": {
+        "dependency-check": 30
+      },
+      ".github/workflows/docs.yml": {
+        "build-docs": 20,
+        "deploy": 20
+      }
+    },
+    "production_api_version_advisory_files_unchanged": true
+  },
+  "unresolved_task_gaps": [],
+  "verification_limits": [
+    "No upstream live-provider certification is claimed.",
+    "JVM and Android host tests and Maven/AAR inspection; no Android device run is claimed.",
+    "ci-base.json records a historical hosted run; no hosted verification of this worktree is claimed.",
+    "The configured audit passed, but its .NET assembly analyzer warned that dotnet 8 was unavailable; native-access and existing Gradle/Android/Dokka warnings also remain. No audit scope or suppression change was made."
+  ]
 }

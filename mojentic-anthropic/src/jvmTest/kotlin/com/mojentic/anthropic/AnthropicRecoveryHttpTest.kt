@@ -20,13 +20,12 @@ import com.mojentic.llm.tools.ToolDescriptor
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
-import java.util.concurrent.CountDownLatch
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -45,12 +44,12 @@ class AnthropicRecoveryHttpTest {
         frame("""{"type":"message_stop"}""")
 
     @Test
-    fun ordinaryBrokerAndSessionRecoverWithoutStreamingSubstitution(): Unit = runBlocking {
+    fun ordinaryBrokerAndSessionRecoverWithoutStreamingSubstitution(): Unit = runTest {
         for (caller in listOf("gateway", "broker", "session")) {
             val events = mutableListOf<RecoveryEvent>()
             val wires = mutableListOf<RecoveryWire>()
-            RecoveryScriptedServer(listOf(ScriptedReply(503, "private error"), ScriptedReply(200, success))).use { server ->
-                val gateway = AnthropicGateway("key-private", server.url)
+            RecoveryScriptedTransport(listOf(ScriptedReply(503, "private error"), ScriptedReply(200, success))).use { server ->
+                val gateway = AnthropicGateway("key-private", server.url, engine = server.engine)
                 try {
                     val config = CompletionConfig(temperature = 0.2, maxTokens = 127, recovery = policy(events, wires))
                     val result = when (caller) {
@@ -99,10 +98,10 @@ class AnthropicRecoveryHttpTest {
     }
 
     @Test
-    fun structuredRecoveryKeepsForcedToolSchemaAndDoesNotReplayTools(): Unit = runBlocking {
+    fun structuredRecoveryKeepsForcedToolSchemaAndDoesNotReplayTools(): Unit = runTest {
         val body = """{"content":[{"type":"tool_use","id":"tool-1","name":"respond_in_json","input":{"answer":"ok"}}]}"""
-        RecoveryScriptedServer(listOf(ScriptedReply(503, ""), ScriptedReply(200, body))).use { server ->
-            val gateway = AnthropicGateway("key", server.url)
+        RecoveryScriptedTransport(listOf(ScriptedReply(503, ""), ScriptedReply(200, body))).use { server ->
+            val gateway = AnthropicGateway("key", server.url, engine = server.engine)
             try {
                 val schema = buildJsonObject { put("type", "object") }
                 val result = gateway.completeJson("claude", messages, schema, CompletionConfig(recovery = policy()))
@@ -119,11 +118,11 @@ class AnthropicRecoveryHttpTest {
     }
 
     @Test
-    fun defaultAndPermanentTruncatedErrorsNeverResend(): Unit = runBlocking {
+    fun defaultAndPermanentTruncatedErrorsNeverResend(): Unit = runTest {
         for (status in listOf(400, 401, 403, 504)) {
-            val observed = CountDownLatch(1)
-            RecoveryScriptedServer(listOf(ScriptedReply(status, "private", truncated = true, release = observed))).use { server ->
-                val gateway = AnthropicGateway("key", server.url)
+            val observed = CompletableDeferred<Unit>()
+            RecoveryScriptedTransport(listOf(ScriptedReply(status, "private", truncated = true, release = observed))).use { server ->
+                val gateway = AnthropicGateway("key", server.url, engine = server.engine)
                 try {
                     val failure = assertFailsWith<RecoveryException> {
                         gateway.complete(
@@ -134,7 +133,7 @@ class AnthropicRecoveryHttpTest {
                                 RecoveryPolicy(
                                     maxAttempts = if (status == 504) 1 else 3,
                                     admission = { true },
-                                    capture = { if (it.inspectResponse()?.size == "private".length) observed.countDown() },
+                                    capture = { if (it.inspectResponse()?.size == "private".length) observed.complete(Unit) },
                                 ),
                             ),
                         )
@@ -146,13 +145,13 @@ class AnthropicRecoveryHttpTest {
                     assertContentEquals("private".encodeToByteArray(), failure.failures.single().inspectBytes())
                     assertTrue(failure.failures.single().progress.headersReceived)
                 } finally {
-                    observed.countDown()
+                    observed.complete(Unit)
                     gateway.close()
                 }
             }
         }
-        RecoveryScriptedServer(listOf(ScriptedReply(503, "error"))).use { server ->
-            val gateway = AnthropicGateway("key", server.url)
+        RecoveryScriptedTransport(listOf(ScriptedReply(503, "error"))).use { server ->
+            val gateway = AnthropicGateway("key", server.url, engine = server.engine)
             try {
                 assertFailsWith<LlmGatewayException> { gateway.complete("claude", messages) }
                 assertEquals(1, server.requests.size)
@@ -163,9 +162,9 @@ class AnthropicRecoveryHttpTest {
     }
 
     @Test
-    fun persistent504HasOrderedBoundedHistory(): Unit = runBlocking {
-        RecoveryScriptedServer(List(3) { ScriptedReply(504, "private-$it") }).use { server ->
-            val gateway = AnthropicGateway("key", server.url)
+    fun persistent504HasOrderedBoundedHistory(): Unit = runTest {
+        RecoveryScriptedTransport(List(3) { ScriptedReply(504, "private-$it") }).use { server ->
+            val gateway = AnthropicGateway("key", server.url, engine = server.engine)
             try {
                 val failure = assertFailsWith<RecoveryException> {
                     gateway.complete("claude", messages, config = CompletionConfig(recovery = policy()))
@@ -181,7 +180,7 @@ class AnthropicRecoveryHttpTest {
     }
 
     @Test
-    fun retryAfterSecondsDatesAndInvalid(): Unit = runBlocking {
+    fun retryAfterSecondsDatesAndInvalid(): Unit = runTest {
         for ((header, expected) in listOf(
             "2" to 2000L,
             "Thu, 01 Jan 1970 00:00:03 GMT" to 3000L,
@@ -192,10 +191,10 @@ class AnthropicRecoveryHttpTest {
         )) {
             val delays = mutableListOf<Long>()
             val events = mutableListOf<RecoveryEvent>()
-            RecoveryScriptedServer(
+            RecoveryScriptedTransport(
                 listOf(ScriptedReply(429, "", mapOf("Retry-After" to header)), ScriptedReply(200, success)),
             ).use { server ->
-                val gateway = AnthropicGateway("key", server.url)
+                val gateway = AnthropicGateway("key", server.url, engine = server.engine)
                 try {
                     gateway.complete(
                         "claude",
@@ -224,10 +223,10 @@ class AnthropicRecoveryHttpTest {
     }
 
     @Test
-    fun retryAfterMinimumRefusesCeilingOrBudget(): Unit = runBlocking {
+    fun retryAfterMinimumRefusesCeilingOrBudget(): Unit = runTest {
         for (budget in listOf<Long?>(null, 100)) {
-            RecoveryScriptedServer(listOf(ScriptedReply(429, "", mapOf("Retry-After" to "10")))).use { server ->
-                val gateway = AnthropicGateway("key", server.url)
+            RecoveryScriptedTransport(listOf(ScriptedReply(429, "", mapOf("Retry-After" to "10")))).use { server ->
+                val gateway = AnthropicGateway("key", server.url, engine = server.engine)
                 try {
                     val failure = assertFailsWith<RecoveryException> {
                         gateway.complete(
@@ -253,7 +252,7 @@ class AnthropicRecoveryHttpTest {
     }
 
     @Test
-    fun keepaliveOnlyCanRecoverButContentReasoningAndToolFragmentsInterrupt(): Unit = runBlocking {
+    fun keepaliveOnlyCanRecoverButContentReasoningAndToolFragmentsInterrupt(): Unit = runTest {
         val partials = listOf(
             frame("""{"type":"ping"}"""),
             frame("""{"type":"content_block_start","index":0,"content_block":{"type":"text","text":""}}""") +
@@ -268,8 +267,8 @@ class AnthropicRecoveryHttpTest {
         )
         for ((index, partial) in partials.withIndex()) {
             val events = mutableListOf<RecoveryEvent>()
-            RecoveryScriptedServer(listOf(ScriptedReply(200, start + partial), ScriptedReply(200, start + terminal))).use { server ->
-                val gateway = AnthropicGateway("key", server.url)
+            RecoveryScriptedTransport(listOf(ScriptedReply(200, start + partial), ScriptedReply(200, start + terminal))).use { server ->
+                val gateway = AnthropicGateway("key", server.url, engine = server.engine)
                 try {
                     val output = mutableListOf<GatewayStreamEvent>()
                     val config = CompletionConfig(recovery = policy(events))
@@ -298,10 +297,10 @@ class AnthropicRecoveryHttpTest {
     }
 
     @Test
-    fun malformedFramesAndMalformedStructuredRepliesStayIneligible(): Unit = runBlocking {
+    fun malformedFramesAndMalformedStructuredRepliesStayIneligible(): Unit = runTest {
         for (body in listOf("data: not-json\n\n", frame("""{"type":"unknown"}"""), terminal.replace("end_turn", "unknown_reason"))) {
-            RecoveryScriptedServer(listOf(ScriptedReply(200, start + body))).use { server ->
-                val gateway = AnthropicGateway("key", server.url)
+            RecoveryScriptedTransport(listOf(ScriptedReply(200, start + body))).use { server ->
+                val gateway = AnthropicGateway("key", server.url, engine = server.engine)
                 try {
                     val failure = assertFailsWith<RecoveryException> {
                         gateway.stream("claude", messages, config = CompletionConfig(recovery = policy())).collect {}
@@ -313,8 +312,8 @@ class AnthropicRecoveryHttpTest {
                 }
             }
         }
-        RecoveryScriptedServer(listOf(ScriptedReply(200, "{}"))).use { server ->
-            val gateway = AnthropicGateway("key", server.url)
+        RecoveryScriptedTransport(listOf(ScriptedReply(200, "{}"))).use { server ->
+            val gateway = AnthropicGateway("key", server.url, engine = server.engine)
             try {
                 assertFailsWith<RecoveryException> { gateway.complete("claude", messages, config = CompletionConfig(recovery = policy())) }
                 assertEquals(1, server.requests.size)
@@ -325,9 +324,9 @@ class AnthropicRecoveryHttpTest {
     }
 
     @Test
-    fun admissionRejectsWithoutAnotherWireRequest(): Unit = runBlocking {
-        RecoveryScriptedServer(listOf(ScriptedReply(503, ""))).use { server ->
-            val gateway = AnthropicGateway("key", server.url)
+    fun admissionRejectsWithoutAnotherWireRequest(): Unit = runTest {
+        RecoveryScriptedTransport(listOf(ScriptedReply(503, ""))).use { server ->
+            val gateway = AnthropicGateway("key", server.url, engine = server.engine)
             try {
                 val failure = assertFailsWith<RecoveryException> {
                     gateway.complete(
@@ -349,12 +348,12 @@ class AnthropicRecoveryHttpTest {
     }
 
     @Test
-    fun cancellationWinsInRequestAdmissionBackoffAndPausedToolDelivery(): Unit = runBlocking {
+    fun cancellationWinsInRequestAdmissionBackoffAndPausedToolDelivery(): Unit = runTest {
         for (phase in listOf("request", "admission", "backoff", "tools", "terminal")) {
             val reached = CompletableDeferred<Unit>()
             val caught = CompletableDeferred<RecoveryCancellationException>()
             val events = mutableListOf<RecoveryEvent>()
-            val release = CountDownLatch(1)
+            val release = CompletableDeferred<Unit>()
             lateinit var job: kotlinx.coroutines.Job
             val body =
                 frame(
@@ -368,8 +367,8 @@ class AnthropicRecoveryHttpTest {
                 "terminal" -> ScriptedReply(200, start + terminal)
                 else -> ScriptedReply(503, "")
             }
-            RecoveryScriptedServer(listOf(reply)).use { server ->
-                val gateway = AnthropicGateway("key", server.url)
+            RecoveryScriptedTransport(listOf(reply)).use { server ->
+                val gateway = AnthropicGateway("key", server.url, engine = server.engine)
                 try {
                     val policy = cancellationPolicy(phase, events, reached) { job.cancel() }
                     job = launch {
@@ -388,7 +387,7 @@ class AnthropicRecoveryHttpTest {
                     assertEquals(1, server.requests.size, "pending work is not admission")
                     job.cancel()
                     withTimeout(5000) { job.join() }
-                    release.countDown()
+                    release.complete(Unit)
                     val failure = withTimeout(5000) { caught.await() }
                     assertEquals(1, failure.wireAttempts)
                     assertEquals(RecoveryStage.CANCELLED, events.last().stage)
@@ -396,7 +395,7 @@ class AnthropicRecoveryHttpTest {
                     assertTrue(events.any { it.stage == RecoveryStage.FAILED })
                     assertFalse(events.any { it.stage == RecoveryStage.SUCCEEDED })
                 } finally {
-                    release.countDown()
+                    release.complete(Unit)
                     gateway.close()
                 }
             }
@@ -404,7 +403,7 @@ class AnthropicRecoveryHttpTest {
     }
 
     @Test
-    fun brokerToolsExecuteOnceAcrossFollowupRecovery(): Unit = runBlocking {
+    fun brokerToolsExecuteOnceAcrossFollowupRecovery(): Unit = runTest {
         var executions = 0
         val tool = object : LlmTool {
             override val descriptor = ToolDescriptor("count", "count", buildJsonObject { put("type", "object") })
@@ -414,8 +413,8 @@ class AnthropicRecoveryHttpTest {
             }
         }
         val toolBody = """{"content":[{"type":"tool_use","id":"t","name":"count","input":{}}]}"""
-        RecoveryScriptedServer(listOf(ScriptedReply(200, toolBody), ScriptedReply(503, ""), ScriptedReply(200, success))).use { server ->
-            val gateway = AnthropicGateway("key", server.url)
+        RecoveryScriptedTransport(listOf(ScriptedReply(200, toolBody), ScriptedReply(503, ""), ScriptedReply(200, success))).use { server ->
+            val gateway = AnthropicGateway("key", server.url, engine = server.engine)
             try {
                 val response = ChatSession(
                     LlmBroker(gateway),
@@ -436,7 +435,7 @@ class AnthropicRecoveryHttpTest {
     }
 
     @Test
-    fun streamingBrokerAndSessionCompleteToolsOnce(): Unit = runBlocking {
+    fun streamingBrokerAndSessionCompleteToolsOnce(): Unit = runTest {
         for (sessionCaller in listOf(false, true)) {
             var executions = 0
             val tool = object : LlmTool {
@@ -453,10 +452,10 @@ class AnthropicRecoveryHttpTest {
                             """"name":"count","input":{}}}""",
                     ) +
                     frame("""{"type":"content_block_stop","index":0}""") + terminal.replace("end_turn", "tool_use")
-            RecoveryScriptedServer(
+            RecoveryScriptedTransport(
                 listOf(ScriptedReply(200, tools), ScriptedReply(503, ""), ScriptedReply(200, start + terminal)),
             ).use { server ->
-                val gateway = AnthropicGateway("key", server.url)
+                val gateway = AnthropicGateway("key", server.url, engine = server.engine)
                 try {
                     val config = CompletionConfig(recovery = policy())
                     val broker = LlmBroker(gateway)
@@ -477,11 +476,11 @@ class AnthropicRecoveryHttpTest {
     }
 
     @Test
-    fun safeSummariesWithholdCredentialPayloadAndHeaderEchoes(): Unit = runBlocking {
+    fun safeSummariesWithholdCredentialPayloadAndHeaderEchoes(): Unit = runTest {
         val key = "req_012345678901234567890123"
         val body = """{"error":{"type":"overloaded_error","message":"$key payload-private"}}"""
-        RecoveryScriptedServer(listOf(ScriptedReply(503, body, mapOf("request-id" to key, "x-api-key" to key)))).use { server ->
-            val gateway = AnthropicGateway(key, server.url)
+        RecoveryScriptedTransport(listOf(ScriptedReply(503, body, mapOf("request-id" to key, "x-api-key" to key)))).use { server ->
+            val gateway = AnthropicGateway(key, server.url, engine = server.engine)
             val events = mutableListOf<RecoveryEvent>()
             try {
                 val failure = assertFailsWith<RecoveryException> {

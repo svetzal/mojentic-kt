@@ -14,6 +14,7 @@ import com.mojentic.tracer.LlmCallEvent
 import com.mojentic.tracer.LlmResponseEvent
 import com.mojentic.tracer.TracerSystem
 import io.ktor.client.engine.mock.MockEngine
+import io.ktor.client.engine.mock.MockEngineConfig
 import io.ktor.client.engine.mock.respond
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
@@ -21,11 +22,11 @@ import io.ktor.http.content.TextContent
 import io.ktor.http.headersOf
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.writeStringUtf8
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
@@ -207,9 +208,14 @@ class OllamaStreamEventsTest {
     fun stoppingConsumptionEarlyCancelsTheRequest() = runTest {
         val body = ByteChannel(autoFlush = true)
         gateway = OllamaGateway(
-            engine = MockEngine { respond(body, HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "application/x-ndjson")) },
+            engine = MockEngine(
+                MockEngineConfig().apply {
+                    dispatcher = StandardTestDispatcher(testScheduler)
+                    addHandler { respond(body, HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "application/x-ndjson")) }
+                },
+            ),
         )
-        val writer = launch(Dispatchers.Default) {
+        val writer = launch {
             // Writes fail once the gateway cancels the response body, which ends the loop.
             runCatching {
                 body.writeStringUtf8(lines(content("Par")))
@@ -223,7 +229,7 @@ class OllamaStreamEventsTest {
         val first = LlmBroker(gateway).generateStreamEvents("qwen3", messages).first()
 
         assertEquals(Content("Par"), first)
-        withContext(Dispatchers.Default) {
+        withContext(coroutineContext) {
             withTimeout(5.seconds) { writer.join() }
         }
         assertTrue(body.isClosedForWrite, "the response body must be cancelled after the consumer stops")

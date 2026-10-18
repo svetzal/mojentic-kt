@@ -8,10 +8,10 @@ import com.mojentic.llm.recovery.RecoveryEvent
 import com.mojentic.llm.recovery.RecoveryPolicy
 import com.mojentic.llm.recovery.RecoveryStage
 import com.mojentic.llm.recovery.RecoveryWire
-import com.mojentic.omlx.RecoveryScriptedServer
+import com.mojentic.omlx.RecoveryScriptedTransport
 import com.mojentic.omlx.RecoveryTestFixtures
 import com.mojentic.omlx.ScriptedReply
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlin.test.Test
@@ -22,7 +22,7 @@ import kotlin.test.assertIs
 /** Golden semantic bytes through the default production client, including model-specific controls. */
 class OpenAIRecoveryPayloadTest {
     @Test
-    fun supportedPayloadIsFrozenBeforeAdmissionAcrossAllEntrypoints(): Unit = runBlocking {
+    fun supportedPayloadIsFrozenBeforeAdmissionAcrossAllEntrypoints(): Unit = runTest {
         for (model in listOf("gpt-4o", "o3")) {
             for (operation in listOf("complete", "structured", "stream", "streamEvents")) {
                 provePayload(model, operation)
@@ -54,8 +54,8 @@ class OpenAIRecoveryPayloadTest {
                 capture = { wires += it },
             ),
         )
-        RecoveryScriptedServer(replies).use { server ->
-            val gateway = OpenAIGateway("credential-secret", server.url)
+        RecoveryScriptedTransport(replies).use { server ->
+            val gateway = OpenAIGateway("credential-secret", server.url, engine = server.engine)
             try {
                 val tools = listOf(RecoveryTestFixtures.countingTool {})
                 when (operation) {

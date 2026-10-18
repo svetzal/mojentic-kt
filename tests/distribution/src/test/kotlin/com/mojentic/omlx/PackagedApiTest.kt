@@ -15,7 +15,7 @@ import com.mojentic.llm.tools.ToolDescriptor
 import com.mojentic.ollama.OllamaGateway
 import com.mojentic.openai.OpenAIGateway
 import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -52,16 +52,22 @@ class PackagedApiTest {
     }
 
     @Test
-    fun nativeControlsAndRetentionSurvivePackagedSessionToolContinuation(): Unit = runBlocking {
+    fun nativeControlsAndRetentionSurvivePackagedSessionToolContinuation(): Unit = runTest {
         val shared = contract("native_reasoning_v1")
         for (provider in listOf("ollama", "omlx")) {
             val replies = shared.getValue("providers").jsonObject.getValue(provider).jsonObject
-            RecoveryScriptedServer(
+            RecoveryScriptedTransport(
                 listOf("ordinary_tool", "ordinary_final").map {
                     ScriptedReply(200, replies.getValue(it).jsonPrimitive.content)
                 },
             ).use { server ->
-                val gateway = if (provider == "ollama") OllamaGateway(server.url) else OmlxGateway(server.url, apiKey = "test")
+                val gateway = if (provider ==
+                    "ollama"
+                ) {
+                    OllamaGateway(server.url, engine = server.engine)
+                } else {
+                    OmlxGateway(server.url, apiKey = "test", engine = server.engine)
+                }
                 var executions = 0
                 val tool = object : LlmTool {
                     override val descriptor = ToolDescriptor("lookup", "Lookup", JsonObject(emptyMap()))
@@ -131,7 +137,7 @@ class PackagedApiTest {
     }
 
     @Test
-    fun packagedRemoteAdaptersRetryExactPayloadAndKeepUnsetFieldsAbsent(): Unit = runBlocking {
+    fun packagedRemoteAdaptersRetryExactPayloadAndKeepUnsetFieldsAbsent(): Unit = runTest {
         val shared = contract("request_fidelity_v1")
         for (anthropic in listOf(false, true)) {
             val success = if (anthropic) {
@@ -143,14 +149,15 @@ class PackagedApiTest {
             } else {
                 shared.getValue("responses").jsonObject.getValue("openai-complete").jsonPrimitive.content
             }
-            RecoveryScriptedServer(listOf(ScriptedReply(503, "busy"), ScriptedReply(200, success))).use { server ->
+            RecoveryScriptedTransport(listOf(ScriptedReply(503, "busy"), ScriptedReply(200, success))).use { server ->
                 val gateway = if (anthropic) {
                     AnthropicGateway(
                         apiKey = "test",
                         host = server.url,
+                        engine = server.engine,
                     )
                 } else {
-                    OpenAIGateway("test", "${server.url}/v1")
+                    OpenAIGateway("test", "${server.url}/v1", engine = server.engine)
                 }
                 try {
                     val response = gateway.complete(
@@ -178,17 +185,23 @@ class PackagedApiTest {
     }
 
     @Test
-    fun packagedContextDiscoveryExecutesContractRows(): Unit = runBlocking {
+    fun packagedContextDiscoveryExecutesContractRows(): Unit = runTest {
         val shared = contract("context_window_v1")
         for (element in shared.getValue("cases").jsonArray) {
             val row = element.jsonObject
             val expected = row.getValue("expected").jsonObject
-            RecoveryScriptedServer(
+            RecoveryScriptedTransport(
                 listOf(ScriptedReply(row.getValue("status").jsonPrimitive.content.toInt(), row.getValue("response").jsonPrimitive.content)),
             ).use { server ->
                 val provider = row.getValue("provider").jsonPrimitive.content
                 val key = if (row["without_api_key"]?.jsonPrimitive?.content == "true") "" else "test"
-                val gateway = if (provider == "ollama") OllamaGateway(server.url) else OmlxGateway(server.url, apiKey = key)
+                val gateway = if (provider ==
+                    "ollama"
+                ) {
+                    OllamaGateway(server.url, engine = server.engine)
+                } else {
+                    OmlxGateway(server.url, apiKey = key, engine = server.engine)
+                }
                 try {
                     val model = row.getValue("model").jsonPrimitive.content
                     if ("error" in expected) {
@@ -224,12 +237,12 @@ class PackagedApiTest {
     }
 
     @Test
-    fun incompleteNativeStreamIsTerminalAndNeverConsumesRetrySentinel(): Unit = runBlocking {
+    fun incompleteNativeStreamIsTerminalAndNeverConsumesRetrySentinel(): Unit = runTest {
         val shared = contract("native_reasoning_v1")
         val valid = shared.getValue("providers").jsonObject.getValue("omlx").jsonObject.getValue("stream_final").jsonPrimitive.content
         val incomplete = "data: {\"choices\":[{\"delta\":{\"reasoning_content\":\"partial-native\"}}]}\n\n"
-        RecoveryScriptedServer(listOf(ScriptedReply(200, incomplete), ScriptedReply(200, valid))).use { server ->
-            val gateway = OmlxGateway(server.url, apiKey = "test")
+        RecoveryScriptedTransport(listOf(ScriptedReply(200, incomplete), ScriptedReply(200, valid))).use { server ->
+            val gateway = OmlxGateway(server.url, apiKey = "test", engine = server.engine)
             try {
                 val events = gateway.streamEvents(
                     "unknown",
@@ -250,7 +263,7 @@ class PackagedApiTest {
     }
 
     @Test
-    fun allPackagedAdaptersHonorObsoleteRetryAfterMinimums(): Unit = runBlocking {
+    fun allPackagedAdaptersHonorObsoleteRetryAfterMinimums(): Unit = runTest {
         val native = contract("native_reasoning_v1").getValue("providers").jsonObject
         val openai = contract("request_fidelity_v1").getValue("responses").jsonObject.getValue("openai-complete").jsonPrimitive.content
         for (provider in listOf("ollama", "omlx", "openai", "anthropic")) {
@@ -266,14 +279,14 @@ class PackagedApiTest {
                 else -> openai
             }
             for (date in listOf("Thu, 01 Jan 1970 00:00:03 GMT", "Thursday, 01-Jan-70 00:00:03 GMT", "Thu Jan  1 00:00:03 1970")) {
-                RecoveryScriptedServer(
+                RecoveryScriptedTransport(
                     listOf(ScriptedReply(429, "busy", mapOf("Retry-After" to date)), ScriptedReply(200, success)),
                 ).use { server ->
                     val gateway = when (provider) {
-                        "ollama" -> OllamaGateway(server.url)
-                        "omlx" -> OmlxGateway(server.url, apiKey = "test")
-                        "anthropic" -> AnthropicGateway("test", server.url)
-                        else -> OpenAIGateway("test", "${server.url}/v1")
+                        "ollama" -> OllamaGateway(server.url, engine = server.engine)
+                        "omlx" -> OmlxGateway(server.url, apiKey = "test", engine = server.engine)
+                        "anthropic" -> AnthropicGateway("test", server.url, engine = server.engine)
+                        else -> OpenAIGateway("test", "${server.url}/v1", engine = server.engine)
                     }
                     val delays = mutableListOf<Long>()
                     try {

@@ -42,8 +42,8 @@ class NativeReasoningContinuityTest {
             NativeReasoningCases.reply(provider, "${mode}_final"),
             NativeReasoningCases.reply(provider, "${mode}_final"),
         )
-        RecoveryScriptedServer(replies).use { server ->
-            provider.gateway(server.url).use { owned ->
+        RecoveryScriptedTransport(replies).use { server ->
+            provider.gateway(server.url, engine = server.engine).use { owned ->
                 val executed = mutableListOf<String>()
                 val config = CompletionConfig(
                     reasoningEffort = ReasoningEffort.XHIGH,
@@ -87,7 +87,7 @@ class NativeReasoningContinuityTest {
         }
     }
 
-    private fun assertRequests(server: RecoveryScriptedServer, provider: RecoveryTestFixtures.Provider, retain: Boolean) {
+    private fun assertRequests(server: RecoveryScriptedTransport, provider: RecoveryTestFixtures.Provider, retain: Boolean) {
         val requests = NativeReasoningCases.requests(server)
         val next = NativeReasoningCases.messages(requests[1])
         val historyKey = if (provider == RecoveryTestFixtures.Provider.OLLAMA) "thinking" else "reasoning_content"

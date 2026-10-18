@@ -1,120 +1,95 @@
-# Caller-selected retry eligibility verification
+# Current verification results
 
-Tested source: `fa9694903ab083f7d97e331b7f723f65dc2976a9` plus the uncommitted worktree identified by
-[source.sha256](source.sha256), SHA-256 `d782d3dfb7693b60291671dd6d4f0f7a5ea8012ac907b405f8090f328c1a575a`
-(325 files). Verified at `2026-10-18T00:41:27.784910+00:00`.
-This correction closes the remaining eligibility proof gap; it does not change
-production behavior, dependencies, versions or the coordinated release scope.
+The tested implementation is Kotlin `6d0de37f6520a77fb5f81b7f03e8bc263b97ba1b` plus the uncommitted test/build/docs
+changes identified by [source.sha256](source.sha256), SHA-256
+`56fd0cee163515e0f91e0aa78c418e753f91ccdc977bc6c2ff2d196d6cb84fdb` (337 files). The authority is read-only mojentic-unify
+`4ae2f73a0a5465b0f6509b87e1148d254f3f64cd`. Production source, public API/dumps, version and release
+state are unchanged. The existing candidate version is **3.0.0**; this task did
+not bump, tag, commit, push or publish remotely.
 
-## Executable contract and behavioral proof
+## Library/provider verification
 
-**kt-retry-eligibility-v1**, SHA-256 `fcd4793948bfbe010dbd26e3af396db83f38c0cf6c3f171254053d22f5b10ef7`, is
-`mojentic-openai/src/jvmTest/kotlin/com/mojentic/omlx/RetryEligibilityHttpTest.kt`.
-The manifest also identifies its existing production HTTP server and provider
-fixtures. [CONFORMANCE-3.0.0.md](../../CONFORMANCE-3.0.0.md) maps the named tests
-to the binding recovery decisions and records the authority hashes.
+All six required commands passed on this worktree, with Gradle offline:
 
-The two differential tests execute **48 scenarios**: four production adapters
-(OpenAI, Anthropic, Ollama, oMLX), three public entrypoints (ordinary, structured,
-streaming), two eligibility controls and their enabled/disabled values. Each
-pair holds failure, payload and admission policy constant. Transport controls
-close the accepted connection before response headers; status controls include
-or exclude the same normally retryable HTTP 503.
+| Actual command | Exit |
+| --- | --- |
+| `./gradlew ktlintCheck --offline` | 0 |
+| `./gradlew detekt --offline` | 0 |
+| `./gradlew build --offline` | 0 |
+| `./gradlew allTests --offline` | 0 |
+| `./gradlew apiCheck --offline` | 0 |
+| `./gradlew dokkaGenerate --offline` | 0 |
 
-Enabled cases recover after admission and deterministic 100 ms backoff. Disabled
-cases assert typed HTTP_PERMANENT terminal classification, an ineligible retained
-failure (TRANSPORT or HTTP category), exact STARTED/FAILED/EXHAUSTED lifecycle,
-no admission/backoff, and no second request. Request bytes are compared across
-controls and retries, with captured identities, method/path and retry headers.
-A success-response callback proves the queued success was used only in enabled
-cases. The focused oMLX stream test adds one disabled scenario.
+Fresh XML contains **926 executions in 169 suites**,
+zero failures/errors/skips, across JVM and Android host tests. These are execution
+counts, not unique tests or a behavioral coverage argument. Concrete assertions
+are mapped decision by decision in [recovery conformance](../../RECOVERY-CONFORMANCE.md)
+and [parts 1–3 conformance](../../CONFORMANCE-3.0.0.md). The reviewed dependency
+replacement inventory is [testing.md](../testing.md).
 
-Before expanding the matrix or running the full gates, the focused production
-HTTP probe enabled transport retry against disabled-case assertions. It consumed
-the queued success and reached the delivery guard, producing PARTIAL_SUCCESS
-instead of the expected HTTP_PERMANENT (exit **1**). Changing only
-`retryTransport` to false passed the same command (exit **0**):
-
-```bash
-./gradlew :mojentic-openai:jvmTest --tests com.mojentic.omlx.RetryEligibilityHttpTest --offline
-```
-
+Before expanding the fixture migration or running the full suite, a public
+OpenAIGateway probe rejected an in-process response containing `incorrect`
+instead of `ok` (exit **1**), then passed after correcting that response (exit
+**0**). It also verifies exact retry payloads, stable logical/distinct attempt
+IDs, original failure bytes, ordered lifecycle, injected backoff and privacy.
 Foundry retains the actual rejecting/corrected logs and validated behavioral
-proof JSON separately from repository evidence. The final matrix passes with
-production behavior unchanged.
+proof separately; [verification.json](verification.json) records their hashes.
 
-## Required gates
+## Independent packaged consumer
 
-All six `.hone-gates.json` commands pass on the final test source:
+`tools/verify-distribution.sh` passed, exit **0**, publishing to a fresh local
+file Maven directory and running a separate consumer with **7 tests**, zero
+failures/errors/skips. Both Gradle invocations were offline. One missing cached
+plugin jar was populated beforehand with a separate `help` configuration run;
+that preparation was not verification. No registry calls occur in the
+verification script. No project/composite/source substitution is used.
 
-| Command | Exit | Captured stdout SHA-256 |
-| --- | --- | --- |
-| `./gradlew ktlintCheck` | 0 | `7e3d020b637cfc2b535d5b2e221dd7150018b434e7d52be912a8e10f39b77c8b` |
-| `./gradlew detekt` | 0 | `46742e4a9fe0c543dc36ab1af6a8cf8448688fa7d9a1ad6cc71c8c17aba804a2` |
-| `./gradlew build` | 0 | `063c7cf8070281c2ec18051b67ac2875314a68b4d10a4f5d063f0991f6cc03b4` |
-| `./gradlew allTests` | 0 | `990990b9035aa3312dc544d4849cefb306ba8c5acdd7bcd5adf79677aa6096ce` |
-| `./gradlew apiCheck` | 0 | `b882835431c709e4ed3d744e6bc77e0ff0a016b2593174b758976c620ff16101` |
-| `./gradlew dokkaGenerate` | 0 | `c595b7df32edaeb0028b8bc627acc710f5b3b7cb261097c403b718ec7cf2edd6` |
+The consumer's copied source has SHA-256 `b97fee40c8408ca8ec1472589448b9c52af0ea4efed608ac0a66763fa3bb0135`; every copied file
+was compared with the worktree source. It tested the same implementation commit
+`6d0de37f6520a77fb5f81b7f03e8bc263b97ba1b` packaged from the worktree identified above.
 
-Reports contain **543 JVM tests in 101 suites** and
-**382 Android host tests in 67 suites**, with zero
-failures, errors or skips. API and Dokka checks pass. Coverage reporting remains
-unwired; no coverage percentage is claimed. Existing tooling warnings remain
-visible, with no new suppression or baseline.
+| Shared executable contract | SHA-256 | Library/provider | Packaged consumer |
+| --- | --- | --- | --- |
+| context-window-v1 | `9327502962112a020bafb46c6a677366df732f5a29cd44c92f17e8f632281395` | passed | passed |
+| native-reasoning-v1 | `d5539eb334b69e0f8b698e8cd2c1402772dfabd09af92c652e1d1dc35f34e127` | passed | passed |
+| request-fidelity-v1 | `6f02088311f50707b9c12154d888f844928c23d359043cb2e5d5654bf7e5eaea` | passed | passed |
 
-Reproduction uses JDK 17 for compilation, JDK 21 for Gradle, Android SDK 37,
-`GRADLE_USER_HOME=/tmp/mojentic-kt-timing-gradle` and
-`ANDROID_USER_HOME=/tmp/mojentic-kt-timing-android`. The writable Gradle home lists
-both toolchains and selects in-process compilation. Verbose commands are run
-through Foundry capture. Omit `--offline` on a host without cached dependencies.
+Both sides check these pinned identities and derive responses from them. The
+consumer checks native reasoning/history/tool association, exact retry payloads
+and parameter omission, discovery errors/optional fields, incomplete-stream
+termination without replay, obsolete Retry-After forms and exact dispatch timing.
+The broader cancellation, privacy, lifecycle and compatibility matrices remain
+in the library gates. The contract JSON is unchanged by this migration.
 
-## Fresh candidate and separate consumer
+All **18 root/JVM/Android coordinates**, represented by **90 artifact files**,
+were inspected. [artifacts.sha256](artifacts.sha256) has SHA-256
+`ec849511992c980d20d8a2e957ae9c7aabf6f6c422725db19b01db8d4f3df91d`; [consumer-runtime.txt](consumer-runtime.txt)
+has SHA-256 `1d49e3ebb064cdf4c11490542f584f163f268e1f91de9c4e33323caa39c48101`. The consumer's
+`verifyCandidateResolution` checks the actual files lie under the fresh repository
+and have the expected version. Actual absolute execution paths are retained as
+resolution provenance in `verification.json`; the build artifacts are disposable.
 
-`tools/verify-distribution.sh --offline` exits **0**. It freshly packages the
-candidate into an isolated Maven repository and copies the standalone consumer
-build inputs into a fresh directory. Consumer lint, **7 public API
-tests** and dependency resolution pass against those Maven artifacts; there are
-no project dependencies, source inclusion or composite substitutions. The
-existing executable set **kt-distribution-readiness-v1** is identified by the
-same source manifest's `tests/distribution/` and `tools/` entries. It consumes the
-versioned JSON contract fixtures and covers public recovery, reasoning, request
-fidelity, metadata and first-dispatch timing. The new eligibility matrix runs in
-the library's JVM gate; the separate consumer verifies the packaged public API.
-Both use this base plus manifest, without counterpart repository verification.
+| Resolved JVM artifact | SHA-256 |
+| --- | --- |
+| `com.vetzal.mojentic:mojentic-anthropic-jvm:3.0.0` | `19bfd0778777b70f54fdca33ec92b2baa7d22a3b6df82ba1d82aca756faf011a` |
+| `com.vetzal.mojentic:mojentic-core-jvm:3.0.0` | `fb61a2d026f9f9452fa4b8963151dcd473b7a32ab9417db034881455c8897919` |
+| `com.vetzal.mojentic:mojentic-ollama-jvm:3.0.0` | `d3ae5b82a33fd3e9eb4bab46d7b3f420ce3da95152e6ee5a58462f29ddc662ec` |
+| `com.vetzal.mojentic:mojentic-openai-jvm:3.0.0` | `3522bec91a2e1834b74731c702e0a700f24b971a0efb2131699414d3c5833695` |
+| `com.vetzal.mojentic:mojentic-realtime-openai-jvm:3.0.0` | `d7066e9af730db930c2def891bb7a1ec6acb48d2ab4b9b60172cbab36414f3ca` |
+| `com.vetzal.mojentic:mojentic-websearch-serpapi-jvm:3.0.0` | `034177291246286c73ae14cea7217417d2b20101d66059f05837cf6e6d106ed9` |
 
-The candidate retains version **2.1.0** for this prerelease check. It contains
-**18 root/JVM/Android coordinates** and no iOS variant;
-publication metadata inspection passes. Local PGP sign tasks alone are disabled
-by the script; release signing configuration is unchanged. No registry upload or
-remote publication occurs.
+## Audit and limits
 
-[artifacts.sha256](artifacts.sha256) records every inspected candidate artifact,
-manifest SHA-256 `7561426afcf7a20442fdffd730b4bb74da9f3b72ab485735103de100bc3e9abb`.
-[consumer-runtime.txt](consumer-runtime.txt) records the separately resolved
-runtime graph, SHA-256 `1d4cad3c3846ff8d4c9331d91e15e9cf1abd02f87eba0fdbcc2387035811fbe6`.
-Consumer stdout SHA-256: `2ff43176a0c21fab9b7f71c73bcf9ca1e38d3e18c51b48ac94999e7b12301006`.
+The unchanged configured `dependencyCheckAggregate --no-parallel --offline`
+audit passed, exit **0**: **305 dependencies**, **0 active
+findings**, **47 inherited suppressed
+findings**. No suppression or audit-scope changes were made. The report hash and
+actual NVD checked/modified timestamps are in `verification.json`; the NVD data
+reports last modification `2026-10-16T18:00:09-04`.
 
-## Security and CI scope
-
-The full configured audit exits **0**:
-
-```bash
-./gradlew dependencyCheckAggregate --no-parallel \
-  -PdependencyCheckDataDirectory=/tmp/mojentic-kt-timing-gradle/dependency-check-data --offline
-```
-
-It scans **305 dependencies**, with **0
-unsuppressed findings** and **47 inherited
-suppressed findings**. No dependency or suppression changes were made; inherited
-suppressions were not newly revalidated. Suppression SHA-256 remains
-`7cee0a8efe513e2b45d3d01e723c4c93355b7e6e9c020e0a8f9adfae59106db1`. The offline audit uses cached advisory
-data; its actual source timestamps are retained in [verification.json](verification.json).
-Report SHA-256: `45cd4de5189f73e4dcf425a2f3cb929ebf80dbae6e50f0c79210d0ce83ccaf7f`.
-
-[verification.json](verification.json) records all actual commands, exits,
-contract/source/artifact identities and report hashes. [ci-base.json](ci-base.json)
-is historical hosted evidence for f6913fc, not hosted verification of this
-worktree. This run establishes local gate and package verification for the
-focused correction; Foundry owns Git finalization and hosted validation of the
-finalized source. Release approval, version bump, signing, publication and fresh
-registry installation remain separate coordinated work.
+The audit warned that its .NET assembly analyzer could not initialize without
+dotnet 8. Existing Gradle deprecation, Android analytics and Dokka warnings also
+remain. This result is the configured audit's outcome, not a claim that every
+optional analyzer ran. No live upstream provider, Android device or hosted CI
+verification is claimed. `ci-base.json` is historical hosted evidence and does
+not validate this modified worktree. No unresolved task acceptance gaps remain.

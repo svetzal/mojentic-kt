@@ -2,6 +2,12 @@
 kotlin = "2.4.21"
 ktlint-plugin = "14.2.0"
 ktlint-engine = "1.8.0"
+ktor = "3.6.0"
+kotlinx-coroutines = "1.11.0"
+
+[libraries]
+ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

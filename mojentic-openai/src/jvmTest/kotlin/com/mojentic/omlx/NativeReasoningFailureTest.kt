@@ -26,8 +26,8 @@ class NativeReasoningFailureTest {
     fun cancellationOnNativeDeltaRollsBackSessionAndNeverExecutesTools() = runTest {
         for (provider in NativeReasoningCases.providers) {
             for (recovery in listOf(null, RecoveryPolicy())) {
-                RecoveryScriptedServer(listOf(NativeReasoningCases.reply(provider, "stream_tool"))).use { server ->
-                    provider.gateway(server.url).use { owned ->
+                RecoveryScriptedTransport(listOf(NativeReasoningCases.reply(provider, "stream_tool"))).use { server ->
+                    provider.gateway(server.url, engine = server.engine).use { owned ->
                         val executed = mutableListOf<String>()
                         val session = ChatSession(
                             LlmBroker(owned.value),
@@ -61,8 +61,8 @@ class NativeReasoningFailureTest {
             for (recovery in listOf(null, RecoveryPolicy())) {
                 val incomplete = NativeReasoningCases.incompleteStream(provider)
                 for (reply in listOf(ScriptedReply(200, incomplete), ScriptedReply(500, "provider-error"))) {
-                    RecoveryScriptedServer(listOf(reply)).use { server ->
-                        provider.gateway(server.url).use { owned ->
+                    RecoveryScriptedTransport(listOf(reply)).use { server ->
+                        provider.gateway(server.url, engine = server.engine).use { owned ->
                             val executed = mutableListOf<String>()
                             val session = ChatSession(
                                 LlmBroker(owned.value),
@@ -85,8 +85,8 @@ class NativeReasoningFailureTest {
     fun unfinishedOrdinaryNativeResponsesNeverReachTools() = runTest {
         for (provider in NativeReasoningCases.providers) {
             for (recovery in listOf(null, RecoveryPolicy())) {
-                RecoveryScriptedServer(listOf(NativeReasoningCases.unfinishedOrdinary(provider))).use { server ->
-                    provider.gateway(server.url).use { owned ->
+                RecoveryScriptedTransport(listOf(NativeReasoningCases.unfinishedOrdinary(provider))).use { server ->
+                    provider.gateway(server.url, engine = server.engine).use { owned ->
                         val executed = mutableListOf<String>()
                         val session = ChatSession(
                             LlmBroker(owned.value),
@@ -109,8 +109,8 @@ class NativeReasoningFailureTest {
         for (provider in NativeReasoningCases.providers) {
             for (recovery in listOf(null, RecoveryPolicy())) {
                 val replies = listOf(NativeReasoningCases.reply(provider, "ordinary_tool"), ScriptedReply(500, "provider-error"))
-                RecoveryScriptedServer(replies).use { server ->
-                    provider.gateway(server.url).use { owned ->
+                RecoveryScriptedTransport(replies).use { server ->
+                    provider.gateway(server.url, engine = server.engine).use { owned ->
                         val executed = mutableListOf<String>()
                         val session = ChatSession(
                             LlmBroker(owned.value),

@@ -24,8 +24,8 @@ class NativeReasoningStructuredTest {
         for (provider in NativeReasoningCases.providers) {
             for (retain in listOf(false, true)) {
                 for (recovery in listOf(null, RecoveryPolicy())) {
-                    RecoveryScriptedServer(List(2) { NativeReasoningCases.reply(provider, "structured") }).use { server ->
-                        provider.gateway(server.url).use { owned ->
+                    RecoveryScriptedTransport(List(2) { NativeReasoningCases.reply(provider, "structured") }).use { server ->
+                        provider.gateway(server.url, engine = server.engine).use { owned ->
                             val config = CompletionConfig(
                                 reasoningEffort = ReasoningEffort.DISABLED,
                                 reasoningProfile = ReasoningProfile.qwen38(),

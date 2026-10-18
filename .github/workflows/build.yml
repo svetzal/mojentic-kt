@@ -19,6 +19,7 @@ concurrency:
 
 jobs:
   build-jvm-android:
+    timeout-minutes: 20
     name: Build & Test (JVM + Android)
     runs-on: ubuntu-latest
     if: ${{ github.actor != 'github-actions[bot]' }}

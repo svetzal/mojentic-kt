@@ -17,8 +17,8 @@ class ContextWindowProofTest {
             it.getValue("name").jsonPrimitive.content == "exact-selection-without-api-key"
         }
         val body = case.getValue("response").jsonPrimitive.content
-        RecoveryScriptedServer(listOf(ScriptedReply(200, body))).use { server ->
-            val gateway = OmlxGateway(host = server.url, apiKey = "contract-key")
+        RecoveryScriptedTransport(listOf(ScriptedReply(200, body))).use { server ->
+            val gateway = OmlxGateway(host = server.url, apiKey = "contract-key", engine = server.engine)
             try {
                 assertEquals(262144, gateway.modelContextWindow("exact-model")?.maxContextTokens)
                 assertEquals(listOf("GET /v1/models HTTP/1.1"), server.requestLines)

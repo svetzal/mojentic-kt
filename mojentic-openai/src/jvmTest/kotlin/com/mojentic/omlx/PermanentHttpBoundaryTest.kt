@@ -22,11 +22,11 @@ import com.mojentic.llm.recovery.recoveryHttpClient
 import com.mojentic.llm.tools.LlmTool
 import com.mojentic.llm.tools.ToolDescriptor
 import com.mojentic.omlx.RecoveryTestFixtures.Provider
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
-import java.util.concurrent.CountDownLatch
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -112,10 +112,10 @@ class PermanentHttpBoundaryTest {
 
     private suspend fun check(
         gateway: LlmGateway,
-        server: RecoveryScriptedServer,
+        server: RecoveryScriptedTransport,
         caller: Caller,
         status: Int,
-        release: CountDownLatch,
+        release: CompletableDeferred<Unit>,
         expected: String,
         engine: TruncatedResponseEngine,
     ) {
@@ -144,8 +144,8 @@ class PermanentHttpBoundaryTest {
             capture = {
                 wires += it
                 if (it.inspectResponse()?.size == bytes.size && !it.complete) {
-                    release.countDown()
-                    engine.awaitFailure()
+                    release.complete(Unit)
+                    engine.assertFailure()
                 }
             },
         )
@@ -231,12 +231,12 @@ class PermanentHttpBoundaryTest {
     }
 
     @Test
-    fun truncatedPermanentAllPublicBoundaries(): Unit = runBlocking {
+    fun truncatedPermanentAllPublicBoundaries(): Unit = runTest {
         for (provider in Provider.entries) {
             for (status in listOf(400, 401, 403)) {
                 for (caller in Caller.entries) {
-                    val release = CountDownLatch(1)
-                    RecoveryScriptedServer(
+                    val release = CompletableDeferred<Unit>()
+                    RecoveryScriptedTransport(
                         listOf(
                             ScriptedReply(
                                 status,
@@ -248,7 +248,7 @@ class PermanentHttpBoundaryTest {
                             ScriptedReply(200, "distinguishable-unauthorized-resend"),
                         ),
                     ).use { server ->
-                        val client = recoveryHttpClient()
+                        val client = recoveryHttpClient(server.engine)
                         val engine = TruncatedResponseEngine(client.engine)
                         provider.gateway(server.url, engine = engine).use { gateway ->
                             try {
@@ -260,7 +260,7 @@ class PermanentHttpBoundaryTest {
                                 }
                                 assertEquals(listOf("POST $path HTTP/1.1"), server.requestLines)
                             } finally {
-                                release.countDown()
+                                release.complete(Unit)
                                 client.close()
                             }
                         }

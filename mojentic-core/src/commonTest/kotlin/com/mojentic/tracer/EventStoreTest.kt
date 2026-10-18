@@ -5,11 +5,12 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Instant
 
 class EventStoreTest {
     private fun llmCall(correlationId: String = "cid"): LlmCallEvent = LlmCallEvent(
+        timestamp = Instant.fromEpochMilliseconds(0),
         correlationId = correlationId,
         model = "m",
         messages = emptyList(),
@@ -18,6 +19,7 @@ class EventStoreTest {
     )
 
     private fun toolCall(correlationId: String = "cid"): ToolCallEvent = ToolCallEvent(
+        timestamp = Instant.fromEpochMilliseconds(0),
         correlationId = correlationId,
         toolName = "t",
         arguments = "{}",
@@ -54,15 +56,17 @@ class EventStoreTest {
     @Test
     fun getEventsFiltersByTimeWindow() = runTest {
         val store = EventStore()
-        val before = Clock.System.now()
-        store.store(llmCall())
-        val after = Clock.System.now()
-        store.store(llmCall())
+        val before = Instant.fromEpochMilliseconds(100)
+        val after = Instant.fromEpochMilliseconds(200)
+        val first = llmCall("first").copy(timestamp = before)
+        val last = llmCall("last").copy(timestamp = after)
+        store.store(llmCall("early").copy(timestamp = before - 1.milliseconds))
+        store.store(first)
+        store.store(last)
+        store.store(llmCall("late").copy(timestamp = after + 1.milliseconds))
 
-        val inWindow = store.getEvents(startTime = before, endTime = after)
-        val firstOnly = inWindow.filter { it.timestamp <= after }
-
-        assertTrue(firstOnly.isNotEmpty())
+        assertEquals(listOf(first, last), store.getEvents(startTime = before, endTime = after))
+        assertEquals(listOf(first), store.getEvents(startTime = before, endTime = before))
     }
 
     @Test

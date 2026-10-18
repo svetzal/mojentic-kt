@@ -28,8 +28,8 @@ class NativeReasoningRetryTest {
                 .replace("native-before-tools", "failed-native")
                 .replace("visible-before-tools", "failed-visible")
             val replies = listOf(ScriptedReply(200, failed), NativeReasoningCases.reply(provider, "stream_tool"))
-            RecoveryScriptedServer(replies).use { server ->
-                provider.gateway(server.url).use { owned ->
+            RecoveryScriptedTransport(replies).use { server ->
+                provider.gateway(server.url, engine = server.engine).use { owned ->
                     val admitted = mutableListOf<RecoveryFailure>()
                     val executed = mutableListOf<String>()
                     val session = ChatSession(
@@ -61,8 +61,8 @@ class NativeReasoningRetryTest {
                 NativeReasoningCases.reply(provider, "stream_tool"),
                 NativeReasoningCases.reply(provider, "stream_final"),
             )
-            RecoveryScriptedServer(replies).use { server ->
-                provider.gateway(server.url).use { owned ->
+            RecoveryScriptedTransport(replies).use { server ->
+                provider.gateway(server.url, engine = server.engine).use { owned ->
                     val admitted = mutableListOf<RecoveryFailure>()
                     val executed = mutableListOf<String>()
                     val session = ChatSession(

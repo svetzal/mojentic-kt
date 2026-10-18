@@ -3,6 +3,7 @@ package com.mojentic.openai
 import com.mojentic.llm.GatewayStreamEvent
 import com.mojentic.llm.LlmMessage
 import io.ktor.client.engine.mock.MockEngine
+import io.ktor.client.engine.mock.MockEngineConfig
 import io.ktor.client.engine.mock.respond
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
@@ -11,10 +12,10 @@ import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.close
 import io.ktor.utils.io.writeStringUtf8
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
@@ -45,9 +46,14 @@ class OpenAILegacyStreamTimingTest {
         val firstChunkSeen = CompletableDeferred<Unit>()
         gateway = OpenAIGateway(
             apiKey = "test",
-            engine = MockEngine { respond(body, HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "text/event-stream")) },
+            engine = MockEngine(
+                MockEngineConfig().apply {
+                    dispatcher = StandardTestDispatcher(testScheduler)
+                    addHandler { respond(body, HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "text/event-stream")) }
+                },
+            ),
         )
-        val server = async(Dispatchers.Default) {
+        val server = async {
             body.writeStringUtf8(frame("Par"))
             // Hold the response open until the collector sees the first chunk, or give up.
             val seenBeforeFinish = withTimeoutOrNull(5.seconds) { firstChunkSeen.await() } != null
@@ -56,7 +62,7 @@ class OpenAILegacyStreamTimingTest {
             seenBeforeFinish
         }
 
-        val events = withContext(Dispatchers.Default) {
+        val events = withContext(coroutineContext) {
             gateway.stream("gpt-4o-mini", listOf(LlmMessage.user("hi")))
                 .onEach { firstChunkSeen.complete(Unit) }
                 .toList().filterNot { it is GatewayStreamEvent.Completed }

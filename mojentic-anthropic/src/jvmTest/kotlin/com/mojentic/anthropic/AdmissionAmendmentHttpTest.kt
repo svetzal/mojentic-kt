@@ -25,7 +25,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
@@ -44,10 +44,10 @@ import kotlin.test.assertTrue
 
 class AdmissionAmendmentHttpTest {
     @Test
-    fun typedFailuresPreserveLegacySerializedReports(): Unit = runBlocking {
+    fun typedFailuresPreserveLegacySerializedReports(): Unit = runTest {
         for (entry in Entry.entries) {
-            RecoveryScriptedServer(listOf(ScriptedReply(400, "private-error"))).use { server ->
-                val gateway = AnthropicGateway("key", server.url)
+            RecoveryScriptedTransport(listOf(ScriptedReply(400, "private-error"))).use { server ->
+                val gateway = AnthropicGateway("key", server.url, engine = server.engine)
                 try {
                     val events = mutableListOf<RecoveryEvent>()
                     val policy = RecoveryPolicy(observer = { events += it })
@@ -116,13 +116,13 @@ class AdmissionAmendmentHttpTest {
     }
 
     @Test
-    fun remoteNoHookRetriesAcrossPublicEntrypoints(): Unit = runBlocking {
+    fun remoteNoHookRetriesAcrossPublicEntrypoints(): Unit = runTest {
         for (entry in Entry.entries) {
             for (status in listOf(0, 500, 502, 504)) {
                 val events = mutableListOf<RecoveryEvent>()
                 val wires = mutableListOf<RecoveryWire>()
-                RecoveryScriptedServer(listOf(ScriptedReply(status, "private-failure"), entry.success())).use { server ->
-                    val gateway = AnthropicGateway("private-key", server.url)
+                RecoveryScriptedTransport(listOf(ScriptedReply(status, "private-failure"), entry.success())).use { server ->
+                    val gateway = AnthropicGateway("private-key", server.url, engine = server.engine)
                     try {
                         entry.call(
                             gateway,
@@ -152,14 +152,14 @@ class AdmissionAmendmentHttpTest {
     }
 
     @Test
-    fun pendingRejectUndecidedAndCancellationPreventQueuedSentinel(): Unit = runBlocking {
+    fun pendingRejectUndecidedAndCancellationPreventQueuedSentinel(): Unit = runTest {
         for (entry in Entry.entries) {
             for (outcome in listOf("reject", "undecided", "cancel")) {
                 val pending = CompletableDeferred<RecoveryFailure>()
                 val decision = CompletableDeferred<Boolean?>()
                 val events = mutableListOf<RecoveryEvent>()
-                RecoveryScriptedServer(listOf(ScriptedReply(503, "private-failure"), entry.success())).use { server ->
-                    val gateway = AnthropicGateway("private-key", server.url)
+                RecoveryScriptedTransport(listOf(ScriptedReply(503, "private-failure"), entry.success())).use { server ->
+                    val gateway = AnthropicGateway("private-key", server.url, engine = server.engine)
                     try {
                         val call = async {
                             runCatching {
@@ -209,10 +209,10 @@ class AdmissionAmendmentHttpTest {
     }
 
     @Test
-    fun defaultOneAttemptPreventsQueuedSentinel(): Unit = runBlocking {
+    fun defaultOneAttemptPreventsQueuedSentinel(): Unit = runTest {
         for (entry in Entry.entries) {
-            RecoveryScriptedServer(listOf(ScriptedReply(503, "private-failure"), entry.success())).use { server ->
-                val gateway = AnthropicGateway("private-key", server.url)
+            RecoveryScriptedTransport(listOf(ScriptedReply(503, "private-failure"), entry.success())).use { server ->
+                val gateway = AnthropicGateway("private-key", server.url, engine = server.engine)
                 try {
                     val failure = assertFailsWith<RecoveryException> { entry.call(gateway, RecoveryPolicy()) }
                     assertEquals(RecoveryReason.EXHAUSTED, failure.reason)
@@ -226,15 +226,15 @@ class AdmissionAmendmentHttpTest {
     }
 
     @Test
-    fun deliveredContentWithoutHookPreventsReplayThroughBrokerAndSession(): Unit = runBlocking {
+    fun deliveredContentWithoutHookPreventsReplayThroughBrokerAndSession(): Unit = runTest {
         for (entry in listOf(Entry.STREAM, Entry.BROKER_STREAM, Entry.SESSION_STREAM)) {
             val body = "data: " + """{"type":"message_start","message":{"content":[]}}""" + "\n\n" +
                 "data: " + """{"type":"content_block_start","index":0,"content_block":{"type":"text","text":""}}""" + "\n\n" +
                 "data: " + """{"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"private-partial"}}""" +
                 "\n\n"
             val events = mutableListOf<RecoveryEvent>()
-            RecoveryScriptedServer(listOf(ScriptedReply(200, body), entry.success())).use { server ->
-                val gateway = AnthropicGateway("private-key", server.url)
+            RecoveryScriptedTransport(listOf(ScriptedReply(200, body), entry.success())).use { server ->
+                val gateway = AnthropicGateway("private-key", server.url, engine = server.engine)
                 try {
                     val failure = assertFailsWith<RecoveryException> {
                         entry.call(gateway, RecoveryPolicy(maxAttempts = 2, observer = { events += it }))

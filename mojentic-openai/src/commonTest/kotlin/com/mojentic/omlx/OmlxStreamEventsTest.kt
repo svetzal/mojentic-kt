@@ -18,7 +18,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.close
 import io.ktor.utils.io.writeStringUtf8
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
@@ -125,14 +124,14 @@ class OmlxStreamEventsTest {
     fun keepAliveFrameSplitAcrossBodyChunksIsStillDropped() = runTest {
         val body = ByteChannel(autoFlush = true)
         val server = OmlxTestServer { respond(body, HttpStatusCode.OK, SSE_HEADERS) }
-        val writer = launch(Dispatchers.Default) {
+        val writer = launch {
             val half = keepAliveLine.length / 2
             body.writeStringUtf8(keepAliveLine.substring(0, half))
             body.writeStringUtf8(keepAliveLine.substring(half) + "\n\n")
             body.close()
         }
 
-        val events = withContext(Dispatchers.Default) { server.broker().generateStreamEvents(model, messages).toList().providerEvidence() }
+        val events = withContext(coroutineContext) { server.broker().generateStreamEvents(model, messages).toList().providerEvidence() }
         writer.join()
 
         assertEquals(listOf<CompletionStreamEvent>(Error(StreamErrorReason.IncompleteStream(null))), events)

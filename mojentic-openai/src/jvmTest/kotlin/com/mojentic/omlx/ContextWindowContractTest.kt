@@ -34,7 +34,7 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/** Executes the unchanged Elixir context-window-v1 artifact through public gateways and real HTTP. */
+/** Executes the unchanged Elixir context-window-v1 artifact through public gateways and in-process HTTP. */
 class ContextWindowContractTest {
     private val artifact = File("../contracts/context_window_v1.json").readBytes()
     private val contract = Json.parseToJsonElement(artifact.decodeToString()).jsonObject
@@ -56,8 +56,14 @@ class ContextWindowContractTest {
             val label = "$provider/${row.text("name")}"
             val reply = ScriptedReply(row.getValue("status").jsonPrimitive.int, row.text("response"))
             val key = if (row["without_api_key"]?.jsonPrimitive?.content == "true") "" else "contract-key"
-            RecoveryScriptedServer(listOf(reply)).use { server ->
-                val gateway = if (provider == "ollama") OllamaGateway(server.url) else OmlxGateway(server.url, apiKey = key)
+            RecoveryScriptedTransport(listOf(reply)).use { server ->
+                val gateway = if (provider ==
+                    "ollama"
+                ) {
+                    OllamaGateway(server.url, engine = server.engine)
+                } else {
+                    OmlxGateway(server.url, apiKey = key, engine = server.engine)
+                }
                 try {
                     val expected = row.getValue("expected").jsonObject
                     if ("error" in expected) {
@@ -77,8 +83,8 @@ class ContextWindowContractTest {
 
     @Test
     fun registryLookupHasAnActiveZeroRequestObserverAndNegativeControl() = runTest {
-        RecoveryScriptedServer(emptyList()).use { server ->
-            val gateway = OpenAIGateway("contract-key", "${server.url}/v1")
+        RecoveryScriptedTransport(emptyList()).use { server ->
+            val gateway = OpenAIGateway("contract-key", "${server.url}/v1", engine = server.engine)
             try {
                 for (element in contract.getValue("registry_cases").jsonArray) {
                     val row = element.jsonObject
@@ -120,8 +126,14 @@ class ContextWindowContractTest {
     @Test
     fun transportFailuresRetainTypedCause() = runTest {
         for (provider in listOf("ollama", "omlx")) {
-            RecoveryScriptedServer(List(4) { ScriptedReply(0, "") }).use { server ->
-                val gateway = if (provider == "ollama") OllamaGateway(server.url) else OmlxGateway(server.url, apiKey = "")
+            RecoveryScriptedTransport(List(4) { ScriptedReply(0, "") }).use { server ->
+                val gateway = if (provider ==
+                    "ollama"
+                ) {
+                    OllamaGateway(server.url, engine = server.engine)
+                } else {
+                    OmlxGateway(server.url, apiKey = "", engine = server.engine)
+                }
                 try {
                     val failure = assertFailsWith<LlmGatewayException> { gateway.modelContextWindow("exact-model") }
                     assertNotNull(failure.cause)
@@ -157,8 +169,8 @@ class ContextWindowContractTest {
             "{\"data\":[{\"id\":\"exact-model\"}]}",
         )
         for (body in invalidOmlx + missingOmlx) {
-            RecoveryScriptedServer(listOf(ScriptedReply(200, body))).use { server ->
-                val gateway = OmlxGateway(server.url, apiKey = "")
+            RecoveryScriptedTransport(listOf(ScriptedReply(200, body))).use { server ->
+                val gateway = OmlxGateway(server.url, apiKey = "", engine = server.engine)
                 try {
                     if (body in invalidOmlx) {
                         assertFailsWith<LlmGatewayException>(body) { gateway.modelContextWindow("exact-model") }
@@ -177,8 +189,8 @@ class ContextWindowContractTest {
             "{\"model_info\":{\"arch.context_length\":2147483648}}",
         )
         for (body in invalidOllama) {
-            RecoveryScriptedServer(listOf(ScriptedReply(200, body))).use { server ->
-                val gateway = OllamaGateway(server.url)
+            RecoveryScriptedTransport(listOf(ScriptedReply(200, body))).use { server ->
+                val gateway = OllamaGateway(server.url, engine = server.engine)
                 try {
                     assertFailsWith<LlmGatewayException>(body) { gateway.modelContextWindow("exact-model") }
                 } finally {
@@ -188,8 +200,8 @@ class ContextWindowContractTest {
         }
         val body = """{"model_info":{"z.context_length":999,"a.context_length":8192},
             "parameters":"temperature 0.6\n  num_ctx\t4096\n", "future_field":true}"""
-        RecoveryScriptedServer(listOf(ScriptedReply(200, body))).use { server ->
-            val gateway = OllamaGateway(server.url)
+        RecoveryScriptedTransport(listOf(ScriptedReply(200, body))).use { server ->
+            val gateway = OllamaGateway(server.url, engine = server.engine)
             try {
                 assertEquals(ModelContextWindow(8192, "model_info.a.context_length", 4096), gateway.modelContextWindow("exact-model"))
             } finally {
@@ -203,11 +215,11 @@ class ContextWindowContractTest {
         for (element in contract.getValue("lookup_cases").jsonArray) {
             val row = element.jsonObject
             val provider = row.text("provider")
-            RecoveryScriptedServer(listOf(ScriptedReply(200, row.getValue("response").toString()))).use { server ->
+            RecoveryScriptedTransport(listOf(ScriptedReply(200, row.getValue("response").toString()))).use { server ->
                 val gateway = when (provider) {
-                    "ollama" -> OllamaGateway(server.url)
-                    "omlx" -> OmlxGateway(server.url, apiKey = "contract-key")
-                    else -> OpenAIGateway("contract-key", "${server.url}/v1")
+                    "ollama" -> OllamaGateway(server.url, engine = server.engine)
+                    "omlx" -> OmlxGateway(server.url, apiKey = "contract-key", engine = server.engine)
+                    else -> OpenAIGateway("contract-key", "${server.url}/v1", engine = server.engine)
                 }
                 try {
                     if (provider == "ollama") {
@@ -233,8 +245,14 @@ class ContextWindowContractTest {
     fun redirectsAreHttpErrorsWithoutChangingCompletionClients() = runTest {
         for (provider in listOf("ollama", "omlx")) {
             val replies = listOf(ScriptedReply(302, "", mapOf("Location" to "/sentinel")), ScriptedReply(200, "{}"))
-            RecoveryScriptedServer(replies).use { server ->
-                val gateway = if (provider == "ollama") OllamaGateway(server.url) else OmlxGateway(server.url, apiKey = "")
+            RecoveryScriptedTransport(replies).use { server ->
+                val gateway = if (provider ==
+                    "ollama"
+                ) {
+                    OllamaGateway(server.url, engine = server.engine)
+                } else {
+                    OmlxGateway(server.url, apiKey = "", engine = server.engine)
+                }
                 try {
                     val failure = assertFailsWith<LlmGatewayException> { gateway.modelContextWindow("exact-model") }
                     assertTrue(failure.message.orEmpty().contains("302"))
@@ -247,7 +265,7 @@ class ContextWindowContractTest {
         }
     }
 
-    private fun assertRequest(server: RecoveryScriptedServer, row: JsonObject, key: String, label: String) {
+    private fun assertRequest(server: RecoveryScriptedTransport, row: JsonObject, key: String, label: String) {
         val request = row.getValue("request").jsonObject
         assertEquals(listOf("${request.text("method")} ${request.text("path")} HTTP/1.1"), server.requestLines, label)
         val body = request["body"]

@@ -10,7 +10,7 @@ import com.mojentic.llm.tools.LlmTool
 import com.mojentic.llm.tools.ToolDescriptor
 import com.mojentic.omlx.AdmissionAmendmentHttpTest.Entry
 import com.mojentic.omlx.RecoveryTestFixtures.Provider
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.JsonObject
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -21,9 +21,9 @@ import kotlin.test.assertTrue
 
 class InvalidRecoveryPolicyHttpTest {
     @Test
-    fun invalidPolicyRejectsBeforeSessionHttpAndCallbacks(): Unit = runBlocking {
-        RecoveryScriptedServer(listOf(RecoveryTestFixtures.Provider.OPENAI.success(false))).use { server ->
-            RecoveryTestFixtures.Provider.OPENAI.gateway(server.url).use { gateway ->
+    fun invalidPolicyRejectsBeforeSessionHttpAndCallbacks(): Unit = runTest {
+        RecoveryScriptedTransport(listOf(RecoveryTestFixtures.Provider.OPENAI.success(false))).use { server ->
+            RecoveryTestFixtures.Provider.OPENAI.gateway(server.url, engine = server.engine).use { gateway ->
                 val callbacks = mutableListOf<String>()
                 suspend fun send(attempts: Int): String? {
                     val policy = RecoveryPolicy(
@@ -142,11 +142,11 @@ class InvalidRecoveryPolicyHttpTest {
         )
     }
 
-    private fun verify(violation: RecoveryPolicyViolation, invalid: (MutableList<String>) -> RecoveryPolicy): Unit = runBlocking {
+    private fun verify(violation: RecoveryPolicyViolation, invalid: (MutableList<String>) -> RecoveryPolicy): Unit = runTest {
         for (provider in Provider.entries) {
             for (entry in Entry.entries) {
-                RecoveryScriptedServer(listOf(entry.success(provider))).use { server ->
-                    provider.gateway(server.url).use { gateway ->
+                RecoveryScriptedTransport(listOf(entry.success(provider))).use { server ->
+                    provider.gateway(server.url, engine = server.engine).use { gateway ->
                         val callbacks = mutableListOf<String>()
                         val tools = listOf(object : LlmTool {
                             override val descriptor = ToolDescriptor("sentinel", "private-tool", JsonObject(emptyMap()))

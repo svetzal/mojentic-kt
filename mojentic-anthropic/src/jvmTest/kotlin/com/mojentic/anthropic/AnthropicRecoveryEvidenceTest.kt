@@ -10,7 +10,7 @@ import com.mojentic.llm.recovery.RecoveryProviderResponseException
 import com.mojentic.llm.recovery.RecoveryReason
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeout
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -24,12 +24,12 @@ class AnthropicRecoveryEvidenceTest {
     private val messages = listOf(LlmMessage.user("private-prompt"))
 
     @Test
-    fun captureFailureRetainsOrdinaryToolTextAndReasoningEvidence(): Unit = runBlocking {
+    fun captureFailureRetainsOrdinaryToolTextAndReasoningEvidence(): Unit = runTest {
         val body = """{"content":[{"type":"text","text":"é"},{"type":"thinking","thinking":"思"},""" +
             """{"type":"tool_use","id":"t","name":"count","input":{"private":"argument"}}]}"""
         val cause = IllegalArgumentException("private-cause")
-        RecoveryScriptedServer(listOf(ScriptedReply(200, body))).use { server ->
-            val gateway = AnthropicGateway("private-key", server.url)
+        RecoveryScriptedTransport(listOf(ScriptedReply(200, body))).use { server ->
+            val gateway = AnthropicGateway("private-key", server.url, engine = server.engine)
             try {
                 val failure = assertFailsWith<RecoveryException> {
                     gateway.complete(
@@ -60,11 +60,11 @@ class AnthropicRecoveryEvidenceTest {
     }
 
     @Test
-    fun providerErrorsKeepTypedCauseAndValidatedMetadata(): Unit = runBlocking {
+    fun providerErrorsKeepTypedCauseAndValidatedMetadata(): Unit = runTest {
         val requestId = "req_018EeWyXxfu5pfWkrYcMdjWG"
         val body = "data: {\"type\":\"error\",\"error\":{\"type\":\"overloaded_error\",\"message\":\"private-provider\"}}\n\n"
-        RecoveryScriptedServer(listOf(ScriptedReply(200, body, mapOf("request-id" to requestId)))).use { server ->
-            val gateway = AnthropicGateway("private-key", server.url)
+        RecoveryScriptedTransport(listOf(ScriptedReply(200, body, mapOf("request-id" to requestId)))).use { server ->
+            val gateway = AnthropicGateway("private-key", server.url, engine = server.engine)
             try {
                 val failure = assertFailsWith<RecoveryException> {
                     gateway.stream(
@@ -94,7 +94,7 @@ class AnthropicRecoveryEvidenceTest {
     }
 
     @Test
-    fun interruptedCompletedToolsKeepCumulativeCountsAndActualTelemetry(): Unit = runBlocking {
+    fun interruptedCompletedToolsKeepCumulativeCountsAndActualTelemetry(): Unit = runTest {
         fun frame(value: String): String = "data: $value\n\n"
         val start = frame("""{"type":"message_start","message":{"model":"actual-model","content":[],"usage":{"input_tokens":4}}}""")
         val blocks = (0..1).joinToString("") { index ->
@@ -105,8 +105,8 @@ class AnthropicRecoveryEvidenceTest {
                 frame("""{"type":"content_block_stop","index":$index}""")
         }
         val rejected = frame("""{"type":"message_delta","delta":{"stop_reason":"max_tokens"},"usage":{"output_tokens":9}}""")
-        RecoveryScriptedServer(listOf(ScriptedReply(200, start + blocks + rejected))).use { server ->
-            val gateway = AnthropicGateway("key", server.url)
+        RecoveryScriptedTransport(listOf(ScriptedReply(200, start + blocks + rejected))).use { server ->
+            val gateway = AnthropicGateway("key", server.url, engine = server.engine)
             var deliveries = 0
             try {
                 val failure = assertFailsWith<RecoveryException> {
@@ -139,7 +139,7 @@ class AnthropicRecoveryEvidenceTest {
     }
 
     @Test
-    fun documentedTerminalReasonsKeepLegacyStreamingResults(): Unit = runBlocking {
+    fun documentedTerminalReasonsKeepLegacyStreamingResults(): Unit = runTest {
         for (reason in listOf("end_turn", "stop_sequence", "max_tokens", "pause_turn", "refusal", "model_context_window_exceeded")) {
             fun frame(value: String): String = "data: $value\n\n"
             val body = frame("""{"type":"message_start","message":{"content":[]}}""") +
@@ -148,8 +148,8 @@ class AnthropicRecoveryEvidenceTest {
                 frame("""{"type":"content_block_stop","index":0}""") +
                 frame("""{"type":"message_delta","delta":{"stop_reason":"$reason"}}""") +
                 frame("""{"type":"message_stop"}""")
-            RecoveryScriptedServer(List(2) { ScriptedReply(200, body) }).use { server ->
-                val gateway = AnthropicGateway("key", server.url)
+            RecoveryScriptedTransport(List(2) { ScriptedReply(200, body) }).use { server ->
+                val gateway = AnthropicGateway("key", server.url, engine = server.engine)
                 try {
                     val legacy = mutableListOf<com.mojentic.llm.GatewayStreamEvent>()
                     val recovered = mutableListOf<com.mojentic.llm.GatewayStreamEvent>()
@@ -171,12 +171,12 @@ class AnthropicRecoveryEvidenceTest {
     }
 
     @Test
-    fun pendingAdmissionWaitsForExplicitPermissionAndBudgetBoundsIt(): Unit = runBlocking {
+    fun pendingAdmissionWaitsForExplicitPermissionAndBudgetBoundsIt(): Unit = runTest {
         for (bounded in listOf(false, true)) {
             val pending = CompletableDeferred<Unit>()
             val decision = CompletableDeferred<Boolean>()
-            RecoveryScriptedServer(listOf(ScriptedReply(503, ""), ScriptedReply(200, """{"content":[]}"""))).use { server ->
-                val gateway = AnthropicGateway("key", server.url)
+            RecoveryScriptedTransport(listOf(ScriptedReply(503, ""), ScriptedReply(200, """{"content":[]}"""))).use { server ->
+                val gateway = AnthropicGateway("key", server.url, engine = server.engine)
                 try {
                     val call = async {
                         runCatching {
@@ -221,9 +221,9 @@ class AnthropicRecoveryEvidenceTest {
     }
 
     @Test
-    fun redirectsAndOverflowingRetryAfterNeverCreateHiddenAttempts(): Unit = runBlocking {
+    fun redirectsAndOverflowingRetryAfterNeverCreateHiddenAttempts(): Unit = runTest {
         for (status in listOf(307, 429)) {
-            RecoveryScriptedServer(
+            RecoveryScriptedTransport(
                 listOf(
                     ScriptedReply(
                         status,
@@ -235,7 +235,7 @@ class AnthropicRecoveryEvidenceTest {
                     ),
                 ),
             ).use { server ->
-                val gateway = AnthropicGateway("key", server.url)
+                val gateway = AnthropicGateway("key", server.url, engine = server.engine)
                 try {
                     val failure = assertFailsWith<RecoveryException> {
                         gateway.complete(

@@ -10,9 +10,9 @@ import com.mojentic.llm.recovery.RecoveryReason
 import com.mojentic.llm.recovery.RecoveryStage
 import com.mojentic.llm.recovery.RecoveryStreamClosedException
 import com.mojentic.llm.recovery.RecoveryWire
-import com.mojentic.omlx.RecoveryScriptedServer
+import com.mojentic.omlx.RecoveryScriptedTransport
 import com.mojentic.omlx.ScriptedReply
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -22,12 +22,12 @@ import kotlin.test.assertTrue
 
 class OpenAIRecoveryProofTest {
     @Test
-    fun escapedSemanticOutputInterruptsAtRealOpenAIBoundary(): Unit = runBlocking {
+    fun escapedSemanticOutputInterruptsAtRealOpenAIBoundary(): Unit = runTest {
         val body = "data: {\"choices\":[{\"delta\":{\"cont\\u0065nt\":\"private-é\"}}]}\n\n"
         val events = mutableListOf<RecoveryEvent>()
         val wires = mutableListOf<RecoveryWire>()
         val output = mutableListOf<GatewayStreamEvent>()
-        RecoveryScriptedServer(
+        RecoveryScriptedTransport(
             listOf(
                 ScriptedReply(200, body),
                 ScriptedReply(
@@ -36,7 +36,7 @@ class OpenAIRecoveryProofTest {
                 ),
             ),
         ).use { server ->
-            val gateway = OpenAIGateway("credential-secret", server.url)
+            val gateway = OpenAIGateway("credential-secret", server.url, engine = server.engine)
             try {
                 val failure = assertFailsWith<RecoveryException> {
                     gateway.stream(

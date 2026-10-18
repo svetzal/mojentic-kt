@@ -37,8 +37,8 @@ class NativeReasoningHttpProofTest {
                 return "tool-result-sentinel"
             }
         }
-        RecoveryScriptedServer(replies).use { server ->
-            val gateway = OllamaGateway(server.url)
+        RecoveryScriptedTransport(replies).use { server ->
+            val gateway = OllamaGateway(server.url, engine = server.engine)
             try {
                 val session = ChatSession(
                     LlmBroker(gateway),

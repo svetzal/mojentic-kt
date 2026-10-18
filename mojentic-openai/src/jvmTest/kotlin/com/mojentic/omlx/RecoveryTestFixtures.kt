@@ -22,7 +22,7 @@ import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.time.Duration
 
-/** Shared loopback inputs and exact wire assertions; no production transport substitution. */
+/** Shared provider inputs and exact wire assertions for in-process HTTP transports. */
 internal object RecoveryTestFixtures {
     suspend fun matrix(block: suspend (Provider, Boolean) -> Unit) {
         for (provider in Provider.entries) for (structured in listOf(false, true)) block(provider, structured)
@@ -70,7 +70,7 @@ internal object RecoveryTestFixtures {
         fun gateway(
             url: String,
             timeout: Duration? = null,
-            engine: io.ktor.client.engine.HttpClientEngine? = null,
+            engine: io.ktor.client.engine.HttpClientEngine,
         ): OwnedGateway = if (this == OLLAMA) {
             val gateway = OllamaGateway(url, engine = engine)
             OwnedGateway(gateway, gateway::close)

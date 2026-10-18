@@ -14,7 +14,7 @@ import com.mojentic.llm.recovery.RecoveryStage
 import com.mojentic.llm.recovery.RecoveryWire
 import com.mojentic.omlx.RecoveryTestFixtures.OwnedGateway
 import com.mojentic.omlx.RecoveryTestFixtures.Provider
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.test.Test
@@ -27,7 +27,7 @@ import kotlin.test.assertNotEquals
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
-/** kt-retry-eligibility-v1: differential public HTTP tests, with production transports. */
+/** kt-retry-eligibility-v1: differential public HTTP tests, with in-process transports. */
 class RetryEligibilityHttpTest {
     private enum class Adapter {
         OPENAI,
@@ -36,15 +36,15 @@ class RetryEligibilityHttpTest {
         OMLX,
         ;
 
-        fun gateway(url: String): OwnedGateway = when (this) {
-            OPENAI -> Provider.OPENAI.gateway(url)
+        fun gateway(url: String, engine: io.ktor.client.engine.HttpClientEngine): OwnedGateway = when (this) {
+            OPENAI -> Provider.OPENAI.gateway(url, engine = engine)
 
-            OLLAMA -> Provider.OLLAMA.gateway(url)
+            OLLAMA -> Provider.OLLAMA.gateway(url, engine = engine)
 
-            OMLX -> Provider.OMLX.gateway(url)
+            OMLX -> Provider.OMLX.gateway(url, engine = engine)
 
             ANTHROPIC -> {
-                val gateway = AnthropicGateway("credential-secret", url)
+                val gateway = AnthropicGateway("credential-secret", url, engine = engine)
                 OwnedGateway(gateway, gateway::close)
             }
         }
@@ -113,17 +113,17 @@ class RetryEligibilityHttpTest {
     }
 
     @Test
-    fun disabledTransportLeavesQueuedStreamSuccessUnused(): Unit = runBlocking {
+    fun disabledTransportLeavesQueuedStreamSuccessUnused(): Unit = runTest {
         scenario(Adapter.OMLX, Caller.STREAM, transport = true, enabled = false)
     }
 
     @Test
-    fun transportToggleControlsEligibilityAcrossPublicEntrypoints(): Unit = runBlocking {
+    fun transportToggleControlsEligibilityAcrossPublicEntrypoints(): Unit = runTest {
         differentialMatrix(transport = true)
     }
 
     @Test
-    fun statusSetControlsEligibilityAcrossPublicEntrypoints(): Unit = runBlocking {
+    fun statusSetControlsEligibilityAcrossPublicEntrypoints(): Unit = runTest {
         differentialMatrix(transport = false)
     }
 
@@ -167,8 +167,8 @@ class RetryEligibilityHttpTest {
         val success = adapter.success(caller).copy(beforeReply = { evidence.successUsed.set(true) })
         // Identical initial failure and success for both controls; only eligibility changes.
         val first = if (transport) ScriptedReply(0, "") else ScriptedReply(503, "private-busy")
-        RecoveryScriptedServer(listOf(first, success)).use { server ->
-            adapter.gateway(server.url).use { gateway ->
+        RecoveryScriptedTransport(listOf(first, success)).use { server ->
+            adapter.gateway(server.url, engine = server.engine).use { gateway ->
                 invoke(caller, gateway.value, evidence, transport, enabled)
             }
             val retained = requireNotNull(evidence.events.single { it.stage == RecoveryStage.FAILED }.failure)
@@ -199,7 +199,7 @@ class RetryEligibilityHttpTest {
     }
 
     private fun assertCaptures(
-        server: RecoveryScriptedServer,
+        server: RecoveryScriptedTransport,
         evidence: Evidence,
         success: ScriptedReply,
         transport: Boolean,
@@ -223,7 +223,7 @@ class RetryEligibilityHttpTest {
         }
     }
 
-    private fun assertRequest(server: RecoveryScriptedServer, adapter: Adapter) {
+    private fun assertRequest(server: RecoveryScriptedTransport, adapter: Adapter) {
         val path = when (adapter) {
             Adapter.OPENAI -> "/chat/completions"
             Adapter.OMLX -> "/v1/chat/completions"

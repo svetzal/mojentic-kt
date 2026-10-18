@@ -6,10 +6,9 @@ import io.ktor.client.statement.HttpResponsePipeline
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.InternalAPI
 import java.io.IOException
-import java.util.concurrent.TimeUnit
 import kotlin.test.assertIs
 
-/** Observes the real transport channel without replacing bytes, failures or HTTP execution. */
+/** Inspects the injected transport channel after capture has consumed the partial body. */
 @OptIn(InternalAPI::class)
 internal class TruncatedResponseEngine(private val delegate: HttpClientEngine) : HttpClientEngine by delegate {
     private lateinit var channel: ByteReadChannel
@@ -20,13 +19,7 @@ internal class TruncatedResponseEngine(private val delegate: HttpClientEngine) :
         }
     }
 
-    fun awaitFailure() {
-        val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5)
-        while (!channel.isClosedForRead) {
-            check(System.nanoTime() < deadline) { "transport did not report truncated response" }
-            Thread.sleep(1)
-        }
-        // Establish closure before the next read, rather than rely on scheduler timing.
+    fun assertFailure() {
         assertIs<IOException>(channel.closedCause)
     }
 }

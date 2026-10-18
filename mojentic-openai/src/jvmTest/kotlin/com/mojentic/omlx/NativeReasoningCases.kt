@@ -48,7 +48,7 @@ internal object NativeReasoningCases {
         return original.copy(body = changed.toString())
     }
 
-    fun requests(server: RecoveryScriptedServer): List<JsonObject> = server.requests.map {
+    fun requests(server: RecoveryScriptedTransport): List<JsonObject> = server.requests.map {
         Json.parseToJsonElement(it.decodeToString()).jsonObject
     }
 

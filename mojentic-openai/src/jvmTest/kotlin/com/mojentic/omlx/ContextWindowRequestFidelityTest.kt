@@ -24,8 +24,8 @@ class ContextWindowRequestFidelityTest {
     fun unsetSamplingAndLimitsAreAbsentThroughEveryEntrypoint() = runTest {
         for (provider in Provider.entries) {
             for (entry in listOf(Entry.ORDINARY, Entry.STRUCTURED, Entry.STRUCTURED_RESPONSE, Entry.STREAM, Entry.EVENTS)) {
-                RecoveryScriptedServer(listOf(entry.success(provider))).use { server ->
-                    provider.gateway(server.url).use { gateway ->
+                RecoveryScriptedTransport(listOf(entry.success(provider))).use { server ->
+                    provider.gateway(server.url, engine = server.engine).use { gateway ->
                         call(gateway.value, entry, CompletionConfig())
                         val body = Json.parseToJsonElement(server.requests.single().decodeToString()).jsonObject
                         val fields = if (provider == Provider.OLLAMA) body.getValue("options").jsonObject else body
@@ -51,8 +51,8 @@ class ContextWindowRequestFidelityTest {
                     }
                     val discovery = row?.let { ScriptedReply(200, it.getValue("response").jsonPrimitive.content) }
                     val replies = listOfNotNull(entry.success(provider), discovery, entry.success(provider))
-                    RecoveryScriptedServer(replies).use { server ->
-                        provider.gateway(server.url).use { gateway ->
+                    RecoveryScriptedTransport(replies).use { server ->
+                        provider.gateway(server.url, engine = server.engine).use { gateway ->
                             // Characterize completion before lookup on this instance, then compare the exact subsequent bytes.
                             call(gateway.value, entry, config)
                             val baseline = server.requests.single()

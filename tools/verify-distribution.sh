@@ -12,12 +12,12 @@ allprojects {
     tasks.withType(org.gradle.plugins.signing.Sign).configureEach { enabled = false }
 }
 INIT
-./gradlew publishToMavenLocal "-Dmaven.repo.local=$stage/maven" -I "$stage/local-publish.gradle" "$@"
+./gradlew --offline publishToMavenLocal "-Dmaven.repo.local=$stage/maven" -I "$stage/local-publish.gradle" "$@"
 python3 tools/inspect-distribution.py "$stage/maven" "$version" > "$stage/artifacts.sha256"
 mkdir -p "$stage/consumer"
 cp tests/distribution/{settings.gradle.kts,build.gradle.kts,gradle.properties} "$stage/consumer/"
 cp -R tests/distribution/src tests/distribution/gradle "$stage/consumer/"
-./gradlew -p "$stage/consumer" ktlintCheck test dependencies \
+./gradlew --offline -p "$stage/consumer" ktlintCheck test dependencies \
     "-PcandidateRepository=$stage/maven" "-PcandidateVersion=$version" \
     "-PcontractDirectory=$repo/contracts" "$@"
 printf 'Verified candidate: %s\nArtifact manifest: %s\n' "$stage" "$stage/artifacts.sha256"

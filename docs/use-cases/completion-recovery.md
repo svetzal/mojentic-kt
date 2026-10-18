@@ -320,9 +320,10 @@ unchanged. Validated stream model, usage and finish reason are available private
 through `inspectCompletionEvidence()` on failure; missing telemetry stays absent.
 No new progress/metrics stream events are invented for Anthropic.
 
-Linux production-transport scripts establish JVM behavior. Injected engines
-must independently disable retries and redirects. Remote inference termination
-remains unknown.
+In-process transport tests establish public gateway, broker and session behavior.
+Tests inject clocks and sleepers and observe response disposal without sockets
+or wall-clock thresholds. Supplied engines must disable hidden retries and
+redirects. Remote inference termination remains unknown.
 
 ## Typed provider and operation migration
 
@@ -360,7 +361,8 @@ the closed model. Absent optional provider metadata remains absent. Lifecycle
 and terminal report serialization excludes raw requests, responses and causes.
 
 This type migration does not change payload encoding or recovery decisions.
-The local HTTP tests cover public gateway, broker and session failures and
-serialized projections. Paired consumer/provider verification in another
-repository remains an initiative coordination gap, recorded in
-`CONFORMANCE-3.0.0.md`; these tests do not certify external provider behavior.
+The in-process transport tests cover public gateway, broker and session failures
+and serialized projections. An independent consumer verifies fresh local Maven
+artifacts against the same versioned contracts, offline and without source
+substitution. `CONFORMANCE-3.0.0.md` records both verification sides and concrete
+assertions; these tests do not certify live upstream providers.

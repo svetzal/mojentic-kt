@@ -41,8 +41,8 @@ class NativeReasoningControlsTest {
             for (case in NativeReasoningCases.contract.getValue("controls").jsonArray.map { it.jsonObject }) {
                 for (mode in listOf("ordinary_final", "structured", "stream_final")) {
                     for (recovery in listOf(null, RecoveryPolicy())) {
-                        RecoveryScriptedServer(listOf(NativeReasoningCases.reply(provider, mode))).use { server ->
-                            provider.gateway(server.url).use { owned ->
+                        RecoveryScriptedTransport(listOf(NativeReasoningCases.reply(provider, mode))).use { server ->
+                            provider.gateway(server.url, engine = server.engine).use { owned ->
                                 val effort = case["effort"].takeUnless { it == JsonNull }?.jsonPrimitive?.content
                                 val config = CompletionConfig(
                                     reasoningEffort = effort?.let { ReasoningEffort.valueOf(it.uppercase()) },
@@ -117,8 +117,8 @@ class NativeReasoningControlsTest {
                 CompletionConfig(reasoningProfile = qwen, reasoningEffort = ReasoningEffort.ENABLED),
                 CompletionConfig(reasoningProfile = noHistory, preserveReasoning = true),
             )) {
-                RecoveryScriptedServer(emptyList()).use { server ->
-                    provider.gateway(server.url).use { owned ->
+                RecoveryScriptedTransport(emptyList()).use { server ->
+                    provider.gateway(server.url, engine = server.engine).use { owned ->
                         assertFailsWith<LlmGatewayException> {
                             owned.value.complete("anything", NativeReasoningCases.messages, config = config)
                         }
@@ -141,8 +141,8 @@ class NativeReasoningControlsTest {
 
     @Test
     fun openaiRejectsNewControlsAndOmlxHistoryExtensionBeforeHttp() = runTest {
-        RecoveryScriptedServer(emptyList()).use { server ->
-            val gateway = OpenAIGateway("key", server.url)
+        RecoveryScriptedTransport(emptyList()).use { server ->
+            val gateway = OpenAIGateway("key", server.url, engine = server.engine)
             try {
                 for (config in listOf(
                     CompletionConfig(preserveReasoning = true),

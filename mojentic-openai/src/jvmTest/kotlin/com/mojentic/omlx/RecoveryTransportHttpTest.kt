@@ -10,7 +10,7 @@ import com.mojentic.llm.recovery.RecoveryWire
 import com.mojentic.omlx.RecoveryTestFixtures.Provider
 import com.mojentic.omlx.RecoveryTestFixtures.call
 import com.mojentic.omlx.RecoveryTestFixtures.matrix
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -21,16 +21,16 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.milliseconds
 
-/** Production transport acceptance through ordinary and structured public adapters. */
+/** Public ordinary and structured adapter behavior at the injected HTTP boundary. */
 class RecoveryTransportHttpTest {
     @Test
-    fun oneAttempt503ZeroRetainsExactFailureWithoutHiddenResend(): Unit = runBlocking {
+    fun oneAttempt503ZeroRetainsExactFailureWithoutHiddenResend(): Unit = runTest {
         matrix { provider, structured ->
             val events = mutableListOf<RecoveryEvent>()
             val wires = mutableListOf<RecoveryWire>()
-            RecoveryScriptedServer(listOf(ScriptedReply(503, "private-busy", mapOf("Retry-After" to "0")), provider.success(structured)))
+            RecoveryScriptedTransport(listOf(ScriptedReply(503, "private-busy", mapOf("Retry-After" to "0")), provider.success(structured)))
                 .use { server ->
-                    provider.gateway(server.url).use { gateway ->
+                    provider.gateway(server.url, engine = server.engine).use { gateway ->
                         val failure = assertFailsWith<RecoveryException> {
                             call(
                                 gateway.value,
@@ -69,13 +69,16 @@ class RecoveryTransportHttpTest {
     }
 
     @Test
-    fun compressed503PreservesDecodedFailureAndRetryAfterWithoutResend(): Unit = runBlocking {
+    fun decodedEntity503PreservesFailureAndRetryAfterWithoutResend(): Unit = runTest {
         matrix { provider, structured ->
             val wires = mutableListOf<RecoveryWire>()
-            RecoveryScriptedServer(
-                listOf(ScriptedReply(503, "private-compressed", mapOf("Retry-After" to "0"), gzip = true), provider.success(structured)),
+            RecoveryScriptedTransport(
+                listOf(
+                    ScriptedReply(503, "private-compressed", mapOf("Retry-After" to "0"), decodedEntity = true),
+                    provider.success(structured),
+                ),
             ).use { server ->
-                provider.gateway(server.url).use { gateway ->
+                provider.gateway(server.url, engine = server.engine).use { gateway ->
                     val failure = assertFailsWith<RecoveryException> {
                         call(gateway.value, structured, RecoveryPolicy(maxAttempts = 1, capture = { wires += it }))
                     }
@@ -99,18 +102,21 @@ class RecoveryTransportHttpTest {
     }
 
     @Test
-    fun healthyGenerationBeyondTenSecondsKeepsProviderSocketSettings(): Unit = runBlocking {
+    fun healthyGenerationBeyondBudgetStillSucceeds(): Unit = runTest {
         matrix { provider, structured ->
             val events = mutableListOf<RecoveryEvent>()
             val wires = mutableListOf<RecoveryWire>()
-            RecoveryScriptedServer(listOf(provider.success(structured).copy(delayMillis = 11_000))).use { server ->
-                provider.gateway(server.url, 15_000.milliseconds).use { gateway ->
+            var now = 0L
+            RecoveryScriptedTransport(listOf(provider.success(structured).copy(beforeReply = { now += 11_000 }))).use { server ->
+                provider.gateway(server.url, 15_000.milliseconds, engine = server.engine).use { gateway ->
                     val response = call(
                         gateway.value,
                         structured,
                         RecoveryPolicy(
                             maxAttempts = 1,
                             budgetMillis = 100,
+                            monotonicClock = { now },
+                            clock = { 0 },
                             observer = { events += it },
                             capture = { wires += it },
                         ),
@@ -126,12 +132,14 @@ class RecoveryTransportHttpTest {
     }
 
     @Test
-    fun shorterOmlxSocketTimeoutRetainsCauseWithoutUnauthorizedResend(): Unit = runBlocking {
+    fun transportTimeoutRetainsCauseWithoutUnauthorizedResend(): Unit = runTest {
         for (structured in listOf(false, true)) {
             val events = mutableListOf<RecoveryEvent>()
             val wires = mutableListOf<RecoveryWire>()
-            RecoveryScriptedServer(listOf(Provider.OMLX.success(structured).copy(delayMillis = 700))).use { server ->
-                Provider.OMLX.gateway(server.url, 200.milliseconds).use { gateway ->
+            RecoveryScriptedTransport(
+                listOf(Provider.OMLX.success(structured).copy(failure = java.net.SocketTimeoutException("private-timeout"))),
+            ).use { server ->
+                Provider.OMLX.gateway(server.url, 200.milliseconds, engine = server.engine).use { gateway ->
                     val failure = assertFailsWith<RecoveryException> {
                         call(
                             gateway.value,

@@ -18,11 +18,11 @@ import com.mojentic.llm.recovery.RecoveryWire
 import com.mojentic.llm.recovery.recoveryHttpClient
 import com.mojentic.llm.tools.LlmTool
 import com.mojentic.llm.tools.ToolDescriptor
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
-import java.util.concurrent.CountDownLatch
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -85,10 +85,10 @@ class PermanentHttpBoundaryTest {
 
     private suspend fun check(
         gateway: LlmGateway,
-        server: RecoveryScriptedServer,
+        server: RecoveryScriptedTransport,
         caller: Caller,
         status: Int,
-        release: CountDownLatch,
+        release: CompletableDeferred<Unit>,
         expected: String,
         engine: TruncatedResponseEngine,
     ) {
@@ -117,8 +117,8 @@ class PermanentHttpBoundaryTest {
             capture = {
                 wires += it
                 if (it.inspectResponse()?.size == bytes.size && !it.complete) {
-                    release.countDown()
-                    engine.awaitFailure()
+                    release.complete(Unit)
+                    engine.assertFailure()
                 }
             },
         )
@@ -205,23 +205,23 @@ class PermanentHttpBoundaryTest {
     }
 
     @Test
-    fun truncatedPermanentAllPublicBoundaries(): Unit = runBlocking {
+    fun truncatedPermanentAllPublicBoundaries(): Unit = runTest {
         for (status in listOf(400, 401, 403)) {
             for (caller in Caller.entries.filter { it != Caller.EVENTS }) {
-                val release = CountDownLatch(1)
-                RecoveryScriptedServer(
+                val release = CompletableDeferred<Unit>()
+                RecoveryScriptedTransport(
                     listOf(
                         ScriptedReply(status, bytes.decodeToString(), mapOf("X-Proof" to "permanent"), truncated = true, release = release),
                         ScriptedReply(200, "distinguishable-unauthorized-resend"),
                     ),
                 ).use { server ->
-                    val client = recoveryHttpClient()
+                    val client = recoveryHttpClient(server.engine)
                     val engine = TruncatedResponseEngine(client.engine)
                     val gateway = AnthropicGateway("key", server.url, engine = engine)
                     try {
                         check(gateway, server, caller, status, release, expected(caller), engine)
                     } finally {
-                        release.countDown()
+                        release.complete(Unit)
                         gateway.close()
                         client.close()
                     }

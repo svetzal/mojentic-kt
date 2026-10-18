@@ -5,7 +5,7 @@ import com.mojentic.llm.GatewayStreamEvent
 import com.mojentic.llm.LlmMessage
 import com.mojentic.llm.recovery.RecoveryException
 import com.mojentic.llm.recovery.RecoveryPolicy
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -13,13 +13,13 @@ import kotlin.test.assertTrue
 
 class AnthropicRecoveryProofTest {
     @Test
-    fun captureFailureRetainsObservedReasoningWithoutDeliveryOrReplay(): Unit = runBlocking {
+    fun captureFailureRetainsObservedReasoningWithoutDeliveryOrReplay(): Unit = runTest {
         val body = "data: {\"type\":\"content_block_delta\",\"index\":0," +
             "\"delta\":{\"type\":\"thinking_delta\",\"thin\\u006bing\":\"private-é\"}}\n\n"
         val delivered = mutableListOf<GatewayStreamEvent>()
         val captureCause = IllegalStateException("private capture failure")
-        RecoveryScriptedServer(listOf(ScriptedReply(200, body))).use { server ->
-            val gateway = AnthropicGateway("credential-secret", server.url)
+        RecoveryScriptedTransport(listOf(ScriptedReply(200, body))).use { server ->
+            val gateway = AnthropicGateway("credential-secret", server.url, engine = server.engine)
             try {
                 val failure = assertFailsWith<RecoveryException> {
                     gateway.stream(

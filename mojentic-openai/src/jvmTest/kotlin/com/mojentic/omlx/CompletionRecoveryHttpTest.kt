@@ -27,11 +27,10 @@ import com.mojentic.omlx.RecoveryTestFixtures.schema
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -42,13 +41,13 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
-/** Acceptance matrix uses actual public adapters and their default OkHttp engine. */
+/** Acceptance matrix drives public adapters with an in-process HTTP transport. */
 class CompletionRecoveryHttpTest {
     @Test
-    fun httpFailureUsesClosedProviderAndOperation(): Unit = runBlocking {
+    fun httpFailureUsesClosedProviderAndOperation(): Unit = runTest {
         matrix { provider, structured ->
-            RecoveryScriptedServer(listOf(ScriptedReply(503, "private-error"))).use { server ->
-                provider.gateway(server.url).use { gateway ->
+            RecoveryScriptedTransport(listOf(ScriptedReply(503, "private-error"))).use { server ->
+                provider.gateway(server.url, engine = server.engine).use { gateway ->
                     val failure = assertFailsWith<RecoveryException> {
                         call(gateway.value, structured, RecoveryPolicy(maxAttempts = 1))
                     }.failures.single()
@@ -60,15 +59,15 @@ class CompletionRecoveryHttpTest {
     }
 
     @Test
-    fun recover503PreservesExactPayloadIdentityAndLifecycle(): Unit = runBlocking {
+    fun recover503PreservesExactPayloadIdentityAndLifecycle(): Unit = runTest {
         matrix { provider, structured ->
             val events = mutableListOf<RecoveryEvent>()
             val wires = mutableListOf<RecoveryWire>()
             val sleeps = mutableListOf<Long>()
-            RecoveryScriptedServer(
+            RecoveryScriptedTransport(
                 listOf(ScriptedReply(503, "private-error", mapOf("Retry-After" to "0")), provider.success(structured)),
             ).use { server ->
-                provider.gateway(server.url).use { gateway ->
+                provider.gateway(server.url, engine = server.engine).use { gateway ->
                     val response = call(gateway.value, structured, policy(events, wires, sleeps))
                     assertEquals(if (structured) "{\"value\":\"ok\"}" else "ok", response.content)
                     assertEquals("native-reasoning", response.thinking)
@@ -118,11 +117,11 @@ class CompletionRecoveryHttpTest {
     }
 
     @Test
-    fun exhaustionRetainsEveryAttemptAndTypedCause(): Unit = runBlocking {
+    fun exhaustionRetainsEveryAttemptAndTypedCause(): Unit = runTest {
         matrix { provider, structured ->
             val replies = List(3) { ScriptedReply(504, "secret-${it + 1}", mapOf("X-Request-Id" to "credential-secret")) }
-            RecoveryScriptedServer(replies + provider.success(structured)).use { server ->
-                provider.gateway(server.url).use { gateway ->
+            RecoveryScriptedTransport(replies + provider.success(structured)).use { server ->
+                provider.gateway(server.url, engine = server.engine).use { gateway ->
                     val events = mutableListOf<RecoveryEvent>()
                     val failure = assertFailsWith<RecoveryException> { call(gateway.value, structured, policy(events)) }
                     assertEquals(RecoveryReason.EXHAUSTED, failure.reason)
@@ -146,7 +145,7 @@ class CompletionRecoveryHttpTest {
     }
 
     @Test
-    fun retryAfterSecondsDatesInvalidAndMinimumRefusal(): Unit = runBlocking {
+    fun retryAfterSecondsDatesInvalidAndMinimumRefusal(): Unit = runTest {
         matrix { provider, structured ->
             val cases = listOf(
                 "2" to 2000L,
@@ -160,9 +159,9 @@ class CompletionRecoveryHttpTest {
             for ((header, expected) in cases) {
                 val sleeps = mutableListOf<Long>()
                 val events = mutableListOf<RecoveryEvent>()
-                RecoveryScriptedServer(listOf(ScriptedReply(429, "busy", mapOf("Retry-After" to header)), provider.success(structured)))
+                RecoveryScriptedTransport(listOf(ScriptedReply(429, "busy", mapOf("Retry-After" to header)), provider.success(structured)))
                     .use { server ->
-                        provider.gateway(server.url).use { gateway ->
+                        provider.gateway(server.url, engine = server.engine).use { gateway ->
                             call(gateway.value, structured, policy(events, sleeps = sleeps, wall = 0))
                             assertEquals(listOf(expected), sleeps, header)
                             val retry = requireNotNull(events.first { it.stage == RecoveryStage.FAILED }.failure).retryAfter
@@ -177,8 +176,8 @@ class CompletionRecoveryHttpTest {
                     }
             }
             for (header in listOf("31", "9223372036854775807", "999999999999999999999999")) {
-                RecoveryScriptedServer(listOf(ScriptedReply(429, "busy", mapOf("Retry-After" to header)))).use { server ->
-                    provider.gateway(server.url).use { gateway ->
+                RecoveryScriptedTransport(listOf(ScriptedReply(429, "busy", mapOf("Retry-After" to header)))).use { server ->
+                    provider.gateway(server.url, engine = server.engine).use { gateway ->
                         val failure = assertFailsWith<RecoveryException> { call(gateway.value, structured, policy()) }
                         assertEquals(RecoveryReason.PROVIDER_MINIMUM, failure.reason)
                         assertEquals(1, server.requests.size)
@@ -189,16 +188,16 @@ class CompletionRecoveryHttpTest {
     }
 
     @Test
-    fun admissionWaitsForExplicitDecisionAndRejectPreventsResend(): Unit = runBlocking {
+    fun admissionWaitsForExplicitDecisionAndRejectPreventsResend(): Unit = runTest {
         matrix { provider, structured ->
             for (status in listOf(503, 0)) {
                 for (allow in listOf(true, false)) {
                     val entered = CompletableDeferred<Unit>()
                     val decision = CompletableDeferred<Boolean>()
-                    RecoveryScriptedServer(
+                    RecoveryScriptedTransport(
                         listOf(ScriptedReply(status, "busy", mapOf("Retry-After" to "0")), provider.success(structured)),
                     ).use { server ->
-                        provider.gateway(server.url).use { gateway ->
+                        provider.gateway(server.url, engine = server.engine).use { gateway ->
                             val events = mutableListOf<RecoveryEvent>()
                             val wires = mutableListOf<RecoveryWire>()
                             val recovery =
@@ -240,10 +239,10 @@ class CompletionRecoveryHttpTest {
     }
 
     @Test
-    fun cancellationWinsDuringActiveRequestAdmissionAndBackoff(): Unit = runBlocking {
+    fun cancellationWinsDuringActiveRequestAdmissionAndBackoff(): Unit = runTest {
         matrix { provider, structured ->
             for (phase in listOf("active", "admission", "backoff")) {
-                val release = CountDownLatch(1)
+                val release = CompletableDeferred<Unit>()
                 val entered = CompletableDeferred<Unit>()
                 val forever = CompletableDeferred<Unit>()
                 val report = AtomicReference<RecoveryCancellationException>()
@@ -253,8 +252,8 @@ class CompletionRecoveryHttpTest {
                 } else {
                     ScriptedReply(503, "busy")
                 }
-                RecoveryScriptedServer(listOf(reply)).use { server ->
-                    provider.gateway(server.url).use { gateway ->
+                RecoveryScriptedTransport(listOf(reply)).use { server ->
+                    provider.gateway(server.url, engine = server.engine).use { gateway ->
                         val recovery = RecoveryPolicy(
                             maxAttempts = 3,
                             admission = {
@@ -288,7 +287,7 @@ class CompletionRecoveryHttpTest {
                         assertEquals(1, events.count { it.stage == RecoveryStage.CANCELLED })
                         assertEquals(1, events.count { it.stage == RecoveryStage.FAILED })
                         assertTrue(events.none { it.stage == RecoveryStage.SUCCEEDED })
-                        release.countDown()
+                        release.complete(Unit)
                     }
                 }
             }
@@ -296,19 +295,19 @@ class CompletionRecoveryHttpTest {
     }
 
     @Test
-    fun permanentTruncationAndPartialSuccessNeverReplay(): Unit = runBlocking {
+    fun permanentTruncationAndPartialSuccessNeverReplay(): Unit = runTest {
         matrix { provider, structured ->
             for (status in listOf(400, 401, 403, 200)) {
-                val release = CountDownLatch(1)
+                val release = CompletableDeferred<Unit>()
                 val partial = if (status == 200) "{\"message\":{\"content\":\"secret-partial" else "secret-partial"
-                RecoveryScriptedServer(listOf(ScriptedReply(status, partial, truncated = true, release = release)))
+                RecoveryScriptedTransport(listOf(ScriptedReply(status, partial, truncated = true, release = release)))
                     .use { server ->
-                        provider.gateway(server.url).use { gateway ->
+                        provider.gateway(server.url, engine = server.engine).use { gateway ->
                             val recovery = RecoveryPolicy(
                                 maxAttempts = 3,
                                 admission = { true },
                                 retryableStatuses = setOf(400, 401, 403, 200),
-                                capture = { if (it.inspectResponse()?.isNotEmpty() == true) release.countDown() },
+                                capture = { if (it.inspectResponse()?.isNotEmpty() == true) release.complete(Unit) },
                             )
                             val failure = assertFailsWith<RecoveryException> { call(gateway.value, structured, recovery) }
                             assertEquals(1, server.requests.size)
@@ -333,10 +332,10 @@ class CompletionRecoveryHttpTest {
     }
 
     @Test
-    fun malformedAndCaptureFailuresAreTerminalWithPrivateCauseIdentity(): Unit = runBlocking {
+    fun malformedAndCaptureFailuresAreTerminalWithPrivateCauseIdentity(): Unit = runTest {
         matrix { provider, structured ->
-            RecoveryScriptedServer(listOf(ScriptedReply(200, "malformed-secret"))).use { server ->
-                provider.gateway(server.url).use { gateway ->
+            RecoveryScriptedTransport(listOf(ScriptedReply(200, "malformed-secret"))).use { server ->
+                provider.gateway(server.url, engine = server.engine).use { gateway ->
                     val failure = assertFailsWith<RecoveryException> { call(gateway.value, structured, policy()) }
                     assertEquals(RecoveryReason.PROTOCOL, failure.reason)
                     assertEquals(1, server.requests.size)
@@ -346,8 +345,8 @@ class CompletionRecoveryHttpTest {
             }
             for (beforeSend in listOf(true, false)) {
                 val original = IllegalStateException("capture-credential-secret")
-                RecoveryScriptedServer(listOf(provider.success(structured))).use { server ->
-                    provider.gateway(server.url).use { gateway ->
+                RecoveryScriptedTransport(listOf(provider.success(structured))).use { server ->
+                    provider.gateway(server.url, engine = server.engine).use { gateway ->
                         val recovery = RecoveryPolicy(maxAttempts = 3, admission = { true }, capture = {
                             if ((it.inspectResponse() == null) == beforeSend) throw original
                         })
@@ -365,11 +364,11 @@ class CompletionRecoveryHttpTest {
     }
 
     @Test
-    fun budgetsDoNotTimeoutHealthyGenerationAndPreventLateResend(): Unit = runBlocking {
+    fun budgetsDoNotTimeoutHealthyGenerationAndPreventLateResend(): Unit = runTest {
         matrix { provider, structured ->
             var monotonic = 0L
-            RecoveryScriptedServer(listOf(ScriptedReply(503, "busy"), provider.success(structured))).use { server ->
-                provider.gateway(server.url).use { gateway ->
+            RecoveryScriptedTransport(listOf(ScriptedReply(503, "busy"), provider.success(structured))).use { server ->
+                provider.gateway(server.url, engine = server.engine).use { gateway ->
                     val recovery = RecoveryPolicy(
                         maxAttempts = 2,
                         budgetMillis = 500,
@@ -390,10 +389,10 @@ class CompletionRecoveryHttpTest {
     }
 
     @Test
-    fun insufficientBudgetRefusesProviderMinimum(): Unit = runBlocking {
+    fun insufficientBudgetRefusesProviderMinimum(): Unit = runTest {
         matrix { provider, structured ->
-            RecoveryScriptedServer(listOf(ScriptedReply(503, "busy", mapOf("Retry-After" to "2")))).use { server ->
-                provider.gateway(server.url).use { gateway ->
+            RecoveryScriptedTransport(listOf(ScriptedReply(503, "busy", mapOf("Retry-After" to "2")))).use { server ->
+                provider.gateway(server.url, engine = server.engine).use { gateway ->
                     val failure = assertFailsWith<RecoveryException> {
                         call(
                             gateway.value,
@@ -414,12 +413,12 @@ class CompletionRecoveryHttpTest {
     }
 
     @Test
-    fun deadlineIsRecheckedAfterRequestCaptureBeforeResend(): Unit = runBlocking {
+    fun deadlineIsRecheckedAfterRequestCaptureBeforeResend(): Unit = runTest {
         matrix { provider, structured ->
             var wall = 0L
             var requests = 0
-            RecoveryScriptedServer(listOf(ScriptedReply(503, "busy"))).use { server ->
-                provider.gateway(server.url).use { gateway ->
+            RecoveryScriptedTransport(listOf(ScriptedReply(503, "busy"))).use { server ->
+                provider.gateway(server.url, engine = server.engine).use { gateway ->
                     val recovery = RecoveryPolicy(
                         maxAttempts = 2,
                         deadlineEpochMillis = 1000,
@@ -439,23 +438,23 @@ class CompletionRecoveryHttpTest {
     }
 
     @Test
-    fun retriesDisabledPreserveSuccessAndLegacyFailure(): Unit = runBlocking {
+    fun retriesDisabledPreserveSuccessAndLegacyFailure(): Unit = runTest {
         matrix { provider, structured ->
-            RecoveryScriptedServer(listOf(provider.success(structured))).use { server ->
-                provider.gateway(server.url).use { gateway ->
+            RecoveryScriptedTransport(listOf(provider.success(structured))).use { server ->
+                provider.gateway(server.url, engine = server.engine).use { gateway ->
                     val legacy = call(gateway.value, structured, null)
                     assertEquals(if (structured && provider == Provider.OPENAI) null else "native-reasoning", legacy.thinking)
                     assertEquals(1, server.requests.size)
                 }
             }
-            RecoveryScriptedServer(listOf(ScriptedReply(503, "legacy-error"))).use { server ->
-                provider.gateway(server.url).use { gateway ->
+            RecoveryScriptedTransport(listOf(ScriptedReply(503, "legacy-error"))).use { server ->
+                provider.gateway(server.url, engine = server.engine).use { gateway ->
                     assertFailsWith<LlmGatewayException> { call(gateway.value, structured, null) }
                     assertEquals(1, server.requests.size)
                 }
             }
-            RecoveryScriptedServer(listOf(ScriptedReply(503, "safe-error"))).use { server ->
-                provider.gateway(server.url).use { gateway ->
+            RecoveryScriptedTransport(listOf(ScriptedReply(503, "safe-error"))).use { server ->
+                provider.gateway(server.url, engine = server.engine).use { gateway ->
                     val failure = assertFailsWith<RecoveryException> { call(gateway.value, structured, RecoveryPolicy()) }
                     assertEquals(1, failure.wireAttempts)
                     assertEquals(1, server.requests.size)
@@ -465,10 +464,10 @@ class CompletionRecoveryHttpTest {
     }
 
     @Test
-    fun brokerStructuredAndSessionToolCompletionKeepDepthAndExecuteOnce(): Unit = runBlocking {
+    fun brokerStructuredAndSessionToolCompletionKeepDepthAndExecuteOnce(): Unit = runTest {
         for (provider in Provider.entries) {
-            RecoveryScriptedServer(listOf(ScriptedReply(503, "busy"), provider.success(true))).use { server ->
-                provider.gateway(server.url).use { gateway ->
+            RecoveryScriptedTransport(listOf(ScriptedReply(503, "busy"), provider.success(true))).use { server ->
+                provider.gateway(server.url, engine = server.engine).use { gateway ->
                     assertEquals(
                         Value("ok"),
                         LlmBroker(gateway.value).completeJson<Value>("test-model", messages, CompletionConfig(recovery = policy())),
@@ -481,8 +480,8 @@ class CompletionRecoveryHttpTest {
                 val tool = countingTool { executions++ }
                 val toolReply = provider.toolReply()
                 val finalReply = if (repeatTool) toolReply else provider.success(false)
-                RecoveryScriptedServer(listOf(toolReply, ScriptedReply(503, "busy"), finalReply)).use { server ->
-                    provider.gateway(server.url).use { gateway ->
+                RecoveryScriptedTransport(listOf(toolReply, ScriptedReply(503, "busy"), finalReply)).use { server ->
+                    provider.gateway(server.url, engine = server.engine).use { gateway ->
                         val session = ChatSession(
                             LlmBroker(gateway.value),
                             "test-model",
@@ -505,7 +504,7 @@ class CompletionRecoveryHttpTest {
     }
 
     @Test
-    fun fullJitterCeilingsSaturateAndRedirectsStaySingleRequest(): Unit = runBlocking {
+    fun fullJitterCeilingsSaturateAndRedirectsStaySingleRequest(): Unit = runTest {
         matrix { provider, structured ->
             for (large in listOf(false, true)) {
                 val ceilings = mutableListOf<Long>()
@@ -513,8 +512,8 @@ class CompletionRecoveryHttpTest {
                 val base = if (large) Long.MAX_VALUE - 2 else 100L
                 val cap = if (large) Long.MAX_VALUE - 1 else 300L
                 val replies = List(3) { ScriptedReply(503, "busy") } + provider.success(structured)
-                RecoveryScriptedServer(replies).use { server ->
-                    provider.gateway(server.url).use { gateway ->
+                RecoveryScriptedTransport(replies).use { server ->
+                    provider.gateway(server.url, engine = server.engine).use { gateway ->
                         val recovery = RecoveryPolicy(
                             maxAttempts = 4,
                             baseDelayMillis = base,
@@ -533,8 +532,8 @@ class CompletionRecoveryHttpTest {
                     }
                 }
             }
-            RecoveryScriptedServer(listOf(ScriptedReply(302, "redirect", mapOf("Location" to "/redirect")))).use { server ->
-                provider.gateway(server.url).use { gateway ->
+            RecoveryScriptedTransport(listOf(ScriptedReply(302, "redirect", mapOf("Location" to "/redirect")))).use { server ->
+                provider.gateway(server.url, engine = server.engine).use { gateway ->
                     val failure = assertFailsWith<RecoveryException> { call(gateway.value, structured, policy()) }
                     assertEquals(302, failure.failures.single().status)
                     assertEquals(1, server.requests.size)
@@ -544,7 +543,7 @@ class CompletionRecoveryHttpTest {
     }
 
     @Test
-    fun captureAccountsForSemanticFieldsBeforeHookFailure(): Unit = runBlocking {
+    fun captureAccountsForSemanticFieldsBeforeHookFailure(): Unit = runTest {
         matrix { provider, structured ->
             val partials = listOf(
                 "{\"message\":{\"content\":\"partial-secret" to "content",
@@ -553,13 +552,13 @@ class CompletionRecoveryHttpTest {
                 " \n " to "raw",
             )
             for ((body, field) in partials) {
-                val release = CountDownLatch(1)
+                val release = CompletableDeferred<Unit>()
                 val cause = IllegalStateException("capture-secret")
-                RecoveryScriptedServer(listOf(ScriptedReply(200, body, truncated = true, release = release))).use { server ->
-                    provider.gateway(server.url).use { gateway ->
+                RecoveryScriptedTransport(listOf(ScriptedReply(200, body, truncated = true, release = release))).use { server ->
+                    provider.gateway(server.url, engine = server.engine).use { gateway ->
                         val recovery = RecoveryPolicy(maxAttempts = 3, admission = { true }, capture = {
                             if (it.inspectResponse()?.isNotEmpty() == true) {
-                                release.countDown()
+                                release.complete(Unit)
                                 assertTrue(it.progress.rawBytes > 0)
                                 assertEquals(field != "raw", it.progress.semanticObserved)
                                 throw cause
@@ -580,12 +579,12 @@ class CompletionRecoveryHttpTest {
     }
 
     @Test
-    fun completedToolIsNotReplayedWhenNextCompletionExhausts(): Unit = runBlocking {
+    fun completedToolIsNotReplayedWhenNextCompletionExhausts(): Unit = runTest {
         for (provider in Provider.entries) {
             var executions = 0
             val replies = listOf(provider.toolReply()) + List(3) { ScriptedReply(504, "busy") }
-            RecoveryScriptedServer(replies).use { server ->
-                provider.gateway(server.url).use { gateway ->
+            RecoveryScriptedTransport(replies).use { server ->
+                provider.gateway(server.url, engine = server.engine).use { gateway ->
                     val session = ChatSession(
                         LlmBroker(gateway.value),
                         "test-model",
@@ -603,11 +602,11 @@ class CompletionRecoveryHttpTest {
     }
 
     @Test
-    fun slowFailureObserverConsumesBudgetAndSuccessObserverFailureCountsWire(): Unit = runBlocking {
+    fun slowFailureObserverConsumesBudgetAndSuccessObserverFailureCountsWire(): Unit = runTest {
         matrix { provider, structured ->
             var time = 0L
-            RecoveryScriptedServer(listOf(ScriptedReply(503, "busy"))).use { server ->
-                provider.gateway(server.url).use { gateway ->
+            RecoveryScriptedTransport(listOf(ScriptedReply(503, "busy"))).use { server ->
+                provider.gateway(server.url, engine = server.engine).use { gateway ->
                     val recovery = RecoveryPolicy(
                         maxAttempts = 3,
                         budgetMillis = 100,
@@ -621,8 +620,8 @@ class CompletionRecoveryHttpTest {
                 }
             }
             val original = IllegalStateException("observer-secret")
-            RecoveryScriptedServer(listOf(provider.success(structured))).use { server ->
-                provider.gateway(server.url).use { gateway ->
+            RecoveryScriptedTransport(listOf(provider.success(structured))).use { server ->
+                provider.gateway(server.url, engine = server.engine).use { gateway ->
                     val recovery = RecoveryPolicy(maxAttempts = 3, admission = { true }, observer = {
                         if (it.stage == RecoveryStage.SUCCEEDED) throw original
                     })

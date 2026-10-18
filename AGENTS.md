@@ -211,6 +211,18 @@ Inherit from the monorepo `AGENTS.md`. Kotlin-specific applications:
 
 ### Testing
 
+- No test opens a socket, starts a local server, calls a service or registry, sleeps
+  for real time, or asserts a wall-clock threshold. Drive public gateway, broker
+  and session APIs with Ktor `MockEngine` / scripted body channels or fake gateway
+  interfaces. Use `runTest`, coroutine signals, injected clocks and sleepers.
+- Shared executable contracts in `contracts/` drive library-side and independent
+  packaged-consumer checks. Preserve exact payloads, IDs, errors, lifecycle order,
+  privacy, cancellation and completion assertions. See `docs/testing.md` and
+  `CONFORMANCE-3.0.0.md` for the reviewed inventory and decision mapping.
+- `tools/verify-distribution.sh` verifies fresh artifacts from a local file Maven
+  repository with Gradle offline. Populate tool/dependency caches separately;
+  verification never contacts a registry or substitutes project sources.
+
 - **`kotlin.test`** (multiplatform) + **`kotlinx-coroutines-test`** for
   `runTest { … }` + **Turbine** for `Flow` assertions + **Ktor MockEngine**
   for HTTP gateways + **MockK** (JVM tests only).

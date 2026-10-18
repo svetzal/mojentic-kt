@@ -25,7 +25,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-/** Executes the shared request-fidelity-v1 inputs and responses against real HTTP. */
+/** Executes the shared request-fidelity-v1 inputs and responses against in-process HTTP. */
 class RequestFidelityContractTest {
     private val bytes = File("../contracts/request_fidelity_v1.json").readBytes()
     private val contract = Json.parseToJsonElement(bytes.decodeToString()).jsonObject
@@ -70,8 +70,8 @@ class RequestFidelityContractTest {
 
     private suspend fun verifyEntry(provider: Provider, entry: String, retry: Boolean, config: CompletionConfig) {
         val replies = replies(provider, entry, retry)
-        val server = RecoveryScriptedServer(replies)
-        val owned = provider.gateway(server.url)
+        val server = RecoveryScriptedTransport(replies)
+        val owned = provider.gateway(server.url, engine = server.engine)
         try {
             val actual = config.copy(recovery = if (retry || entry == "events") policy() else null)
             invoke(owned.value, entry, actual)
@@ -148,8 +148,8 @@ class RequestFidelityContractTest {
     @Test
     fun fixedTemperatureIsNormalizedOnlyWhenSetAndReasoningUsesOneOutputField() = runTest {
         for (temperature in listOf(null, 0.0)) {
-            RecoveryScriptedServer(listOf(Provider.OPENAI.success(false))).use { server ->
-                Provider.OPENAI.gateway(server.url).use { owned ->
+            RecoveryScriptedTransport(listOf(Provider.OPENAI.success(false))).use { server ->
+                Provider.OPENAI.gateway(server.url, engine = server.engine).use { owned ->
                     owned.value.complete(
                         "o3-mini",
                         RecoveryTestFixtures.messages,
@@ -170,8 +170,8 @@ class RequestFidelityContractTest {
         val warning = ByteArrayOutputStream()
         try {
             System.setOut(PrintStream(warning))
-            RecoveryScriptedServer(listOf(Provider.OPENAI.success(false))).use { server ->
-                Provider.OPENAI.gateway(server.url).use { owned ->
+            RecoveryScriptedTransport(listOf(Provider.OPENAI.success(false))).use { server ->
+                Provider.OPENAI.gateway(server.url, engine = server.engine).use { owned ->
                     owned.value.complete(
                         "gpt-4o",
                         RecoveryTestFixtures.messages,

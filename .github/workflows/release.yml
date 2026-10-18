@@ -15,6 +15,7 @@ concurrency:
 
 jobs:
   publish:
+    timeout-minutes: 20
     name: Sign & publish to Sonatype Central Portal
     runs-on: ubuntu-latest
     steps:

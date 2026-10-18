@@ -20,7 +20,7 @@ import com.mojentic.llm.tools.ToolDescriptor
 import com.mojentic.ollama.OllamaGateway
 import com.mojentic.openai.OpenAIGateway
 import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
@@ -36,8 +36,8 @@ import kotlin.time.DurationUnit
 
 /**
  * Consumer contracts derived from MODEL-METADATA section 2 and the read-only
- * ts-stream-first-token-v1 behavioral reference. Every response crosses an actual
- * loopback HTTP socket and the unmodified production HTTP engine and adapter.
+ * ts-stream-first-token-v1 behavioral reference. Every response crosses an injected
+ * in-process HTTP transport and the public provider adapter.
  */
 class ClientStreamTimingHttpTest {
     private class Clock : AbstractLongTimeSource(DurationUnit.MILLISECONDS) {
@@ -52,11 +52,11 @@ class ClientStreamTimingHttpTest {
         ANTHROPIC,
         ;
 
-        fun gateway(host: String): LlmGateway = when (this) {
-            OPENAI -> OpenAIGateway("test", host = "$host/v1")
-            OMLX -> OmlxGateway(host = host, apiKey = "test")
-            OLLAMA -> OllamaGateway(host = host)
-            ANTHROPIC -> AnthropicGateway("test", host = host)
+        fun gateway(host: String, engine: io.ktor.client.engine.HttpClientEngine): LlmGateway = when (this) {
+            OPENAI -> OpenAIGateway("test", host = "$host/v1", engine = engine)
+            OMLX -> OmlxGateway(host = host, apiKey = "test", engine = engine)
+            OLLAMA -> OllamaGateway(host = host, engine = engine)
+            ANTHROPIC -> AnthropicGateway("test", host = host, engine = engine)
         }
 
         fun prefix(): String = when (this) {
@@ -133,7 +133,7 @@ class ClientStreamTimingHttpTest {
     }
 
     @Test
-    fun publicStreamsMeasureExactKindsAndKeepProviderUnitsOnOrdinaryAndRecoveryPaths(): Unit = runBlocking {
+    fun publicStreamsMeasureExactKindsAndKeepProviderUnitsOnOrdinaryAndRecoveryPaths(): Unit = runTest {
         for (provider in Provider.entries) {
             for (recovery in listOf(false, true)) {
                 println("timing case: $provider recovery=$recovery")
@@ -145,8 +145,8 @@ class ClientStreamTimingHttpTest {
                     provider.prefix() + provider.token("thinking") + provider.terminal(),
                     beforeReply = { clock.now.addAndGet(25) },
                 )
-                RecoveryScriptedServer(listOf(reply, reply)).use { server ->
-                    val gateway = provider.gateway(server.url)
+                RecoveryScriptedTransport(listOf(reply, reply)).use { server ->
+                    val gateway = provider.gateway(server.url, engine = server.engine)
                     try {
                         val config = config(clock, recovery)
                         val stream = gateway.stream("test", listOf(LlmMessage.user("hello")), config = config)
@@ -179,14 +179,14 @@ class ClientStreamTimingHttpTest {
     }
 
     @Test
-    fun noTokenSuccessIgnoresKeepaliveAndEmptyFramesOnBothPublicApis(): Unit = runBlocking {
+    fun noTokenSuccessIgnoresKeepaliveAndEmptyFramesOnBothPublicApis(): Unit = runTest {
         for (provider in Provider.entries) {
             for (recovery in listOf(false, true)) {
                 println("timing case: $provider recovery=$recovery")
                 val clock = Clock()
                 val reply = ScriptedReply(200, provider.prefix() + provider.terminal(false), beforeReply = { clock.now.addAndGet(17) })
-                RecoveryScriptedServer(listOf(reply, reply)).use { server ->
-                    val gateway = provider.gateway(server.url)
+                RecoveryScriptedTransport(listOf(reply, reply)).use { server ->
+                    val gateway = provider.gateway(server.url, engine = server.engine)
                     try {
                         val legacy = gateway.stream("test", listOf(LlmMessage.user("hello")), config = config(clock, recovery)).toList()
                         assertTiming(assertIs<GatewayStreamEvent.Completed>(legacy.last()).evidence, null, null, 17)
@@ -214,7 +214,7 @@ class ClientStreamTimingHttpTest {
         }
     }
 
-    private fun verifyFailure(provider: Provider, recovery: Boolean, kind: String?): Unit = runBlocking {
+    private fun verifyFailure(provider: Provider, recovery: Boolean, kind: String?): Unit = runTest {
         val clock = Clock()
         val body = provider.prefix() + kind?.let { provider.token(it) }.orEmpty()
         val reply = ScriptedReply(
@@ -222,8 +222,8 @@ class ClientStreamTimingHttpTest {
             body,
             beforeReply = { clock.now.addAndGet(31) },
         )
-        val server = RecoveryScriptedServer(listOf(reply))
-        val gateway = provider.gateway(server.url)
+        val server = RecoveryScriptedTransport(listOf(reply))
+        val gateway = provider.gateway(server.url, engine = server.engine)
         try {
             if (gateway is StreamEventsGateway) {
                 val flow = gateway.streamEvents("test", listOf(LlmMessage.user("hello")), config(clock, recovery))
@@ -257,7 +257,7 @@ class ClientStreamTimingHttpTest {
     }
 
     @Test
-    fun realHttpRetryIncludesAdmittedDelayAndNewCollectionStartsFreshClock(): Unit = runBlocking {
+    fun retryIncludesAdmittedDelayAndNewCollectionStartsFreshClock(): Unit = runTest {
         for (provider in Provider.entries) {
             val clock = Clock()
             val fail = ScriptedReply(503, "busy", beforeReply = { clock.now.addAndGet(10) })
@@ -266,8 +266,8 @@ class ClientStreamTimingHttpTest {
                 provider.prefix() + provider.token("thinking") + provider.terminal(),
                 beforeReply = { clock.now.addAndGet(20) },
             )
-            RecoveryScriptedServer(listOf(fail, success, success)).use { server ->
-                val gateway = provider.gateway(server.url)
+            RecoveryScriptedTransport(listOf(fail, success, success)).use { server ->
+                val gateway = provider.gateway(server.url, engine = server.engine)
                 try {
                     val policy = RecoveryPolicy(
                         maxAttempts = 2,
@@ -295,7 +295,7 @@ class ClientStreamTimingHttpTest {
     }
 
     @Test
-    fun brokerToolContinuationStartsIndependentClockAfterToolExecution(): Unit = runBlocking {
+    fun brokerToolContinuationStartsIndependentClockAfterToolExecution(): Unit = runTest {
         for (provider in Provider.entries) {
             for (recovery in listOf(false, true)) {
                 println("timing case: $provider recovery=$recovery")
@@ -320,8 +320,8 @@ class ClientStreamTimingHttpTest {
                     provider.prefix() + provider.token("plain_content") + provider.terminal(),
                     beforeReply = { clock.now.addAndGet(11) },
                 )
-                RecoveryScriptedServer(listOf(first, next)).use { server ->
-                    val gateway = provider.gateway(server.url)
+                RecoveryScriptedTransport(listOf(first, next)).use { server ->
+                    val gateway = provider.gateway(server.url, engine = server.engine)
                     var executions = 0
                     val tool = object : LlmTool {
                         override val descriptor = ToolDescriptor("lookup", "look up", buildJsonObject { put("type", "object") })
@@ -353,20 +353,20 @@ class ClientStreamTimingHttpTest {
     }
 
     @Test
-    fun timingConfigurationPreservesRawRequestBytesAndDefaults(): Unit = runBlocking {
+    fun timingConfigurationPreservesRawRequestBytesAndDefaults(): Unit = runTest {
         for (provider in Provider.entries) {
             for (recovery in listOf(false, true)) {
                 val clock = Clock()
                 val reply = ScriptedReply(200, provider.prefix() + provider.terminal(false))
-                RecoveryScriptedServer(listOf(reply, reply)).use { server ->
-                    val gateway = provider.gateway(server.url)
+                RecoveryScriptedTransport(listOf(reply, reply)).use { server ->
+                    val gateway = provider.gateway(server.url, engine = server.engine)
                     try {
                         val measured = config(clock, recovery)
                         gateway.stream("test", listOf(LlmMessage.user("hello")), config = measured).toList()
                         gateway.stream(
                             "test",
                             listOf(LlmMessage.user("hello")),
-                            config = measured.copy(streamTimeSource = kotlin.time.TimeSource.Monotonic),
+                            config = measured.copy(streamTimeSource = Clock()),
                         ).toList()
                         kotlin.test.assertContentEquals(server.requests[0], server.requests[1])
                         assertEquals(server.requestHeaders[0], server.requestHeaders[1])
@@ -379,7 +379,7 @@ class ClientStreamTimingHttpTest {
     }
 
     @Test
-    fun recoveryCaptureFailureRetainsArgumentTimingBeforeParserOrDelivery(): Unit = runBlocking {
+    fun recoveryCaptureFailureRetainsArgumentTimingBeforeParserOrDelivery(): Unit = runTest {
         for (provider in Provider.entries) {
             val clock = Clock()
             val reply = ScriptedReply(
@@ -387,8 +387,8 @@ class ClientStreamTimingHttpTest {
                 provider.prefix() + provider.token("tool_call"),
                 beforeReply = { clock.now.addAndGet(31) },
             )
-            RecoveryScriptedServer(listOf(reply, reply)).use { server ->
-                val gateway = provider.gateway(server.url)
+            RecoveryScriptedTransport(listOf(reply, reply)).use { server ->
+                val gateway = provider.gateway(server.url, engine = server.engine)
                 var admissions = 0
                 val delivered = mutableListOf<GatewayStreamEvent>()
                 try {
@@ -422,11 +422,11 @@ class ClientStreamTimingHttpTest {
     }
 
     @Test
-    fun terminalFailureDurationIncludesPendingAdmissionWithoutRestartOrReplay(): Unit = runBlocking {
+    fun terminalFailureDurationIncludesPendingAdmissionWithoutRestartOrReplay(): Unit = runTest {
         val clock = Clock()
         val reply = ScriptedReply(503, "busy", beforeReply = { clock.now.addAndGet(10) })
-        RecoveryScriptedServer(listOf(reply, reply)).use { server ->
-            val gateway = OmlxGateway(host = server.url)
+        RecoveryScriptedTransport(listOf(reply, reply)).use { server ->
+            val gateway = OmlxGateway(host = server.url, engine = server.engine)
             try {
                 var observed: CompletionEvidence? = null
                 val policy = RecoveryPolicy(

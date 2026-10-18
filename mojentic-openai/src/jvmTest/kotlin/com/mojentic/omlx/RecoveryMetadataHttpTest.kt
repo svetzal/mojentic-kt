@@ -17,7 +17,7 @@ import com.mojentic.llm.recovery.RecoveryStage
 import com.mojentic.llm.recovery.RecoveryWire
 import com.mojentic.omlx.RecoveryTestFixtures.Provider
 import com.mojentic.omlx.RecoveryTestFixtures.call
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonPrimitive
@@ -39,9 +39,9 @@ import kotlin.test.assertTrue
 
 class RecoveryMetadataHttpTest {
     @Test
-    fun validatedMetadataSurvivesPublicHttpFailure(): Unit = runBlocking {
+    fun validatedMetadataSurvivesPublicHttpFailure(): Unit = runTest {
         val requestId = "req_123e4567-e89b-12d3-a456-426614174000"
-        RecoveryScriptedServer(
+        RecoveryScriptedTransport(
             listOf(
                 ScriptedReply(
                     503,
@@ -51,7 +51,7 @@ class RecoveryMetadataHttpTest {
                 Provider.OPENAI.success(false),
             ),
         ).use { server ->
-            Provider.OPENAI.gateway(server.url).use { gateway ->
+            Provider.OPENAI.gateway(server.url, engine = server.engine).use { gateway ->
                 val error = assertFailsWith<RecoveryException> { call(gateway.value, false, RecoveryPolicy()) }
                 assertEquals("server_error", error.failures.single().providerCode)
                 assertEquals(requestId, error.failures.single().providerRequestId)
@@ -61,7 +61,7 @@ class RecoveryMetadataHttpTest {
     }
 
     @Test
-    fun exactMetadataAndOrderedHistoriesAcrossAllPublicOperations(): Unit = runBlocking {
+    fun exactMetadataAndOrderedHistoriesAcrossAllPublicOperations(): Unit = runTest {
         matrix { provider, operation ->
             val events = mutableListOf<RecoveryEvent>()
             val wires = mutableListOf<RecoveryWire>()
@@ -70,8 +70,8 @@ class RecoveryMetadataHttpTest {
                 reply(429, "rate_limit_exceeded", SECOND_ID),
                 provider.success(false),
             )
-            RecoveryScriptedServer(replies).use { server ->
-                provider.gateway(server.url).use { gateway ->
+            RecoveryScriptedTransport(replies).use { server ->
+                provider.gateway(server.url, engine = server.engine).use { gateway ->
                     val error = assertFailsWith<RecoveryException> {
                         invoke(
                             gateway,
@@ -115,7 +115,7 @@ class RecoveryMetadataHttpTest {
     }
 
     @Test
-    fun unsafeMetadataIsOmittedButExactEvidenceRemainsPrivate(): Unit = runBlocking {
+    fun unsafeMetadataIsOmittedButExactEvidenceRemainsPrivate(): Unit = runTest {
         matrix { provider, operation ->
             val cases = listOf(
                 reply(401, "unknown_provider_code", "unknown-request-id"),
@@ -129,8 +129,8 @@ class RecoveryMetadataHttpTest {
             )
             cases.forEachIndexed { index, response ->
                 val events = mutableListOf<RecoveryEvent>()
-                RecoveryScriptedServer(listOf(response, provider.success(false))).use { server ->
-                    provider.gateway(server.url).use { gateway ->
+                RecoveryScriptedTransport(listOf(response, provider.success(false))).use { server ->
+                    provider.gateway(server.url, engine = server.engine).use { gateway ->
                         val messages = if (index in 4..5) {
                             listOf(LlmMessage.user("payload-secret $FIRST_ID server_error"))
                         } else {
@@ -162,15 +162,15 @@ class RecoveryMetadataHttpTest {
     }
 
     @Test
-    fun validatedRequestIdCannotEchoBearerCredential(): Unit = runBlocking {
+    fun validatedRequestIdCannotEchoBearerCredential(): Unit = runTest {
         for (provider in listOf(Provider.OPENAI, Provider.OMLX)) {
             for (operation in 0..3) {
-                RecoveryScriptedServer(listOf(reply(401, "invalid_api_key", "req_$FIRST_ID"), provider.success(false))).use { server ->
+                RecoveryScriptedTransport(listOf(reply(401, "invalid_api_key", "req_$FIRST_ID"), provider.success(false))).use { server ->
                     val gateway = if (provider == Provider.OPENAI) {
-                        val value = com.mojentic.openai.OpenAIGateway(FIRST_ID, server.url)
+                        val value = com.mojentic.openai.OpenAIGateway(FIRST_ID, server.url, engine = server.engine)
                         RecoveryTestFixtures.OwnedGateway(value, value::close)
                     } else {
-                        val value = OmlxGateway(server.url, apiKey = FIRST_ID)
+                        val value = OmlxGateway(server.url, apiKey = FIRST_ID, engine = server.engine)
                         RecoveryTestFixtures.OwnedGateway(value, value::close)
                     }
                     gateway.use {
@@ -191,13 +191,13 @@ class RecoveryMetadataHttpTest {
     }
 
     @Test
-    fun providerErrorEnvelopesRetainMetadataAtSuccessfulHttpStatus(): Unit = runBlocking {
+    fun providerErrorEnvelopesRetainMetadataAtSuccessfulHttpStatus(): Unit = runTest {
         matrix { provider, operation ->
             val response = reply(200, "overloaded_error", SECOND_ID).let {
                 if (operation >= 2 && provider != Provider.OLLAMA) it.copy(body = "data: ${it.body}\n\n") else it
             }
-            RecoveryScriptedServer(listOf(response, provider.success(false))).use { server ->
-                provider.gateway(server.url).use { gateway ->
+            RecoveryScriptedTransport(listOf(response, provider.success(false))).use { server ->
+                provider.gateway(server.url, engine = server.engine).use { gateway ->
                     val error = assertFailsWith<RecoveryException> { invoke(gateway, operation, RecoveryPolicy(maxAttempts = 2)) }
                     assertEquals("overloaded_error", error.failures.single().providerCode)
                     assertEquals(SECOND_ID, error.failures.single().providerRequestId)
@@ -209,13 +209,13 @@ class RecoveryMetadataHttpTest {
     }
 
     @Test
-    fun brokerAndSessionPreserveMetadataAndOriginalEvidence(): Unit = runBlocking {
+    fun brokerAndSessionPreserveMetadataAndOriginalEvidence(): Unit = runTest {
         for (provider in Provider.entries) {
             for (boundary in listOf("broker", "events", "session")) {
                 val events = mutableListOf<RecoveryEvent>()
                 val response = reply(401, "invalid_api_key", SECOND_ID)
-                RecoveryScriptedServer(listOf(response, provider.success(false))).use { server ->
-                    provider.gateway(server.url).use { gateway ->
+                RecoveryScriptedTransport(listOf(response, provider.success(false))).use { server ->
+                    provider.gateway(server.url, engine = server.engine).use { gateway ->
                         val broker = LlmBroker(gateway.value)
                         val config = CompletionConfig(recovery = RecoveryPolicy(observer = { events += it }))
                         val session = ChatSession(broker, "test", systemPrompt = "system", config = config)
@@ -248,7 +248,7 @@ class RecoveryMetadataHttpTest {
     }
 
     @Test
-    fun ordinaryBrokerAndSessionPreserveHttpEvidenceAndRollback(): Unit = runBlocking {
+    fun ordinaryBrokerAndSessionPreserveHttpEvidenceAndRollback(): Unit = runTest {
         for (provider in Provider.entries) {
             for (sessionCall in listOf(false, true)) {
                 for (permanent in listOf(true, false)) {
@@ -273,8 +273,8 @@ class RecoveryMetadataHttpTest {
         val seed = if (sessionCall) listOf(provider.success(false)) else emptyList()
         val success = provider.success(false)
         val sentinel = success.copy(body = success.body.replace("\"ok\"", "\"queued-success-sentinel\""))
-        RecoveryScriptedServer(seed + responses + sentinel).use { server ->
-            provider.gateway(server.url).use { gateway ->
+        RecoveryScriptedTransport(seed + responses + sentinel).use { server ->
+            provider.gateway(server.url, engine = server.engine).use { gateway ->
                 val broker = LlmBroker(gateway.value)
                 val session = ChatSession(broker, "test-model", systemPrompt = "system", tools = tools, config = config)
                 if (sessionCall) assertEquals("ok", session.send("prior-user").content)
@@ -424,7 +424,7 @@ class RecoveryMetadataHttpTest {
     }
 
     @Test
-    fun admittedSuccessPreservesFailureMetadataWithoutResendingAgain(): Unit = runBlocking {
+    fun admittedSuccessPreservesFailureMetadataWithoutResendingAgain(): Unit = runTest {
         matrix { provider, operation ->
             val events = mutableListOf<RecoveryEvent>()
             val success = if (operation < 2) {
@@ -440,8 +440,8 @@ class RecoveryMetadataHttpTest {
                     },
                 )
             }
-            RecoveryScriptedServer(listOf(reply(503, "server_error", FIRST_ID), success, success)).use { server ->
-                provider.gateway(server.url).use { gateway ->
+            RecoveryScriptedTransport(listOf(reply(503, "server_error", FIRST_ID), success, success)).use { server ->
+                provider.gateway(server.url, engine = server.engine).use { gateway ->
                     invoke(
                         gateway,
                         operation,

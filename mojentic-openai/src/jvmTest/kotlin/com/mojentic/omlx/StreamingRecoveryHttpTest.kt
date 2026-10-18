@@ -22,11 +22,9 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.Json
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.Semaphore
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -36,18 +34,18 @@ import kotlin.test.assertNotEquals
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
-/** Real HTTP through both public adapters, both streaming APIs and broker/session boundaries. */
+/** In-process HTTP through public adapters, streaming APIs and broker/session boundaries. */
 class StreamingRecoveryHttpTest {
     @Test
-    fun escapedSemanticKeysPreventReplayAtHttpBoundary(): Unit = runBlocking {
+    fun escapedSemanticKeysPreventReplayAtHttpBoundary(): Unit = runTest {
         matrix { provider, eventsApi ->
             val events = mutableListOf<RecoveryEvent>()
             val wires = mutableListOf<RecoveryWire>()
             val output = mutableListOf<Any>()
             var admissions = 0
             val fragment = provider.fragment("content").replace("content", "\\u0063ontent")
-            RecoveryScriptedServer(listOf(ScriptedReply(200, fragment), provider.streamSuccess())).use { server ->
-                provider.gateway(server.url).use { gateway ->
+            RecoveryScriptedTransport(listOf(ScriptedReply(200, fragment), provider.streamSuccess())).use { server ->
+                provider.gateway(server.url, engine = server.engine).use { gateway ->
                     val failure = assertFailsWith<RecoveryException> {
                         collect(
                             gateway,
@@ -89,7 +87,7 @@ class StreamingRecoveryHttpTest {
     }
 
     @Test
-    fun escapedChannelsSurviveFragmentedReadsAndCaptureFailure(): Unit = runBlocking {
+    fun escapedChannelsSurviveFragmentedReadsAndCaptureFailure(): Unit = runTest {
         matrix { provider, eventsApi ->
             for (field in listOf("content", "reasoning", "tools")) {
                 for (captureFails in listOf(false, true)) {
@@ -98,12 +96,12 @@ class StreamingRecoveryHttpTest {
                     val wires = mutableListOf<RecoveryWire>()
                     val output = mutableListOf<Any>()
                     val cause = IllegalArgumentException("private-capture")
-                    val acknowledged = if (captureFails) null else Semaphore(0)
+                    val fragmented = !captureFails
                     var admissions = 0
-                    RecoveryScriptedServer(
-                        listOf(ScriptedReply(200, fragment, readAcknowledged = acknowledged), provider.streamSuccess()),
+                    RecoveryScriptedTransport(
+                        listOf(ScriptedReply(200, fragment, fragmented = fragmented), provider.streamSuccess()),
                     ).use { server ->
-                        provider.gateway(server.url).use { gateway ->
+                        provider.gateway(server.url, engine = server.engine).use { gateway ->
                             val failure = assertFailsWith<RecoveryException> {
                                 collect(
                                     gateway,
@@ -117,7 +115,6 @@ class StreamingRecoveryHttpTest {
                                         observer = { events += it },
                                         capture = {
                                             wires += it
-                                            if (it.inspectResponse()?.isNotEmpty() == true) acknowledged?.release()
                                             if (captureFails && it.inspectResponse()?.size == fragment.encodeToByteArray().size) throw cause
                                         },
                                     ),
@@ -144,12 +141,12 @@ class StreamingRecoveryHttpTest {
     }
 
     @Test
-    fun deliveredProgressIndependentlyPreventsHttpReplay(): Unit = runBlocking {
+    fun deliveredProgressIndependentlyPreventsHttpReplay(): Unit = runTest {
         for (field in listOf("content", "reasoning", "tools")) {
             val events = mutableListOf<RecoveryEvent>()
             val cause = RecoveryStreamClosedException()
-            RecoveryScriptedServer(listOf(ScriptedReply(200, "\n"), ScriptedReply(200, "second"))).use { server ->
-                recoveryHttpClient().use { client ->
+            RecoveryScriptedTransport(listOf(ScriptedReply(200, "\n"), ScriptedReply(200, "second"))).use { server ->
+                recoveryHttpClient(server.engine).use { client ->
                     val failure = assertFailsWith<RecoveryException> {
                         RecoveryHttp(client, com.mojentic.llm.recovery.RecoveryProvider.OPENAI, server.url).executeStream(
                             "{}",
@@ -182,15 +179,15 @@ class StreamingRecoveryHttpTest {
     }
 
     @Test
-    fun escapedInterruptionReachesBrokerAndRestoresSession(): Unit = runBlocking {
+    fun escapedInterruptionReachesBrokerAndRestoresSession(): Unit = runTest {
         for (provider in Provider.entries) {
             for (boundary in listOf("broker", "events", "session")) {
                 val events = mutableListOf<RecoveryEvent>()
                 val policy = RecoveryPolicy(maxAttempts = 2, admission = { error("boundary replay") }, observer = { events += it })
-                RecoveryScriptedServer(
+                RecoveryScriptedTransport(
                     listOf(ScriptedReply(200, provider.escapedFragment("content")), provider.streamSuccess()),
                 ).use { server ->
-                    provider.gateway(server.url).use { gateway ->
+                    provider.gateway(server.url, engine = server.engine).use { gateway ->
                         val broker = LlmBroker(gateway.value)
                         val config = CompletionConfig(recovery = policy)
                         val output = mutableListOf<Any>()
@@ -224,15 +221,15 @@ class StreamingRecoveryHttpTest {
     }
 
     @Test
-    fun admittedRetriesPreserveExactPayloadCaptureAndIdentities(): Unit = runBlocking {
+    fun admittedRetriesPreserveExactPayloadCaptureAndIdentities(): Unit = runTest {
         matrix { provider, eventsApi ->
             val events = mutableListOf<RecoveryEvent>()
             val captures = mutableListOf<RecoveryWire>()
             val sleeps = mutableListOf<Long>()
-            RecoveryScriptedServer(
+            RecoveryScriptedTransport(
                 listOf(ScriptedReply(503, "private-response", mapOf("Retry-After" to "0")), provider.streamSuccess()),
             ).use { server ->
-                provider.gateway(server.url).use { gateway ->
+                provider.gateway(server.url, engine = server.engine).use { gateway ->
                     val output = collect(gateway, eventsApi, RecoveryTestFixtures.policy(events, captures, sleeps))
                     assertTrue(output.isNotEmpty())
                     assertEquals(2, server.requests.size)
@@ -273,19 +270,19 @@ class StreamingRecoveryHttpTest {
     }
 
     @Test
-    fun retryAfterAndBoundedGatewayTimeout(): Unit = runBlocking {
+    fun retryAfterAndBoundedGatewayTimeout(): Unit = runTest {
         matrix { provider, eventsApi ->
             val sleeps = mutableListOf<Long>()
-            RecoveryScriptedServer(
+            RecoveryScriptedTransport(
                 listOf(ScriptedReply(429, "private-429", mapOf("Retry-After" to "2")), provider.streamSuccess()),
             ).use { server ->
-                provider.gateway(server.url).use { gateway ->
+                provider.gateway(server.url, engine = server.engine).use { gateway ->
                     collect(gateway, eventsApi, RecoveryTestFixtures.policy(sleeps = sleeps))
                     assertEquals(listOf(2000L), sleeps)
                 }
             }
-            RecoveryScriptedServer(List(3) { ScriptedReply(504, "private-504") }).use { server ->
-                provider.gateway(server.url).use { gateway ->
+            RecoveryScriptedTransport(List(3) { ScriptedReply(504, "private-504") }).use { server ->
+                provider.gateway(server.url, engine = server.engine).use { gateway ->
                     val error = assertFailsWith<RecoveryException> { collect(gateway, eventsApi, RecoveryTestFixtures.policy()) }
                     assertEquals(RecoveryReason.EXHAUSTED, error.reason)
                     assertEquals(listOf(504, 504, 504), error.failures.map { it.status })
@@ -299,12 +296,12 @@ class StreamingRecoveryHttpTest {
     }
 
     @Test
-    fun admissionWaitRejectAndRecoveryBudgetDoNotSend(): Unit = runBlocking {
+    fun admissionWaitRejectAndRecoveryBudgetDoNotSend(): Unit = runTest {
         matrix { provider, eventsApi ->
             val entered = CompletableDeferred<Unit>()
             val decision = CompletableDeferred<Boolean>()
-            RecoveryScriptedServer(listOf(ScriptedReply(503, "private-admission"))).use { server ->
-                provider.gateway(server.url).use { gateway ->
+            RecoveryScriptedTransport(listOf(ScriptedReply(503, "private-admission"))).use { server ->
+                provider.gateway(server.url, engine = server.engine).use { gateway ->
                     var failure: RecoveryException? = null
                     val job = launch {
                         failure = assertFailsWith<RecoveryException> {
@@ -326,8 +323,8 @@ class StreamingRecoveryHttpTest {
                     assertEquals(1, server.requests.size)
                 }
             }
-            RecoveryScriptedServer(listOf(ScriptedReply(503, "private-budget"))).use { server ->
-                provider.gateway(server.url).use { gateway ->
+            RecoveryScriptedTransport(listOf(ScriptedReply(503, "private-budget"))).use { server ->
+                provider.gateway(server.url, engine = server.engine).use { gateway ->
                     val failure = assertFailsWith<RecoveryException> {
                         collect(
                             gateway,
@@ -345,14 +342,14 @@ class StreamingRecoveryHttpTest {
     }
 
     @Test
-    fun allObservedSemanticChannelsInterruptWithoutReplay(): Unit = runBlocking {
+    fun allObservedSemanticChannelsInterruptWithoutReplay(): Unit = runTest {
         matrix { provider, eventsApi ->
             for (field in listOf("content", "reasoning", "tools")) {
-                val released = CountDownLatch(1)
+                val released = CompletableDeferred<Unit>()
                 val events = mutableListOf<RecoveryEvent>()
                 val fragment = provider.fragment(field)
-                RecoveryScriptedServer(listOf(ScriptedReply(200, fragment, truncated = true, release = released))).use { server ->
-                    provider.gateway(server.url).use { gateway ->
+                RecoveryScriptedTransport(listOf(ScriptedReply(200, fragment, truncated = true, release = released))).use { server ->
+                    provider.gateway(server.url, engine = server.engine).use { gateway ->
                         val failure = assertFailsWith<RecoveryException> {
                             collect(
                                 gateway,
@@ -363,7 +360,7 @@ class StreamingRecoveryHttpTest {
                                     events +=
                                         it
                                 }, capture = {
-                                    if (it.inspectResponse()?.isNotEmpty() == true) released.countDown()
+                                    if (it.inspectResponse()?.isNotEmpty() == true) released.complete(Unit)
                                 }),
                             )
                         }
@@ -387,20 +384,20 @@ class StreamingRecoveryHttpTest {
     }
 
     @Test
-    fun keepaliveOnlyClosureRequiresAdmissionAndCanRecover(): Unit = runBlocking {
+    fun keepaliveOnlyClosureRequiresAdmissionAndCanRecover(): Unit = runTest {
         matrix { provider, eventsApi ->
-            val release = CountDownLatch(1)
+            val release = CompletableDeferred<Unit>()
             val events = mutableListOf<RecoveryEvent>()
             val keepalive = if (provider == Provider.OMLX) ": keep-alive\n\ndata: {\"model\":\"keepalive\",\"choices\":[]}\n\n" else "\n\n"
-            RecoveryScriptedServer(
+            RecoveryScriptedTransport(
                 listOf(ScriptedReply(200, keepalive, truncated = true, release = release), provider.streamSuccess()),
             ).use { server ->
-                provider.gateway(server.url).use { gateway ->
+                provider.gateway(server.url, engine = server.engine).use { gateway ->
                     collect(
                         gateway,
                         eventsApi,
                         RecoveryPolicy(maxAttempts = 2, jitter = { 0 }, observer = { events += it }, capture = {
-                            if (it.inspectResponse()?.isNotEmpty() == true) release.countDown()
+                            if (it.inspectResponse()?.isNotEmpty() == true) release.complete(Unit)
                         }, admission = {
                             assertTrue(it.progress.rawBytes > 0)
                             assertFalse(it.progress.semanticObserved)
@@ -421,12 +418,14 @@ class StreamingRecoveryHttpTest {
     }
 
     @Test
-    fun truncatedPermanentStatusesRemainPermanent(): Unit = runBlocking {
+    fun truncatedPermanentStatusesRemainPermanent(): Unit = runTest {
         matrix { provider, eventsApi ->
             for (status in listOf(400, 401)) {
-                val release = CountDownLatch(1)
-                RecoveryScriptedServer(listOf(ScriptedReply(status, "private-http", truncated = true, release = release))).use { server ->
-                    provider.gateway(server.url).use { gateway ->
+                val release = CompletableDeferred<Unit>()
+                RecoveryScriptedTransport(
+                    listOf(ScriptedReply(status, "private-http", truncated = true, release = release)),
+                ).use { server ->
+                    provider.gateway(server.url, engine = server.engine).use { gateway ->
                         val failure = assertFailsWith<RecoveryException> {
                             collect(
                                 gateway,
@@ -434,7 +433,7 @@ class StreamingRecoveryHttpTest {
                                 RecoveryPolicy(maxAttempts = 2, admission = {
                                     error("permanent retry")
                                 }, capture = {
-                                    if (it.inspectResponse()?.isNotEmpty() == true) release.countDown()
+                                    if (it.inspectResponse()?.isNotEmpty() == true) release.complete(Unit)
                                 }),
                             )
                         }
@@ -450,12 +449,12 @@ class StreamingRecoveryHttpTest {
     }
 
     @Test
-    fun captureFailureIsTerminalBeforeDeliveryThroughBothAdapters(): Unit = runBlocking {
+    fun captureFailureIsTerminalBeforeDeliveryThroughBothAdapters(): Unit = runTest {
         matrix { provider, eventsApi ->
             val cause = IllegalArgumentException("private-capture")
             val delivered = mutableListOf<Any>()
-            RecoveryScriptedServer(listOf(provider.streamSuccess())).use { server ->
-                provider.gateway(server.url).use { gateway ->
+            RecoveryScriptedTransport(listOf(provider.streamSuccess())).use { server ->
+                provider.gateway(server.url, engine = server.engine).use { gateway ->
                     val failure = assertFailsWith<RecoveryException> {
                         collect(
                             gateway,
@@ -478,7 +477,7 @@ class StreamingRecoveryHttpTest {
     }
 
     @Test
-    fun validLengthHasProgressThenMetricsThenFailureAndMalformedHasNoTelemetry(): Unit = runBlocking {
+    fun validLengthHasProgressThenMetricsThenFailureAndMalformedHasNoTelemetry(): Unit = runTest {
         for (eventsApi in listOf(false, true)) {
             val events = mutableListOf<RecoveryEvent>()
             val length =
@@ -488,8 +487,8 @@ class StreamingRecoveryHttpTest {
             val tools = """"tool_calls":[{"function":{"name":"count-tool","arguments":{}}}],"""
             val lengthWithTools = length.replace("\"content\":", tools + "\"content\":")
             val output = mutableListOf<Any>()
-            RecoveryScriptedServer(listOf(ScriptedReply(200, lengthWithTools))).use { server ->
-                Provider.OLLAMA.gateway(server.url).use { gateway ->
+            RecoveryScriptedTransport(listOf(ScriptedReply(200, lengthWithTools))).use { server ->
+                Provider.OLLAMA.gateway(server.url, engine = server.engine).use { gateway ->
                     assertFailsWith<RecoveryException> { collect(gateway, eventsApi, RecoveryTestFixtures.policy(events), output) }
                     assertTrue(output.none { it is GatewayStreamEvent.ToolCalls || it is CompletionStreamEvent.Completed })
                     assertEquals(
@@ -511,8 +510,8 @@ class StreamingRecoveryHttpTest {
                 }
             }
             events.clear()
-            RecoveryScriptedServer(listOf(ScriptedReply(200, "{\"done\":true,\"eval_count\":\"invented\"}\n"))).use { server ->
-                Provider.OLLAMA.gateway(server.url).use { gateway ->
+            RecoveryScriptedTransport(listOf(ScriptedReply(200, "{\"done\":true,\"eval_count\":\"invented\"}\n"))).use { server ->
+                Provider.OLLAMA.gateway(server.url, engine = server.engine).use { gateway ->
                     assertFailsWith<RecoveryException> { collect(gateway, eventsApi, RecoveryTestFixtures.policy(events)) }
                     assertTrue(events.none { it.stage == RecoveryStage.PROGRESS || it.stage == RecoveryStage.METRICS })
                     assertEquals(1, server.requests.size)
@@ -524,14 +523,14 @@ class StreamingRecoveryHttpTest {
 
 class StreamingRecoveryLifecycleTest {
     @Test
-    fun pausedConsumerCancellationRecordsFailedAttemptBeforeOneTerminalCancellation(): Unit = runBlocking {
+    fun pausedConsumerCancellationRecordsFailedAttemptBeforeOneTerminalCancellation(): Unit = runTest {
         matrix { provider, eventsApi ->
             val paused = CompletableDeferred<Unit>()
-            val closed = CountDownLatch(1)
+            val closed = CompletableDeferred<Unit>()
             val events = mutableListOf<RecoveryEvent>()
             val body = provider.streamSuccess().body
-            RecoveryScriptedServer(listOf(ScriptedReply(200, body, truncated = true, clientClosed = closed))).use { server ->
-                provider.gateway(server.url).use { gateway ->
+            RecoveryScriptedTransport(listOf(ScriptedReply(200, body, truncated = true, clientClosed = closed))).use { server ->
+                provider.gateway(server.url, engine = server.engine).use { gateway ->
                     val job = launch {
                         val config =
                             CompletionConfig(
@@ -557,7 +556,7 @@ class StreamingRecoveryLifecycleTest {
                     }
                     withTimeout(5000) { paused.await() }
                     job.cancelAndJoin()
-                    assertTrue(closed.await(5, java.util.concurrent.TimeUnit.SECONDS))
+                    withTimeout(5000) { closed.await() }
                     assertEquals(listOf(RecoveryStage.FAILED, RecoveryStage.CANCELLED), events.takeLast(2).map { it.stage })
                     assertEquals(1, events.count { it.stage == RecoveryStage.CANCELLED })
                     assertTrue(events.none { it.stage == RecoveryStage.SUCCEEDED })
@@ -573,14 +572,14 @@ class StreamingRecoveryLifecycleTest {
     }
 
     @Test
-    fun brokerToolRunsOnceAndSessionRestoresSnapshotAfterFollowupFails(): Unit = runBlocking {
+    fun brokerToolRunsOnceAndSessionRestoresSnapshotAfterFollowupFails(): Unit = runTest {
         for (provider in Provider.entries) {
             var toolRuns = 0
             val tools = listOf(RecoveryTestFixtures.countingTool { toolRuns++ })
-            RecoveryScriptedServer(
+            RecoveryScriptedTransport(
                 listOf(provider.streamTool(), ScriptedReply(503, "private-followup"), ScriptedReply(504, "private-followup")),
             ).use { server ->
-                provider.gateway(server.url).use { gateway ->
+                provider.gateway(server.url, engine = server.engine).use { gateway ->
                     val session =
                         ChatSession(
                             LlmBroker(gateway.value),
@@ -605,8 +604,8 @@ class StreamingRecoveryLifecycleTest {
                     assertTrue(nativeHistory.contains("count-tool"))
                 }
             }
-            RecoveryScriptedServer(listOf(ScriptedReply(503, "private-retry"), provider.streamSuccess())).use { server ->
-                provider.gateway(server.url).use { gateway ->
+            RecoveryScriptedTransport(listOf(ScriptedReply(503, "private-retry"), provider.streamSuccess())).use { server ->
+                provider.gateway(server.url, engine = server.engine).use { gateway ->
                     val session =
                         ChatSession(LlmBroker(gateway.value), "test", config = CompletionConfig(recovery = RecoveryTestFixtures.policy()))
                     session.stream("private-user").collect {}
@@ -617,13 +616,13 @@ class StreamingRecoveryLifecycleTest {
     }
 
     @Test
-    fun cancellationDuringAdmissionAndBackoffNeverResends(): Unit = runBlocking {
+    fun cancellationDuringAdmissionAndBackoffNeverResends(): Unit = runTest {
         matrix { provider, eventsApi ->
             for (inAdmission in listOf(false, true)) {
                 val waiting = CompletableDeferred<Unit>()
                 val events = mutableListOf<RecoveryEvent>()
-                RecoveryScriptedServer(listOf(ScriptedReply(503, "private-wait"))).use { server ->
-                    provider.gateway(server.url).use { gateway ->
+                RecoveryScriptedTransport(listOf(ScriptedReply(503, "private-wait"))).use { server ->
+                    provider.gateway(server.url, engine = server.engine).use { gateway ->
                         val job = launch {
                             collect(
                                 gateway,
@@ -654,13 +653,13 @@ class StreamingRecoveryLifecycleTest {
     }
 
     @Test
-    fun terminalOnlyMetricsCancellationCannotSucceed(): Unit = runBlocking {
+    fun terminalOnlyMetricsCancellationCannotSucceed(): Unit = runTest {
         for (eventsApi in listOf(false, true)) {
             val metricsSeen = CompletableDeferred<Unit>()
             val events = mutableListOf<RecoveryEvent>()
             val terminal = """{"message":{"role":"assistant"},"done":true,"done_reason":"stop","eval_count":2}""" + "\n"
-            RecoveryScriptedServer(listOf(ScriptedReply(200, terminal))).use { server ->
-                Provider.OLLAMA.gateway(server.url).use { gateway ->
+            RecoveryScriptedTransport(listOf(ScriptedReply(200, terminal))).use { server ->
+                Provider.OLLAMA.gateway(server.url, engine = server.engine).use { gateway ->
                     lateinit var self: kotlinx.coroutines.Job
                     val job = launch {
                         collect(
@@ -700,18 +699,18 @@ class StreamingRecoveryLifecycleTest {
     }
 
     @Test
-    fun pausedTerminalCompletionClosesOwnedResponseBeforeCancellation(): Unit = runBlocking {
+    fun pausedTerminalCompletionClosesOwnedResponseBeforeCancellation(): Unit = runTest {
         for (provider in Provider.entries) {
             val paused = CompletableDeferred<Unit>()
-            val closed = CountDownLatch(1)
+            val closed = CompletableDeferred<Unit>()
             val events = mutableListOf<RecoveryEvent>()
             val body = if (provider == Provider.OLLAMA) {
                 """{"message":{"role":"assistant"},"done":true,"done_reason":"stop","eval_count":2}""" + "\n"
             } else {
                 "data: " + """{"choices":[{"delta":{},"finish_reason":"stop"}],"usage":{"completion_tokens":2}}""" + "\n\ndata: [DONE]\n\n"
             }
-            RecoveryScriptedServer(listOf(ScriptedReply(200, body, truncated = true, clientClosed = closed))).use { server ->
-                provider.gateway(server.url).use { gateway ->
+            RecoveryScriptedTransport(listOf(ScriptedReply(200, body, truncated = true, clientClosed = closed))).use { server ->
+                provider.gateway(server.url, engine = server.engine).use { gateway ->
                     val job = launch {
                         (gateway.value as StreamEventsGateway).streamEvents(
                             "test",
@@ -731,9 +730,10 @@ class StreamingRecoveryLifecycleTest {
                     }
                     withTimeout(5000) { paused.await() }
                     assertEquals(RecoveryStage.SUCCEEDED, events.last().stage)
+                    withTimeout(5000) { closed.await() }
                     val finalized = events.toList()
                     job.cancelAndJoin()
-                    assertTrue(closed.await(5, java.util.concurrent.TimeUnit.SECONDS))
+                    withTimeout(5000) { closed.await() }
                     assertEquals(finalized, events)
                 }
             }
@@ -741,29 +741,30 @@ class StreamingRecoveryLifecycleTest {
     }
 
     @Test
-    fun retryAfterDatesInvalidAndMinimumRefusalAndHealthyGenerationBudget(): Unit = runBlocking {
+    fun retryAfterDatesInvalidAndMinimumRefusalAndHealthyGenerationBudget(): Unit = runTest {
         matrix { provider, eventsApi ->
             for ((header, wait) in listOf("Thu, 01 Jan 1970 00:00:02 GMT" to 2000L, "invalid" to 100L)) {
                 val sleeps = mutableListOf<Long>()
-                RecoveryScriptedServer(
+                RecoveryScriptedTransport(
                     listOf(ScriptedReply(429, "private-delay", mapOf("Retry-After" to header)), provider.streamSuccess()),
                 ).use { server ->
-                    provider.gateway(server.url).use { gateway ->
+                    provider.gateway(server.url, engine = server.engine).use { gateway ->
                         collect(gateway, eventsApi, RecoveryTestFixtures.policy(sleeps = sleeps))
                         assertEquals(listOf(wait), sleeps)
                     }
                 }
             }
-            RecoveryScriptedServer(listOf(ScriptedReply(429, "private-minimum", mapOf("Retry-After" to "31")))).use { server ->
-                provider.gateway(server.url).use { gateway ->
+            RecoveryScriptedTransport(listOf(ScriptedReply(429, "private-minimum", mapOf("Retry-After" to "31")))).use { server ->
+                provider.gateway(server.url, engine = server.engine).use { gateway ->
                     val failure = assertFailsWith<RecoveryException> { collect(gateway, eventsApi, RecoveryTestFixtures.policy()) }
                     assertEquals(RecoveryReason.PROVIDER_MINIMUM, failure.reason)
                     assertEquals(1, server.requests.size)
                 }
             }
-            RecoveryScriptedServer(listOf(provider.streamSuccess().copy(delayMillis = 100))).use { server ->
-                provider.gateway(server.url).use { gateway ->
-                    collect(gateway, eventsApi, RecoveryPolicy(budgetMillis = 0))
+            var now = 0L
+            RecoveryScriptedTransport(listOf(provider.streamSuccess().copy(beforeReply = { now += 100 }))).use { server ->
+                provider.gateway(server.url, engine = server.engine).use { gateway ->
+                    collect(gateway, eventsApi, RecoveryPolicy(budgetMillis = 0, clock = { 0 }, monotonicClock = { now }))
                     assertEquals(1, server.requests.size)
                 }
             }
@@ -771,7 +772,7 @@ class StreamingRecoveryLifecycleTest {
     }
 
     @Test
-    fun invalidUtf8AndProviderErrorsCannotManufactureSuccessOrTelemetry(): Unit = runBlocking {
+    fun invalidUtf8AndProviderErrorsCannotManufactureSuccessOrTelemetry(): Unit = runTest {
         matrix { provider, eventsApi ->
             val errors = if (provider == Provider.OLLAMA) {
                 """{"error":"credential-secret private-echo","message":{"role":"assistant",""" +
@@ -785,8 +786,8 @@ class StreamingRecoveryLifecycleTest {
             }
             for (reply in listOf(ScriptedReply(200, errors), ScriptedReply(200, "", rawBody = byteArrayOf(0xc3.toByte(), 0x28, 10)))) {
                 val events = mutableListOf<RecoveryEvent>()
-                RecoveryScriptedServer(listOf(reply)).use { server ->
-                    provider.gateway(server.url).use { gateway ->
+                RecoveryScriptedTransport(listOf(reply)).use { server ->
+                    provider.gateway(server.url, engine = server.engine).use { gateway ->
                         val failure =
                             assertFailsWith<RecoveryException> { collect(gateway, eventsApi, RecoveryTestFixtures.policy(events)) }
                         assertTrue(
@@ -804,12 +805,12 @@ class StreamingRecoveryLifecycleTest {
     }
 
     @Test
-    fun cancellationFromProgressObserverRetainsZeroDeliveredBytes(): Unit = runBlocking {
+    fun cancellationFromProgressObserverRetainsZeroDeliveredBytes(): Unit = runTest {
         matrix { provider, eventsApi ->
             val events = mutableListOf<RecoveryEvent>()
             val delivered = mutableListOf<Any>()
-            RecoveryScriptedServer(listOf(provider.streamSuccess())).use { server ->
-                provider.gateway(server.url).use { gateway ->
+            RecoveryScriptedTransport(listOf(provider.streamSuccess())).use { server ->
+                provider.gateway(server.url, engine = server.engine).use { gateway ->
                     lateinit var self: kotlinx.coroutines.Job
                     self = launch {
                         collect(
@@ -836,7 +837,7 @@ class StreamingRecoveryLifecycleTest {
     }
 
     @Test
-    fun quotedTelemetryAndTerminationAreMalformedBeforeProgress(): Unit = runBlocking {
+    fun quotedTelemetryAndTerminationAreMalformedBeforeProgress(): Unit = runTest {
         matrix { provider, eventsApi ->
             val normal = provider.streamSuccess().body
             val mutations = if (provider == Provider.OLLAMA) {
@@ -846,8 +847,8 @@ class StreamingRecoveryLifecycleTest {
             }
             for (body in mutations) {
                 val events = mutableListOf<RecoveryEvent>()
-                RecoveryScriptedServer(listOf(ScriptedReply(200, body))).use { server ->
-                    provider.gateway(server.url).use { gateway ->
+                RecoveryScriptedTransport(listOf(ScriptedReply(200, body))).use { server ->
+                    provider.gateway(server.url, engine = server.engine).use { gateway ->
                         assertFailsWith<RecoveryException> { collect(gateway, eventsApi, RecoveryTestFixtures.policy(events)) }
                         assertTrue(
                             events.none {
@@ -862,12 +863,12 @@ class StreamingRecoveryLifecycleTest {
     }
 
     @Test
-    fun brokerTerminalEvidenceCompletesTheActualRecoveryAttempt(): Unit = runBlocking {
+    fun brokerTerminalEvidenceCompletesTheActualRecoveryAttempt(): Unit = runTest {
         for (provider in Provider.entries) {
             val lifecycle = mutableListOf<RecoveryEvent>()
             val output = mutableListOf<CompletionStreamEvent>()
-            RecoveryScriptedServer(listOf(ScriptedReply(503, "private-broker"), provider.streamSuccess())).use { server ->
-                provider.gateway(server.url).use { gateway ->
+            RecoveryScriptedTransport(listOf(ScriptedReply(503, "private-broker"), provider.streamSuccess())).use { server ->
+                provider.gateway(server.url, engine = server.engine).use { gateway ->
                     LlmBroker(gateway.value).generateStreamEvents(
                         "test",
                         RecoveryTestFixtures.messages,
@@ -884,13 +885,13 @@ class StreamingRecoveryLifecycleTest {
     }
 
     @Test
-    fun finalizationObserverFailureProducesOnlyPrivateErrorThroughGatewayAndBroker(): Unit = runBlocking {
+    fun finalizationObserverFailureProducesOnlyPrivateErrorThroughGatewayAndBroker(): Unit = runTest {
         for (provider in Provider.entries) {
             for (brokerBoundary in listOf(false, true)) {
                 val sentinel = IllegalStateException("private-observer-payload")
                 val output = mutableListOf<CompletionStreamEvent>()
-                RecoveryScriptedServer(listOf(provider.streamSuccess())).use { server ->
-                    provider.gateway(server.url).use { gateway ->
+                RecoveryScriptedTransport(listOf(provider.streamSuccess())).use { server ->
+                    provider.gateway(server.url, engine = server.engine).use { gateway ->
                         val config = CompletionConfig(
                             recovery = RecoveryPolicy(observer = {
                                 if (it.stage == RecoveryStage.SUCCEEDED) throw sentinel
@@ -915,13 +916,13 @@ class StreamingRecoveryLifecycleTest {
     }
 
     @Test
-    fun pausedSessionCancellationRestoresHistoryAndClosesTheAttempt(): Unit = runBlocking {
+    fun pausedSessionCancellationRestoresHistoryAndClosesTheAttempt(): Unit = runTest {
         for (provider in Provider.entries) {
-            val closed = CountDownLatch(1)
+            val closed = CompletableDeferred<Unit>()
             val paused = CompletableDeferred<Unit>()
             val lifecycle = mutableListOf<RecoveryEvent>()
-            RecoveryScriptedServer(listOf(provider.streamSuccess().copy(truncated = true, clientClosed = closed))).use { server ->
-                provider.gateway(server.url).use { gateway ->
+            RecoveryScriptedTransport(listOf(provider.streamSuccess().copy(truncated = true, clientClosed = closed))).use { server ->
+                provider.gateway(server.url, engine = server.engine).use { gateway ->
                     val session = ChatSession(
                         LlmBroker(gateway.value),
                         "test",
@@ -938,7 +939,7 @@ class StreamingRecoveryLifecycleTest {
                     withTimeout(5000) { paused.await() }
                     job.cancelAndJoin()
                     assertEquals(before, session.messages())
-                    assertTrue(closed.await(5, java.util.concurrent.TimeUnit.SECONDS))
+                    withTimeout(5000) { closed.await() }
                     assertEquals(listOf(RecoveryStage.FAILED, RecoveryStage.CANCELLED), lifecycle.takeLast(2).map { it.stage })
                     assertTrue(lifecycle.none { it.stage == RecoveryStage.SUCCEEDED })
                 }

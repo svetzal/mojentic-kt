@@ -28,7 +28,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
@@ -45,11 +45,11 @@ import kotlin.test.assertTrue
 
 class AdmissionAmendmentHttpTest {
     @Test
-    fun typedFailuresPreserveLegacySerializedReports(): Unit = runBlocking {
+    fun typedFailuresPreserveLegacySerializedReports(): Unit = runTest {
         for (provider in Provider.entries) {
             for (entry in Entry.entries) {
-                RecoveryScriptedServer(listOf(ScriptedReply(400, "private-error"))).use { server ->
-                    provider.gateway(server.url).use { gateway ->
+                RecoveryScriptedTransport(listOf(ScriptedReply(400, "private-error"))).use { server ->
+                    provider.gateway(server.url, engine = server.engine).use { gateway ->
                         val events = mutableListOf<RecoveryEvent>()
                         val policy = RecoveryPolicy(observer = { events += it })
                         val failure = assertFailsWith<RecoveryException> { entry.call(gateway, policy) }
@@ -120,12 +120,12 @@ class AdmissionAmendmentHttpTest {
     }
 
     @Test
-    fun remoteRetryWithoutHookPreservesExactPayloadAndIdentity(): Unit = runBlocking {
+    fun remoteRetryWithoutHookPreservesExactPayloadAndIdentity(): Unit = runTest {
         val events = mutableListOf<RecoveryEvent>()
-        RecoveryScriptedServer(
+        RecoveryScriptedTransport(
             listOf(ScriptedReply(502, "private-failure"), RecoveryTestFixtures.Provider.OPENAI.success(false)),
         ).use { server ->
-            RecoveryTestFixtures.Provider.OPENAI.gateway(server.url).use { gateway ->
+            RecoveryTestFixtures.Provider.OPENAI.gateway(server.url, engine = server.engine).use { gateway ->
                 val result = gateway.value.complete(
                     "test-model",
                     RecoveryTestFixtures.messages,
@@ -145,14 +145,14 @@ class AdmissionAmendmentHttpTest {
     }
 
     @Test
-    fun noHookDistinguishesRemoteAndLocalAcrossPublicEntrypoints(): Unit = runBlocking {
+    fun noHookDistinguishesRemoteAndLocalAcrossPublicEntrypoints(): Unit = runTest {
         for (provider in Provider.entries) {
             for (entry in Entry.entries) {
                 for (status in listOf(0, 500, 502, 504)) {
                     val events = mutableListOf<RecoveryEvent>()
                     val wires = mutableListOf<RecoveryWire>()
-                    RecoveryScriptedServer(listOf(ScriptedReply(status, "private-failure"), entry.success(provider))).use { server ->
-                        provider.gateway(server.url).use { gateway ->
+                    RecoveryScriptedTransport(listOf(ScriptedReply(status, "private-failure"), entry.success(provider))).use { server ->
+                        provider.gateway(server.url, engine = server.engine).use { gateway ->
                             val policy = RecoveryPolicy(
                                 maxAttempts = 2,
                                 jitter = { 0 },
@@ -191,15 +191,15 @@ class AdmissionAmendmentHttpTest {
     }
 
     @Test
-    fun pendingRejectUndecidedAndCancellationNeverConsumeQueuedSentinel(): Unit = runBlocking {
+    fun pendingRejectUndecidedAndCancellationNeverConsumeQueuedSentinel(): Unit = runTest {
         for (provider in Provider.entries) {
             for (entry in Entry.entries) {
                 for (outcome in listOf("reject", "undecided", "cancel")) {
                     val pending = CompletableDeferred<RecoveryFailure>()
                     val decision = CompletableDeferred<Boolean?>()
                     val events = mutableListOf<RecoveryEvent>()
-                    RecoveryScriptedServer(listOf(ScriptedReply(503, "private-failure"), entry.success(provider))).use { server ->
-                        provider.gateway(server.url).use { gateway ->
+                    RecoveryScriptedTransport(listOf(ScriptedReply(503, "private-failure"), entry.success(provider))).use { server ->
+                        provider.gateway(server.url, engine = server.engine).use { gateway ->
                             val call = async {
                                 runCatching {
                                     entry.call(
@@ -248,9 +248,9 @@ class AdmissionAmendmentHttpTest {
     }
 
     @Test
-    fun undecidedWithoutBudgetIsDistinctFromRejection(): Unit = runBlocking {
-        RecoveryScriptedServer(listOf(ScriptedReply(503, "private-failure"), Provider.OPENAI.success(false))).use { server ->
-            Provider.OPENAI.gateway(server.url).use { gateway ->
+    fun undecidedWithoutBudgetIsDistinctFromRejection(): Unit = runTest {
+        RecoveryScriptedTransport(listOf(ScriptedReply(503, "private-failure"), Provider.OPENAI.success(false))).use { server ->
+            Provider.OPENAI.gateway(server.url, engine = server.engine).use { gateway ->
                 val failure = assertFailsWith<RecoveryException> {
                     Entry.ORDINARY.call(gateway, RecoveryPolicy(maxAttempts = 2, admission = { null }))
                 }
@@ -261,11 +261,11 @@ class AdmissionAmendmentHttpTest {
     }
 
     @Test
-    fun defaultOneAttemptStillPreventsQueuedSentinel(): Unit = runBlocking {
+    fun defaultOneAttemptStillPreventsQueuedSentinel(): Unit = runTest {
         for (provider in Provider.entries) {
             for (entry in Entry.entries) {
-                RecoveryScriptedServer(listOf(ScriptedReply(503, "private-failure"), entry.success(provider))).use { server ->
-                    provider.gateway(server.url).use { gateway ->
+                RecoveryScriptedTransport(listOf(ScriptedReply(503, "private-failure"), entry.success(provider))).use { server ->
+                    provider.gateway(server.url, engine = server.engine).use { gateway ->
                         val failure = assertFailsWith<RecoveryException> { entry.call(gateway, RecoveryPolicy()) }
                         assertEquals(RecoveryReason.EXHAUSTED, failure.reason)
                         assertEquals(1, failure.wireAttempts)
@@ -277,7 +277,7 @@ class AdmissionAmendmentHttpTest {
     }
 
     @Test
-    fun semanticDeliveryWithoutHookPreventsReplayThroughBrokerAndSession(): Unit = runBlocking {
+    fun semanticDeliveryWithoutHookPreventsReplayThroughBrokerAndSession(): Unit = runTest {
         for (provider in Provider.entries) {
             for (entry in Entry.entries.filter { it.streaming }) {
                 val body = if (provider == Provider.OLLAMA) {
@@ -286,8 +286,8 @@ class AdmissionAmendmentHttpTest {
                     "data: " + """{"choices":[{"delta":{"content":"private-partial"}}]}""" + "\n\n"
                 }
                 val events = mutableListOf<RecoveryEvent>()
-                RecoveryScriptedServer(listOf(ScriptedReply(200, body), entry.success(provider))).use { server ->
-                    provider.gateway(server.url).use { gateway ->
+                RecoveryScriptedTransport(listOf(ScriptedReply(200, body), entry.success(provider))).use { server ->
+                    provider.gateway(server.url, engine = server.engine).use { gateway ->
                         val failure = assertFailsWith<RecoveryException> {
                             entry.call(gateway, RecoveryPolicy(maxAttempts = 2, observer = { events += it }))
                         }

@@ -23,6 +23,7 @@ concurrency:
 
 jobs:
   dependency-check:
+    timeout-minutes: 30
     name: OWASP dependencyCheckAggregate
     runs-on: ubuntu-latest
     steps:

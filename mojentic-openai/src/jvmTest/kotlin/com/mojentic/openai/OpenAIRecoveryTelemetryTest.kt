@@ -12,18 +12,17 @@ import com.mojentic.llm.recovery.RecoveryPolicy
 import com.mojentic.llm.recovery.RecoveryStage
 import com.mojentic.llm.recovery.RecoveryStreamClosedException
 import com.mojentic.llm.recovery.RecoveryStreamException
-import com.mojentic.omlx.RecoveryScriptedServer
+import com.mojentic.omlx.RecoveryScriptedTransport
 import com.mojentic.omlx.ScriptedReply
 import com.mojentic.tracer.LlmResponseEvent
 import com.mojentic.tracer.TracerSystem
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -34,14 +33,14 @@ import kotlin.test.assertTrue
 
 class OpenAIRecoveryTelemetryTest {
     @Test
-    fun interruptedBrokerEventsRetainTelemetryAndOriginalRecoveryCause(): Unit = runBlocking {
+    fun interruptedBrokerEventsRetainTelemetryAndOriginalRecoveryCause(): Unit = runTest {
         for (hasDone in listOf(false, true)) {
             val frame = "data: {\"model\":\"provider-model\",\"choices\":[{\"delta\":{\"content\":\"é\"}," +
                 "\"finish_reason\":\"length\"}],\"usage\":{\"completion_tokens\":2}}\n\n"
             val body = frame + if (hasDone) "data: [DONE]\n\n" else ""
             val events = mutableListOf<RecoveryEvent>()
-            RecoveryScriptedServer(listOf(ScriptedReply(200, body), ScriptedReply(200, "must-not-replay"))).use { server ->
-                val gateway = OpenAIGateway("private-key", server.url)
+            RecoveryScriptedTransport(listOf(ScriptedReply(200, body), ScriptedReply(200, "must-not-replay"))).use { server ->
+                val gateway = OpenAIGateway("private-key", server.url, engine = server.engine)
                 try {
                     val tracer = TracerSystem()
                     val output = mutableListOf<CompletionStreamEvent>()
@@ -92,17 +91,17 @@ class OpenAIRecoveryTelemetryTest {
     }
 
     @Test
-    fun cancellationFromTerminalUsageObserverClosesResponseWithoutSuccess(): Unit = runBlocking {
+    fun cancellationFromTerminalUsageObserverClosesResponseWithoutSuccess(): Unit = runTest {
         for (surface in listOf("stream", "streamEvents", "brokerEvents")) {
             val body = "data: {\"choices\":[{\"delta\":{},\"finish_reason\":\"stop\"}],\"usage\":{\"completion_tokens\":2}}\n\n" +
                 "data: [DONE]\n\n"
             val events = mutableListOf<RecoveryEvent>()
             val output = mutableListOf<Any>()
-            val closed = CountDownLatch(1)
-            RecoveryScriptedServer(
+            val closed = CompletableDeferred<Unit>()
+            RecoveryScriptedTransport(
                 listOf(ScriptedReply(200, body, truncated = true, clientClosed = closed), ScriptedReply(200, "must-not-replay")),
             ).use { server ->
-                val gateway = OpenAIGateway("private-key", server.url)
+                val gateway = OpenAIGateway("private-key", server.url, engine = server.engine)
                 try {
                     lateinit var self: Job
                     val config = CompletionConfig(
@@ -140,7 +139,7 @@ class OpenAIRecoveryTelemetryTest {
                     assertFalse(last.progress.semanticDelivered)
                     assertEquals("stop", last.inspectCompletionEvidence()?.finishReason)
                     assertEquals(1, server.requests.size)
-                    assertTrue(closed.await(5, TimeUnit.SECONDS))
+                    withTimeout(5000) { closed.await() }
                 } finally {
                     gateway.close()
                 }

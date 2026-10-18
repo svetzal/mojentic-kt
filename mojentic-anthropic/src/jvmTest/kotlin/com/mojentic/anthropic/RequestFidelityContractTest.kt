@@ -78,8 +78,8 @@ class RequestFidelityContractTest {
 
     private suspend fun verifyEntry(model: String, fallback: Int, config: CompletionConfig, entry: Int, retry: Boolean) {
         val replies = replies(entry, retry)
-        val server = RecoveryScriptedServer(replies)
-        val gateway = AnthropicGateway("contract-key", host = server.url)
+        val server = RecoveryScriptedTransport(replies)
+        val gateway = AnthropicGateway("contract-key", host = server.url, engine = server.engine)
         try {
             val actual = config.copy(recovery = if (retry) policy() else null)
             invoke(gateway, model, entry, actual)
