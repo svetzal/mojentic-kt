@@ -15,5 +15,5 @@ package com.mojentic
  */
 public object Mojentic {
     /** Current development artifact version; update with gradle.properties at release. */
-    public const val VERSION: String = "2.1.0"
+    public const val VERSION: String = "3.0.0"
 }

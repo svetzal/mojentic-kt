@@ -10,6 +10,8 @@ patch versions move independently.
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-10-18
+
 ### Distribution readiness
 
 - Prove caller-selected retry eligibility across OpenAI, Anthropic, Ollama and
