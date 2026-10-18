@@ -1,17 +1,44 @@
 # Current verification results
 
-The tested implementation is Kotlin `6d0de37f6520a77fb5f81b7f03e8bc263b97ba1b` plus the uncommitted test/build/docs
-changes identified by [source.sha256](source.sha256), SHA-256
-`56fd0cee163515e0f91e0aa78c418e753f91ccdc977bc6c2ff2d196d6cb84fdb` (337 files). The authority is read-only mojentic-unify
-`4ae2f73a0a5465b0f6509b87e1148d254f3f64cd`. Production source, public API/dumps, version and release
-state are unchanged. The existing candidate version is **3.0.0**; this task did
-not bump, tag, commit, push or publish remotely.
+Tested source: Kotlin `b420c1feb4d305e2df32f7f0d46814ef7a2eece3` plus the uncommitted corrections identified by
+[source.sha256](source.sha256), SHA-256 `ae586802575b0d91ff9f5e4f10a61c962c99f376e77d208aec52411245b99a6a` (337 files).
+Authority remains mojentic-unify `4ae2f73a0a5465b0f6509b87e1148d254f3f64cd`.
+Production source, public API/dumps, shared contract decisions/fixtures,
+dependencies, version **3.0.0** and release state are unchanged. No refs were changed.
 
-## Library/provider verification
+## Corrected behavioral acceptance
 
-All six required commands passed on this worktree, with Gradle offline:
+The public `OpenAIGateway.complete` probe uses the preserved shared
+`RecoveryScriptedTransport` with `StandardTestDispatcher`, injected epoch and
+monotonic clocks, and an injected sleeper. The rejecting run (exit **1**) uses
+a sleeper that records the delay without advancing virtual time. It fails:
 
-| Actual command | Exit |
+```kotlin
+assertEquals(100L, testScheduler.currentTime, "Recovery backoff must advance the injected clock by 100 ms")
+// expected: 100; actual: 0
+```
+
+The corrected run (exit **0**) adds `testScheduler.advanceTimeBy(it)` to that
+sleeper. Both runs keep exactly the same 503 `private-failure` and 200 `ok`
+response bytes. This detects an injected-time fixture defect: a recorded delay
+alone does not prove backoff advances the monotonic clock. The earlier
+`incorrect`-to-`ok` toggle is withdrawn as acceptance evidence.
+
+The passing assertions verify literal serialized request bytes on both attempts
+and every capture; full stable logical IDs and distinct attempt IDs with attempt
+numbers; exact lifecycle order; response bytes/status bound to each identity;
+original failure bytes, the same failure object retained through success, and
+the original cause object; 100 ms virtual backoff; no raw request/failure/token
+in formatted events, summaries or wires; no authorization in captured headers.
+No identifiers are masked and no library internals are mocked. The actual proof
+logs are archived by Foundry; their hashes and command/exit results are in
+[verification.json](verification.json).
+
+## Library/provider gates
+
+All six required gates passed with `GRADLE_USER_HOME=/tmp/mojentic-no-network-gradle`:
+
+| Command | Exit |
 | --- | --- |
 | `./gradlew ktlintCheck --offline` | 0 |
 | `./gradlew detekt --offline` | 0 |
@@ -20,33 +47,24 @@ All six required commands passed on this worktree, with Gradle offline:
 | `./gradlew apiCheck --offline` | 0 |
 | `./gradlew dokkaGenerate --offline` | 0 |
 
-Fresh XML contains **926 executions in 169 suites**,
-zero failures/errors/skips, across JVM and Android host tests. These are execution
-counts, not unique tests or a behavioral coverage argument. Concrete assertions
-are mapped decision by decision in [recovery conformance](../../RECOVERY-CONFORMANCE.md)
-and [parts 1–3 conformance](../../CONFORMANCE-3.0.0.md). The reviewed dependency
-replacement inventory is [testing.md](../testing.md).
-
-Before expanding the fixture migration or running the full suite, a public
-OpenAIGateway probe rejected an in-process response containing `incorrect`
-instead of `ok` (exit **1**), then passed after correcting that response (exit
-**0**). It also verifies exact retry payloads, stable logical/distinct attempt
-IDs, original failure bytes, ordered lifecycle, injected backoff and privacy.
-Foundry retains the actual rejecting/corrected logs and validated behavioral
-proof separately; [verification.json](verification.json) records their hashes.
+JVM/Android host XML reports **926 executions in 169 suites**,
+zero failures/errors/skips. Counts describe execution only. Behavioral mappings
+are [recovery conformance](../../RECOVERY-CONFORMANCE.md),
+[3.0.0 conformance](../../CONFORMANCE-3.0.0.md) and [testing.md](../testing.md).
+All existing shared-transport callers, module-local Anthropic/Ollama helpers and
+independent consumer sources retain their assertions and coverage.
 
 ## Independent packaged consumer
 
-`tools/verify-distribution.sh` passed, exit **0**, publishing to a fresh local
-file Maven directory and running a separate consumer with **7 tests**, zero
-failures/errors/skips. Both Gradle invocations were offline. One missing cached
-plugin jar was populated beforehand with a separate `help` configuration run;
-that preparation was not verification. No registry calls occur in the
-verification script. No project/composite/source substitution is used.
-
-The consumer's copied source has SHA-256 `b97fee40c8408ca8ec1472589448b9c52af0ea4efed608ac0a66763fa3bb0135`; every copied file
-was compared with the worktree source. It tested the same implementation commit
-`6d0de37f6520a77fb5f81b7f03e8bc263b97ba1b` packaged from the worktree identified above.
+`tools/verify-distribution.sh` passed (exit **0**) with **7 tests**, zero
+failures/errors/skips, for the same tested source identity above. Both Gradle
+invocations use `--offline`; candidate artifacts are freshly published into
+`build/distribution-verification/candidate.9ibXim/maven`.
+The unchanged consumer's `verifyCandidateResolution` verifies each actual resolved
+file is under that fresh exclusive local file repository and has version 3.0.0.
+No registry resolution or project/composite/source substitution occurs.
+Every copied consumer source was compared byte-for-byte with this worktree;
+consumer source manifest SHA-256: `b97fee40c8408ca8ec1472589448b9c52af0ea4efed608ac0a66763fa3bb0135`.
 
 | Shared executable contract | SHA-256 | Library/provider | Packaged consumer |
 | --- | --- | --- | --- |
@@ -54,20 +72,15 @@ was compared with the worktree source. It tested the same implementation commit
 | native-reasoning-v1 | `d5539eb334b69e0f8b698e8cd2c1402772dfabd09af92c652e1d1dc35f34e127` | passed | passed |
 | request-fidelity-v1 | `6f02088311f50707b9c12154d888f844928c23d359043cb2e5d5654bf7e5eaea` | passed | passed |
 
-Both sides check these pinned identities and derive responses from them. The
-consumer checks native reasoning/history/tool association, exact retry payloads
-and parameter omission, discovery errors/optional fields, incomplete-stream
-termination without replay, obsolete Retry-After forms and exact dispatch timing.
-The broader cancellation, privacy, lifecycle and compatibility matrices remain
-in the library gates. The contract JSON is unchanged by this migration.
+Contracts and their pinned identities are unchanged. Both sides verify the same
+executable cases, including errors, optional fields, payloads, reasoning/tool
+history, stream completion and exact dispatch timing. Broader privacy,
+cancellation, lifecycle and compatibility cases remain in the library gates.
 
-All **18 root/JVM/Android coordinates**, represented by **90 artifact files**,
-were inspected. [artifacts.sha256](artifacts.sha256) has SHA-256
-`ec849511992c980d20d8a2e957ae9c7aabf6f6c422725db19b01db8d4f3df91d`; [consumer-runtime.txt](consumer-runtime.txt)
-has SHA-256 `1d49e3ebb064cdf4c11490542f584f163f268e1f91de9c4e33323caa39c48101`. The consumer's
-`verifyCandidateResolution` checks the actual files lie under the fresh repository
-and have the expected version. Actual absolute execution paths are retained as
-resolution provenance in `verification.json`; the build artifacts are disposable.
+All 18 root/JVM/Android coordinates (90 artifact files) were inspected.
+[artifacts.sha256](artifacts.sha256) SHA-256: `ec849511992c980d20d8a2e957ae9c7aabf6f6c422725db19b01db8d4f3df91d`.
+[consumer-runtime.txt](consumer-runtime.txt) SHA-256: `1d49e3ebb064cdf4c11490542f584f163f268e1f91de9c4e33323caa39c48101`.
+Actual resolved file provenance is recorded in `verification.json`.
 
 | Resolved JVM artifact | SHA-256 |
 | --- | --- |
@@ -78,18 +91,12 @@ resolution provenance in `verification.json`; the build artifacts are disposable
 | `com.vetzal.mojentic:mojentic-realtime-openai-jvm:3.0.0` | `d7066e9af730db930c2def891bb7a1ec6acb48d2ab4b9b60172cbab36414f3ca` |
 | `com.vetzal.mojentic:mojentic-websearch-serpapi-jvm:3.0.0` | `034177291246286c73ae14cea7217417d2b20101d66059f05837cf6e6d106ed9` |
 
-## Audit and limits
+## Limits
 
-The unchanged configured `dependencyCheckAggregate --no-parallel --offline`
-audit passed, exit **0**: **305 dependencies**, **0 active
-findings**, **47 inherited suppressed
-findings**. No suppression or audit-scope changes were made. The report hash and
-actual NVD checked/modified timestamps are in `verification.json`; the NVD data
-reports last modification `2026-10-16T18:00:09-04`.
-
-The audit warned that its .NET assembly analyzer could not initialize without
-dotnet 8. Existing Gradle deprecation, Android analytics and Dokka warnings also
-remain. This result is the configured audit's outcome, not a claim that every
-optional analyzer ran. No live upstream provider, Android device or hosted CI
-verification is claimed. `ci-base.json` is historical hosted evidence and does
-not validate this modified worktree. No unresolved task acceptance gaps remain.
+The dependency audit record is explicitly inherited from the preserved migration;
+it was not rerun for this correction, which changes no dependencies, plugins or
+suppressions. Existing Gradle/Android/Dokka warnings remain. No live provider,
+Android device or hosted CI verification is claimed. `ci-base.json` is historical
+and does not validate this worktree. Test scripts remain offline; review found
+no socket/server/real-sleep/wall-clock-threshold additions. The socket-timeout
+exception in the transport tests is injected evidence, not a socket operation.

@@ -1,6 +1,8 @@
 # Deterministic test boundary inventory
 
-Reviewed against mojentic-unify main `4ae2f73` and Kotlin base `6d0de37`.
+Reviewed against mojentic-unify authority `4ae2f73` and preserved Kotlin migration
+base `b420c1feb4d305e2df32f7f0d46814ef7a2eece3` plus the corrections recorded in
+[the current verification results](release-readiness/results.md).
 This inventory covers all former test socket/time dependencies, their callers,
 and test scripts. Tests drive the public API with a transport or gateway double;
 no test starts a server, opens a socket or calls a live service. Delay-based tests
@@ -35,7 +37,7 @@ does not replace them with row counts or schema-only checks.
 
 - `mojentic-anthropic`: `AdmissionAmendmentHttpTest`, `AnthropicRecoveryEvidenceTest`, `AnthropicRecoveryHttpTest`, `AnthropicRecoveryProofTest`, `InvalidRecoveryPolicyHttpTest`, `PermanentHttpBoundaryTest`, `RequestFidelityContractTest`.
 
-- `mojentic-openai`: `AdmissionAmendmentHttpTest`, `ClientStreamTimingHttpTest`, `CompletionRecoveryHttpTest`, `ContextWindowContractTest`, `ContextWindowProofTest`, `ContextWindowRequestFidelityTest`, `FirstDispatchTimingProofTest`, `InvalidRecoveryPolicyHttpTest`, `NativeReasoningCases`, `NativeReasoningContinuityTest`, `NativeReasoningControlsTest`, `NativeReasoningFailureTest`, `NativeReasoningHttpProofTest`, `NativeReasoningRetryTest`, `NativeReasoningStructuredTest`, `OpenAIRecoveryPayloadTest`, `OpenAIRecoveryProofTest`, `OpenAIRecoveryTelemetryTest`, `PermanentHttpBoundaryTest`, `RecoveryMetadataHttpTest`, `RecoveryTransportHttpTest`, `RequestFidelityContractTest`, `RetryEligibilityHttpTest`, `StreamingRecoveryHttpTest`.
+- `mojentic-openai`: `AdmissionAmendmentHttpTest`, `ClientStreamTimingHttpTest`, `CompletionRecoveryHttpTest`, `ContextWindowContractTest`, `ContextWindowProofTest`, `ContextWindowRequestFidelityTest`, `FirstDispatchTimingProofTest`, `InvalidRecoveryPolicyHttpTest`, `NativeReasoningCases`, `NativeReasoningContinuityTest`, `NativeReasoningControlsTest`, `NativeReasoningFailureTest`, `NativeReasoningHttpProofTest`, `NativeReasoningRetryTest`, `NativeReasoningStructuredTest`, `OpenAIRecoveryPayloadTest`, `OpenAIRecoveryProofTest`, `OpenAIRecoveryTelemetryTest`, `DeterministicRecoveryProofTest`, `PermanentHttpBoundaryTest`, `RecoveryMetadataHttpTest`, `RecoveryTransportHttpTest`, `RequestFidelityContractTest`, `RetryEligibilityHttpTest`, `StreamingRecoveryHttpTest`.
 
 - `tests/distribution`: `FirstDispatchTimingProofTest`, `PackagedApiTest`.
 
@@ -49,3 +51,15 @@ must preserve exact identifier relationships; do not mask IDs to make assertions
 pass. The decision mappings are in `RECOVERY-CONFORMANCE.md` and
 `CONFORMANCE-3.0.0.md`. Fresh execution and remaining gaps are reported in
 `docs/release-readiness/results.md`; historic counts do not validate new code.
+
+## Acceptance proof correction
+
+The focused deterministic recovery proof uses the shared OpenAI transport on the
+test scheduler. Its injected sleeper must advance virtual time by the requested
+100 ms; merely recording the delay is rejected. Success content stays `ok` in
+both runs. Exact literal request bytes, per-attempt transport captures, full
+identities, original failure/cause retention, lifecycle order and privacy are
+asserted through public API results and observers. See the current verification
+record for the actual rejection and correction. The previous response-content
+toggle is not valid acceptance evidence. Module-local Anthropic/Ollama helpers,
+all existing shared-transport callers and the independent consumer are preserved.

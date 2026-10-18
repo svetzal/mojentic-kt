@@ -3,7 +3,7 @@
 This living assessment covers the no-network / deterministic-time correction to
 release parts 1–3. It uses mojentic-unify main
 `4ae2f73a0a5465b0f6509b87e1148d254f3f64cd` as read-only authority.
-The Kotlin source base is `6d0de37f6520a77fb5f81b7f03e8bc263b97ba1b`;
+The preserved Kotlin migration base is `b420c1feb4d305e2df32f7f0d46814ef7a2eece3`;
 `docs/release-readiness/source.sha256` identifies the tested modified worktree.
 No production implementation, public API, API dump, version, release state or ref
 changes are part of this correction. Existing JVM/Android distribution scope remains.
@@ -99,3 +99,22 @@ artifact provenance and local artifact hashes are maintained in
 `docs/release-readiness/results.md` and `verification.json`. Prior runs do not
 prove this modified worktree. Hosted validation of Foundry's finalized source is
 separate from local verification; no hosted run is claimed here.
+
+## Deterministic migration acceptance
+
+`DeterministicRecoveryProofTest.retryPreservesPayloadIdentityFailureAndLifecycle`
+drives public `OpenAIGateway.complete` through the existing in-process
+`RecoveryScriptedTransport` on `StandardTestDispatcher`. The rejecting sleeper
+records the requested backoff but leaves the injected monotonic clock at zero;
+`assertEquals(100L, testScheduler.currentTime, "Recovery backoff must advance the injected clock by 100 ms")`
+fails with expected 100, actual 0. The corrected sleeper calls
+`testScheduler.advanceTimeBy(it)`. Both runs use identical 503 failure and 200
+`ok` response bytes. The earlier `incorrect`-to-`ok` response toggle is withdrawn
+as acceptance evidence: it did not detect a migration invariant.
+
+The passing test asserts literal request bytes on both attempts and each capture,
+full stable logical IDs and distinct attempt IDs, attempt numbers, ordered
+lifecycle, exact response bytes/status per identity, the same original failure
+and cause retained through success, and privacy of formatted events, summaries,
+wires and captured headers. These complement the unchanged shared contract
+checks and the broader matrices above; no production behavior or fixtures change.
