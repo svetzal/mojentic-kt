@@ -12,6 +12,10 @@ patch versions move independently.
 
 ### Distribution readiness
 
+- Prove caller-selected retry eligibility across OpenAI, Anthropic, Ollama and
+  oMLX ordinary, structured and streaming HTTP boundaries: differential controls
+  for transport retry and status inclusion verify admitted recovery versus
+  terminal ineligible failures, exact request identity and unused queued success.
 - Verify the Maven candidate from a separate consumer build using public recovery,
   reasoning and metadata APIs against deterministic HTTP fixtures. The complete
   release-parts 1–5 assessment is in `CONFORMANCE-3.0.0.md`; October 17 library

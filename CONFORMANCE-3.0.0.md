@@ -1,7 +1,7 @@
 # Kotlin 3.0.0 distribution-readiness self-assessment
 
 This assessment covers RELEASE-3.0.0.md parts 1–5 on
-`f6913fc1c3f8cc35e110e4a47e7dfbe6ddc6db78` plus the worktree changes identified
+`fa9694903ab083f7d97e331b7f723f65dc2976a9` plus the worktree changes identified
 in `docs/release-readiness/source.sha256`. JVM and Android are the supported
 targets. The release version remains 2.1.0 while 3.0.0 approval is held.
 
@@ -37,8 +37,9 @@ The current `source.sha256` replaces historical Kotlin implementation manifests,
 which describe earlier intermediate worktrees. It hashes library source, tests,
 API dumps, build configuration, consumer checks and CI workflows using sorted
 repository-relative paths. Recovery executable sets kt-admission-v1,
-kt-invalid-policy-v1, capabilities/typed-operation matrices and
-kt-stream-first-token-v1 are identified by these current source hashes.
+kt-invalid-policy-v1, capabilities/typed-operation matrices,
+kt-stream-first-token-v1 and kt-retry-eligibility-v1 are identified by these
+current source hashes.
 The standalone executable set is **kt-distribution-readiness-v1**, identified
 by the `tests/distribution/` and `tools/` entries in that manifest.
 Existing fixture identities are checked by tests. The packaged consumer reads
@@ -60,6 +61,7 @@ historical records and `RECOVERY-CONFORMANCE.md` remain supporting evidence.
 | Default one attempt, legacy success/error behavior, opt-in recovery | `CompletionRecoveryHttpTest.retriesDisabledPreserveSuccessAndLegacyFailure`; both `AdmissionAmendmentHttpTest` default-one-attempt cases |
 | Positive attempts, nonnegative delays/budget, overflow-safe ceiling; synchronous typed invalid-policy error, no callbacks or I/O | `RecoveryPolicyTest` constraint/default/boundary cases; both `InvalidRecoveryPolicyHttpTest` public-entrypoint matrices |
 | 429/500/502/503/504 and transient transport eligibility; permanent/auth/protocol failures veto replay | `CompletionRecoveryHttpTest.recover503PreservesExactPayloadIdentityAndLifecycle`, `permanentTruncationAndPartialSuccessNeverReplay`; `RecoveryTransportHttpTest.oneAttempt503ZeroRetainsExactFailureWithoutHiddenResend`; admission matrices cover 500/502/504; Anthropic default/permanent matrix |
+| Caller-selected transport/status eligibility, independent of admission | `RetryEligibilityHttpTest.transportToggleControlsEligibilityAcrossPublicEntrypoints`, `statusSetControlsEligibilityAcrossPublicEntrypoints`, `disabledTransportLeavesQueuedStreamSuccessUnused`: OpenAI/Anthropic/Ollama/oMLX ordinary, structured and streaming public APIs. Identical failure/admission/payload with only `retryTransport` or membership of 503 toggled; enabled controls recover, disabled controls retain typed ineligible failures and exact STARTED/FAILED/EXHAUSTED lifecycle without admission, backoff or a second request. Exact request bytes, headers, path and attempt identities are checked; a response callback proves queued success consumption or non-consumption. |
 | Exponential full jitter, overflow saturation, provider minimum and budget/ceiling refusal; healthy generation not timed out by recovery budget | `CompletionRecoveryHttpTest.fullJitterCeilingsSaturateAndRedirectsStaySingleRequest`, `insufficientBudgetRefusesProviderMinimum`, `budgetsDoNotTimeoutHealthyGenerationAndPreventLateResend`, `deadlineIsRecheckedAfterRequestCaptureBeforeResend` |
 | Retry-After seconds, IMF-fixdate, RFC 850, asctime, invalid/past/overflow values | `CompletionRecoveryHttpTest.retryAfterSecondsDatesInvalidAndMinimumRefusal`; `AnthropicRecoveryHttpTest.retryAfterSecondsDatesAndInvalid`, `retryAfterMinimumRefusesCeilingOrBudget`. `RecoveryHttpDateTest` verifies obsolete forms and RFC 850 century handling; this assessment fixes the demonstrated parsing omission and adds HTTP assertions across all four adapters |
 | Remote no-hook retry; local unknown acceptance requires admission; no termination/idempotency inferred from IDs or model unload | `AdmissionAmendmentHttpTest.noHookDistinguishesRemoteAndLocalAcrossPublicEntrypoints`, `remoteRetryWithoutHookPreservesExactPayloadAndIdentity`; Anthropic `remoteNoHookRetriesAcrossPublicEntrypoints`; all four `RecoveryCapabilitiesTest` classes |
@@ -128,9 +130,12 @@ in `tests/distribution`; run `tools/verify-distribution.sh`. It uses Maven
 artifacts and their transitive dependencies with no project dependency,
 composite substitution or library source inclusion. It includes semantic HTTP
 checks, errors/absent fields and terminal failure behavior, not just identifiers
-or test counts. The incomplete terminal-frame negative control failed with an
-actual Error event; restoring the terminal response passed with Completed and
-exact timing. Execution proof retains both exits and logs for Foundry review.
+or test counts. The caller-selected eligibility negative control enabled
+transport retry against disabled-case assertions and consumed the queued stream success (exit 1).
+Setting `retryTransport=false` passed the same HTTP test (exit 0). The final
+differential matrix verifies both controls. Foundry retains actual exits and logs.
+No new production omission was demonstrated; this correction adds executable
+proof and refreshes verification evidence without changing runtime behavior.
 
 ## Historical implementation records (superseded scope/coordination statements)
 
