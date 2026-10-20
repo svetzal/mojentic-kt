@@ -1,0 +1,498 @@
+Starting a Gradle Daemon (subsequent builds will be faster)
+> Task :examples:agent-dispatcher:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :assemble UP-TO-DATE
+> Task :check UP-TO-DATE
+> Task :build UP-TO-DATE
+> Task :examples:anthropic-simple:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :examples:anthropic-simple:processResources NO-SOURCE
+> Task :examples:agent-dispatcher:processResources NO-SOURCE
+> Task :examples:anthropic-simple:processTestResources NO-SOURCE
+> Task :examples:ask-user:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :examples:agent-dispatcher:processTestResources NO-SOURCE
+> Task :examples:async-llm:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :examples:ask-user:processResources NO-SOURCE
+> Task :examples:async-llm:processResources NO-SOURCE
+> Task :examples:ask-user:processTestResources NO-SOURCE
+> Task :examples:broker-as-tool:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :examples:broker-as-tool:processResources NO-SOURCE
+> Task :examples:broker-as-tool:processTestResources NO-SOURCE
+> Task :examples:async-llm:processTestResources NO-SOURCE
+> Task :examples:chat-session:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :examples:broker-examples:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :examples:broker-examples:processResources NO-SOURCE
+> Task :examples:broker-examples:processTestResources NO-SOURCE
+> Task :examples:chat-session-with-tool:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :examples:chat-session:processResources NO-SOURCE
+> Task :examples:chat-session-with-tool:processResources NO-SOURCE
+> Task :examples:chat-session:processTestResources NO-SOURCE
+> Task :examples:chat-session-with-tool:processTestResources NO-SOURCE
+> Task :examples:embeddings:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :examples:coding-file-tool:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :examples:coding-file-tool:processResources NO-SOURCE
+> Task :examples:embeddings:processResources NO-SOURCE
+> Task :examples:embeddings:processTestResources NO-SOURCE
+> Task :examples:coding-file-tool:processTestResources NO-SOURCE
+> Task :examples:ephemeral-task-manager:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :examples:file-tool:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :examples:file-tool:processResources NO-SOURCE
+> Task :examples:ephemeral-task-manager:processResources NO-SOURCE
+> Task :examples:ephemeral-task-manager:processTestResources NO-SOURCE
+> Task :examples:image-analysis:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :examples:file-tool:processTestResources NO-SOURCE
+> Task :examples:iterative-solver:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :examples:image-analysis:processResources NO-SOURCE
+> Task :examples:iterative-solver:processResources NO-SOURCE
+> Task :examples:image-analysis:processTestResources NO-SOURCE
+> Task :examples:list-models:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :examples:iterative-solver:processTestResources NO-SOURCE
+> Task :examples:omlx-simple:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :examples:list-models:processResources NO-SOURCE
+> Task :examples:list-models:processTestResources NO-SOURCE
+> Task :examples:omlx-simple:processResources NO-SOURCE
+> Task :examples:react:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :examples:omlx-simple:processTestResources NO-SOURCE
+> Task :examples:realtime-text:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :examples:react:processResources NO-SOURCE
+> Task :examples:realtime-text:processResources NO-SOURCE
+> Task :examples:react:processTestResources NO-SOURCE
+> Task :examples:recursive-agent:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :examples:realtime-text:processTestResources NO-SOURCE
+> Task :examples:simple-llm:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :examples:recursive-agent:processResources NO-SOURCE
+> Task :examples:simple-llm:processResources NO-SOURCE
+> Task :examples:recursive-agent:processTestResources NO-SOURCE
+> Task :examples:simple-llm:processTestResources NO-SOURCE
+> Task :examples:simple-structured:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :examples:simple-tool:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :examples:simple-structured:processResources NO-SOURCE
+> Task :examples:simple-tool:processResources NO-SOURCE
+> Task :examples:simple-structured:processTestResources NO-SOURCE
+> Task :examples:solver-chat-session:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :examples:simple-tool:processTestResources NO-SOURCE
+> Task :examples:streaming:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :examples:solver-chat-session:processResources NO-SOURCE
+> Task :examples:solver-chat-session:processTestResources NO-SOURCE
+> Task :examples:streaming:processResources NO-SOURCE
+> Task :examples:tell-user:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :examples:streaming:processTestResources NO-SOURCE
+> Task :examples:tracer-demo:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :examples:tell-user:processResources NO-SOURCE
+> Task :examples:tracer-demo:processResources NO-SOURCE
+> Task :examples:tell-user:processTestResources NO-SOURCE
+> Task :examples:web-search:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :examples:tracer-demo:processTestResources NO-SOURCE
+> Task :examples:working-memory:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :examples:web-search:processResources NO-SOURCE
+> Task :examples:working-memory:processResources NO-SOURCE
+> Task :examples:working-memory:processTestResources NO-SOURCE
+> Task :examples:web-search:processTestResources NO-SOURCE
+> Task :mojentic-ollama:loadKtlintReporters UP-TO-DATE
+> Task :mojentic-websearch-serpapi:loadKtlintReporters UP-TO-DATE
+> Task :mojentic-openai:loadKtlintReporters UP-TO-DATE
+> Task :mojentic-anthropic:loadKtlintReporters UP-TO-DATE
+> Task :mojentic-core:loadKtlintReporters UP-TO-DATE
+> Task :mojentic-realtime-openai:loadKtlintReporters UP-TO-DATE
+> Task :mojentic-openai:runKtlintCheckOverAndroidHostTestSourceSet NO-SOURCE
+> Task :mojentic-ollama:runKtlintCheckOverAndroidHostTestSourceSet NO-SOURCE
+> Task :mojentic-openai:ktlintAndroidHostTestSourceSetCheck SKIPPED
+> Task :mojentic-ollama:ktlintAndroidHostTestSourceSetCheck SKIPPED
+> Task :mojentic-websearch-serpapi:runKtlintCheckOverAndroidHostTestSourceSet NO-SOURCE
+> Task :mojentic-realtime-openai:runKtlintCheckOverAndroidHostTestSourceSet NO-SOURCE
+> Task :mojentic-core:runKtlintCheckOverAndroidHostTestSourceSet NO-SOURCE
+> Task :mojentic-realtime-openai:ktlintAndroidHostTestSourceSetCheck SKIPPED
+> Task :mojentic-core:ktlintAndroidHostTestSourceSetCheck SKIPPED
+> Task :mojentic-ollama:runKtlintCheckOverAndroidMainSourceSet NO-SOURCE
+> Task :mojentic-realtime-openai:runKtlintCheckOverAndroidMainSourceSet NO-SOURCE
+> Task :mojentic-websearch-serpapi:ktlintAndroidHostTestSourceSetCheck SKIPPED
+> Task :mojentic-realtime-openai:ktlintAndroidMainSourceSetCheck SKIPPED
+> Task :mojentic-ollama:ktlintAndroidMainSourceSetCheck SKIPPED
+> Task :mojentic-websearch-serpapi:runKtlintCheckOverAndroidMainSourceSet NO-SOURCE
+> Task :mojentic-websearch-serpapi:ktlintAndroidMainSourceSetCheck SKIPPED
+> Task :mojentic-anthropic:runKtlintCheckOverAndroidHostTestSourceSet NO-SOURCE
+> Task :mojentic-anthropic:ktlintAndroidHostTestSourceSetCheck SKIPPED
+> Task :mojentic-anthropic:runKtlintCheckOverAndroidMainSourceSet NO-SOURCE
+> Task :mojentic-anthropic:ktlintAndroidMainSourceSetCheck SKIPPED
+> Task :mojentic-openai:runKtlintCheckOverAndroidMainSourceSet UP-TO-DATE
+> Task :mojentic-core:runKtlintCheckOverAndroidMainSourceSet UP-TO-DATE
+> Task :mojentic-realtime-openai:runKtlintCheckOverCommonMainSourceSet UP-TO-DATE
+> Task :mojentic-ollama:runKtlintCheckOverCommonMainSourceSet UP-TO-DATE
+> Task :mojentic-realtime-openai:ktlintCommonMainSourceSetCheck UP-TO-DATE
+> Task :mojentic-websearch-serpapi:runKtlintCheckOverCommonMainSourceSet UP-TO-DATE
+> Task :mojentic-openai:ktlintAndroidMainSourceSetCheck UP-TO-DATE
+> Task :mojentic-ollama:ktlintCommonMainSourceSetCheck UP-TO-DATE
+> Task :mojentic-core:ktlintAndroidMainSourceSetCheck UP-TO-DATE
+> Task :mojentic-anthropic:runKtlintCheckOverCommonMainSourceSet UP-TO-DATE
+> Task :mojentic-realtime-openai:runKtlintCheckOverCommonTestSourceSet UP-TO-DATE
+> Task :mojentic-websearch-serpapi:ktlintCommonMainSourceSetCheck UP-TO-DATE
+> Task :mojentic-openai:runKtlintCheckOverCommonMainSourceSet UP-TO-DATE
+> Task :mojentic-realtime-openai:ktlintCommonTestSourceSetCheck UP-TO-DATE
+> Task :mojentic-websearch-serpapi:runKtlintCheckOverCommonTestSourceSet UP-TO-DATE
+> Task :mojentic-ollama:runKtlintCheckOverCommonTestSourceSet UP-TO-DATE
+> Task :mojentic-realtime-openai:runKtlintCheckOverJvmMainSourceSet NO-SOURCE
+> Task :mojentic-realtime-openai:ktlintJvmMainSourceSetCheck SKIPPED
+> Task :mojentic-openai:ktlintCommonMainSourceSetCheck UP-TO-DATE
+> Task :mojentic-websearch-serpapi:ktlintCommonTestSourceSetCheck UP-TO-DATE
+> Task :mojentic-realtime-openai:runKtlintCheckOverJvmTestSourceSet NO-SOURCE
+> Task :mojentic-ollama:ktlintCommonTestSourceSetCheck UP-TO-DATE
+> Task :mojentic-anthropic:ktlintCommonMainSourceSetCheck UP-TO-DATE
+> Task :mojentic-realtime-openai:ktlintJvmTestSourceSetCheck SKIPPED
+> Task :mojentic-websearch-serpapi:runKtlintCheckOverJvmMainSourceSet NO-SOURCE
+> Task :mojentic-websearch-serpapi:ktlintJvmMainSourceSetCheck SKIPPED
+> Task :mojentic-openai:runKtlintCheckOverCommonTestSourceSet UP-TO-DATE
+> Task :mojentic-ollama:runKtlintCheckOverJvmMainSourceSet NO-SOURCE
+> Task :mojentic-websearch-serpapi:runKtlintCheckOverJvmTestSourceSet NO-SOURCE
+> Task :mojentic-ollama:ktlintJvmMainSourceSetCheck SKIPPED
+> Task :mojentic-websearch-serpapi:ktlintJvmTestSourceSetCheck SKIPPED
+> Task :mojentic-openai:ktlintCommonTestSourceSetCheck UP-TO-DATE
+> Task :mojentic-anthropic:runKtlintCheckOverCommonTestSourceSet UP-TO-DATE
+> Task :mojentic-websearch-serpapi:runKtlintCheckOverKotlinScripts UP-TO-DATE
+> Task :mojentic-core:runKtlintCheckOverCommonMainSourceSet UP-TO-DATE
+> Task :mojentic-ollama:runKtlintCheckOverJvmTestSourceSet UP-TO-DATE
+> Task :mojentic-openai:runKtlintCheckOverJvmMainSourceSet UP-TO-DATE
+> Task :mojentic-realtime-openai:runKtlintCheckOverKotlinScripts UP-TO-DATE
+> Task :mojentic-openai:ktlintJvmMainSourceSetCheck UP-TO-DATE
+> Task :mojentic-websearch-serpapi:ktlintKotlinScriptCheck UP-TO-DATE
+> Task :mojentic-websearch-serpapi:ktlintCheck UP-TO-DATE
+> Task :mojentic-realtime-openai:ktlintKotlinScriptCheck UP-TO-DATE
+> Task :mojentic-realtime-openai:ktlintCheck UP-TO-DATE
+> Task :mojentic-anthropic:ktlintCommonTestSourceSetCheck UP-TO-DATE
+> Task :mojentic-ollama:ktlintJvmTestSourceSetCheck UP-TO-DATE
+> Task :mojentic-core:ktlintCommonMainSourceSetCheck UP-TO-DATE
+> Task :mojentic-anthropic:runKtlintCheckOverJvmMainSourceSet NO-SOURCE
+> Task :mojentic-anthropic:ktlintJvmMainSourceSetCheck SKIPPED
+> Task :mojentic-openai:runKtlintCheckOverJvmTestSourceSet UP-TO-DATE
+> Task :mojentic-ollama:runKtlintCheckOverKotlinScripts UP-TO-DATE
+> Task :mojentic-openai:ktlintJvmTestSourceSetCheck UP-TO-DATE
+> Task :mojentic-anthropic:runKtlintCheckOverJvmTestSourceSet UP-TO-DATE
+> Task :mojentic-ollama:ktlintKotlinScriptCheck UP-TO-DATE
+> Task :mojentic-core:runKtlintCheckOverCommonTestSourceSet UP-TO-DATE
+> Task :mojentic-ollama:ktlintCheck UP-TO-DATE
+> Task :mojentic-core:ktlintCommonTestSourceSetCheck UP-TO-DATE
+> Task :mojentic-openai:runKtlintCheckOverKotlinScripts UP-TO-DATE
+> Task :mojentic-anthropic:ktlintJvmTestSourceSetCheck UP-TO-DATE
+> Task :mojentic-openai:ktlintKotlinScriptCheck UP-TO-DATE
+> Task :mojentic-openai:ktlintCheck UP-TO-DATE
+> Task :mojentic-core:runKtlintCheckOverJvmMainSourceSet UP-TO-DATE
+> Task :mojentic-anthropic:runKtlintCheckOverKotlinScripts UP-TO-DATE
+> Task :mojentic-core:ktlintJvmMainSourceSetCheck UP-TO-DATE
+> Task :mojentic-core:runKtlintCheckOverJvmTestSourceSet NO-SOURCE
+> Task :mojentic-anthropic:ktlintKotlinScriptCheck UP-TO-DATE
+> Task :mojentic-anthropic:ktlintCheck UP-TO-DATE
+> Task :mojentic-core:ktlintJvmTestSourceSetCheck SKIPPED
+> Task :mojentic-core:runKtlintCheckOverKotlinScripts UP-TO-DATE
+> Task :mojentic-core:ktlintKotlinScriptCheck UP-TO-DATE
+> Task :mojentic-core:ktlintCheck UP-TO-DATE
+> Task :mojentic-core:kmpPartiallyResolvedDependenciesChecker
+> Task :mojentic-core:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :mojentic-ollama:kmpPartiallyResolvedDependenciesChecker
+> Task :mojentic-ollama:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :mojentic-ollama:androidPreBuild UP-TO-DATE
+> Task :mojentic-ollama:preAndroidMainBuild UP-TO-DATE
+> Task :mojentic-websearch-serpapi:kmpPartiallyResolvedDependenciesChecker
+> Task :mojentic-websearch-serpapi:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :mojentic-websearch-serpapi:androidPreBuild UP-TO-DATE
+> Task :mojentic-websearch-serpapi:preAndroidMainBuild UP-TO-DATE
+> Task :mojentic-anthropic:kmpPartiallyResolvedDependenciesChecker
+> Task :mojentic-websearch-serpapi:androidJar UP-TO-DATE
+> Task :mojentic-anthropic:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :mojentic-ollama:androidJar UP-TO-DATE
+> Task :mojentic-anthropic:androidPreBuild UP-TO-DATE
+> Task :mojentic-anthropic:preAndroidMainBuild UP-TO-DATE
+> Task :mojentic-websearch-serpapi:jvmProcessResources NO-SOURCE
+> Task :mojentic-ollama:jvmProcessResources NO-SOURCE
+> Task :mojentic-websearch-serpapi:processJvmMainResources SKIPPED
+> Task :mojentic-websearch-serpapi:jvmTestProcessResources NO-SOURCE
+> Task :mojentic-websearch-serpapi:processJvmTestResources SKIPPED
+> Task :mojentic-ollama:processJvmMainResources SKIPPED
+> Task :mojentic-anthropic:androidJar UP-TO-DATE
+> Task :mojentic-ollama:jvmTestProcessResources NO-SOURCE
+> Task :mojentic-ollama:processJvmTestResources SKIPPED
+> Task :mojentic-openai:kmpPartiallyResolvedDependenciesChecker
+> Task :mojentic-anthropic:jvmProcessResources NO-SOURCE
+> Task :mojentic-openai:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :mojentic-openai:androidPreBuild UP-TO-DATE
+> Task :mojentic-anthropic:processJvmMainResources SKIPPED
+> Task :mojentic-openai:preAndroidMainBuild UP-TO-DATE
+> Task :mojentic-anthropic:jvmTestProcessResources NO-SOURCE
+> Task :mojentic-openai:androidJar UP-TO-DATE
+> Task :mojentic-anthropic:processJvmTestResources SKIPPED
+> Task :mojentic-openai:jvmProcessResources NO-SOURCE
+> Task :mojentic-openai:processJvmMainResources SKIPPED
+> Task :mojentic-openai:jvmTestProcessResources NO-SOURCE
+> Task :mojentic-realtime-openai:kmpPartiallyResolvedDependenciesChecker
+> Task :mojentic-realtime-openai:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :mojentic-openai:processJvmTestResources SKIPPED
+> Task :mojentic-realtime-openai:androidPreBuild UP-TO-DATE
+> Task :mojentic-realtime-openai:preAndroidMainBuild UP-TO-DATE
+> Task :mojentic-realtime-openai:androidJar UP-TO-DATE
+> Task :mojentic-realtime-openai:jvmProcessResources NO-SOURCE
+> Task :mojentic-realtime-openai:processJvmMainResources SKIPPED
+> Task :mojentic-realtime-openai:jvmTestProcessResources NO-SOURCE
+> Task :mojentic-realtime-openai:processJvmTestResources SKIPPED
+> Task :mojentic-ollama:detektMetadataCommonMain UP-TO-DATE
+> Task :mojentic-websearch-serpapi:detektMetadataCommonMain UP-TO-DATE
+> Task :mojentic-openai:detektMetadataCommonMain UP-TO-DATE
+> Task :mojentic-realtime-openai:detektMetadataCommonMain UP-TO-DATE
+> Task :mojentic-anthropic:detektMetadataCommonMain UP-TO-DATE
+> Task :mojentic-openai:detektMetadataMain UP-TO-DATE
+> Task :mojentic-openai:metadataCommonMainProcessResources NO-SOURCE
+> Task :mojentic-openai:mergeAndroidMainJniLibFolders UP-TO-DATE
+> Task :mojentic-websearch-serpapi:detektMetadataMain UP-TO-DATE
+> Task :mojentic-ollama:detektMetadataMain UP-TO-DATE
+> Task :mojentic-anthropic:detektMetadataMain UP-TO-DATE
+> Task :mojentic-realtime-openai:detektMetadataMain UP-TO-DATE
+> Task :mojentic-websearch-serpapi:metadataCommonMainProcessResources NO-SOURCE
+> Task :mojentic-openai:mergeAndroidMainNativeLibs NO-SOURCE
+> Task :mojentic-anthropic:metadataCommonMainProcessResources NO-SOURCE
+> Task :mojentic-ollama:metadataCommonMainProcessResources NO-SOURCE
+> Task :mojentic-realtime-openai:metadataCommonMainProcessResources NO-SOURCE
+> Task :mojentic-anthropic:mergeAndroidMainJniLibFolders UP-TO-DATE
+> Task :mojentic-realtime-openai:mergeAndroidMainJniLibFolders UP-TO-DATE
+> Task :mojentic-websearch-serpapi:mergeAndroidMainJniLibFolders UP-TO-DATE
+> Task :mojentic-openai:copyAndroidMainJniLibsProjectOnly UP-TO-DATE
+> Task :mojentic-ollama:mergeAndroidMainJniLibFolders UP-TO-DATE
+> Task :mojentic-anthropic:mergeAndroidMainNativeLibs NO-SOURCE
+> Task :mojentic-websearch-serpapi:mergeAndroidMainNativeLibs NO-SOURCE
+> Task :mojentic-realtime-openai:mergeAndroidMainNativeLibs NO-SOURCE
+> Task :mojentic-realtime-openai:copyAndroidMainJniLibsProjectOnly UP-TO-DATE
+> Task :mojentic-anthropic:copyAndroidMainJniLibsProjectOnly UP-TO-DATE
+> Task :mojentic-openai:generateAndroidMainEmptyResourceFiles UP-TO-DATE
+> Task :mojentic-ollama:mergeAndroidMainNativeLibs NO-SOURCE
+> Task :mojentic-websearch-serpapi:copyAndroidMainJniLibsProjectOnly UP-TO-DATE
+> Task :mojentic-realtime-openai:generateAndroidMainEmptyResourceFiles UP-TO-DATE
+> Task :mojentic-openai:prepareAndroidMainArtProfile UP-TO-DATE
+> Task :mojentic-ollama:copyAndroidMainJniLibsProjectOnly UP-TO-DATE
+> Task :mojentic-realtime-openai:prepareAndroidMainArtProfile UP-TO-DATE
+> Task :mojentic-anthropic:generateAndroidMainEmptyResourceFiles UP-TO-DATE
+> Task :mojentic-openai:prepareLintJarForPublish UP-TO-DATE
+> Task :mojentic-anthropic:prepareAndroidMainArtProfile UP-TO-DATE
+> Task :mojentic-realtime-openai:prepareLintJarForPublish UP-TO-DATE
+> Task :mojentic-ollama:generateAndroidMainEmptyResourceFiles UP-TO-DATE
+> Task :mojentic-websearch-serpapi:generateAndroidMainEmptyResourceFiles UP-TO-DATE
+> Task :mojentic-websearch-serpapi:prepareAndroidMainArtProfile UP-TO-DATE
+> Task :mojentic-anthropic:prepareLintJarForPublish UP-TO-DATE
+> Task :mojentic-ollama:prepareAndroidMainArtProfile UP-TO-DATE
+> Task :mojentic-openai:processAndroidMainManifest UP-TO-DATE
+> Task :mojentic-realtime-openai:processAndroidMainManifest UP-TO-DATE
+> Task :mojentic-websearch-serpapi:prepareLintJarForPublish UP-TO-DATE
+> Task :mojentic-ollama:prepareLintJarForPublish UP-TO-DATE
+> Task :mojentic-realtime-openai:writeAndroidMainAarMetadata UP-TO-DATE
+> Task :mojentic-anthropic:processAndroidMainManifest UP-TO-DATE
+> Task :mojentic-realtime-openai:preAndroidHostTestBuild UP-TO-DATE
+> Task :mojentic-websearch-serpapi:processAndroidMainManifest UP-TO-DATE
+> Task :mojentic-openai:writeAndroidMainAarMetadata UP-TO-DATE
+> Task :mojentic-openai:preAndroidHostTestBuild UP-TO-DATE
+> Task :mojentic-openai:processAndroidHostTestJavaRes NO-SOURCE
+> Task :mojentic-realtime-openai:processAndroidHostTestJavaRes NO-SOURCE
+> Task :mojentic-realtime-openai:klibApiExtractForValidation SKIPPED
+> Task :mojentic-websearch-serpapi:writeAndroidMainAarMetadata UP-TO-DATE
+> Task :mojentic-anthropic:writeAndroidMainAarMetadata UP-TO-DATE
+> Task :mojentic-anthropic:preAndroidHostTestBuild UP-TO-DATE
+> Task :mojentic-realtime-openai:klibApiMerge SKIPPED
+> Task :mojentic-ollama:processAndroidMainManifest UP-TO-DATE
+> Task :mojentic-websearch-serpapi:preAndroidHostTestBuild UP-TO-DATE
+> Task :mojentic-openai:klibApiExtractForValidation SKIPPED
+> Task :mojentic-realtime-openai:klibApiCheck SKIPPED
+> Task :mojentic-openai:klibApiMerge SKIPPED
+> Task :mojentic-openai:klibApiCheck SKIPPED
+> Task :mojentic-ollama:writeAndroidMainAarMetadata UP-TO-DATE
+> Task :mojentic-ollama:preAndroidHostTestBuild UP-TO-DATE
+> Task :mojentic-anthropic:processAndroidHostTestJavaRes NO-SOURCE
+> Task :mojentic-anthropic:klibApiExtractForValidation SKIPPED
+> Task :mojentic-websearch-serpapi:processAndroidHostTestJavaRes NO-SOURCE
+> Task :mojentic-websearch-serpapi:klibApiExtractForValidation SKIPPED
+> Task :mojentic-websearch-serpapi:klibApiMerge SKIPPED
+> Task :mojentic-websearch-serpapi:klibApiCheck SKIPPED
+> Task :mojentic-anthropic:klibApiMerge SKIPPED
+> Task :mojentic-ollama:processAndroidHostTestJavaRes NO-SOURCE
+> Task :mojentic-anthropic:klibApiCheck SKIPPED
+> Task :mojentic-ollama:klibApiExtractForValidation SKIPPED
+> Task :mojentic-ollama:klibApiMerge SKIPPED
+> Task :mojentic-ollama:klibApiCheck SKIPPED
+> Task :mojentic-core:androidPreBuild UP-TO-DATE
+> Task :mojentic-core:preAndroidMainBuild UP-TO-DATE
+> Task :mojentic-core:jvmProcessResources NO-SOURCE
+> Task :mojentic-core:processJvmMainResources SKIPPED
+> Task :mojentic-core:androidJar UP-TO-DATE
+> Task :mojentic-core:jvmTestProcessResources NO-SOURCE
+> Task :mojentic-core:processJvmTestResources SKIPPED
+> Task :mojentic-core:detektMetadataCommonMain UP-TO-DATE
+> Task :mojentic-core:detektMetadataMain UP-TO-DATE
+> Task :mojentic-core:transformCommonMainDependenciesMetadata
+> Task :mojentic-core:compileCommonMainKotlinMetadata SKIPPED
+> Task :mojentic-core:generateProjectStructureMetadata UP-TO-DATE
+> Task :mojentic-core:metadataCommonMainProcessResources NO-SOURCE
+> Task :mojentic-core:metadataCommonMainClasses UP-TO-DATE
+> Task :mojentic-core:allMetadataJar UP-TO-DATE
+> Task :mojentic-core:exportCommonSourceSetsMetadataLocationsForMetadataApiElements UP-TO-DATE
+> Task :mojentic-core:exportRootPublicationCoordinatesForMetadataApiElements UP-TO-DATE
+> Task :mojentic-core:writeAndroidMainAarMetadata UP-TO-DATE
+> Task :mojentic-core:checkAndroidMainAarMetadata UP-TO-DATE
+> Task :mojentic-core:mergeAndroidMainJniLibFolders UP-TO-DATE
+> Task :mojentic-core:mergeAndroidMainNativeLibs NO-SOURCE
+> Task :mojentic-core:copyAndroidMainJniLibsProjectOnly UP-TO-DATE
+> Task :mojentic-anthropic:transformCommonMainDependenciesMetadata
+> Task :mojentic-anthropic:compileCommonMainKotlinMetadata SKIPPED
+> Task :mojentic-websearch-serpapi:transformCommonMainDependenciesMetadata
+> Task :mojentic-anthropic:generateProjectStructureMetadata UP-TO-DATE
+> Task :mojentic-anthropic:metadataCommonMainClasses UP-TO-DATE
+> Task :mojentic-websearch-serpapi:compileCommonMainKotlinMetadata SKIPPED
+> Task :mojentic-anthropic:allMetadataJar UP-TO-DATE
+> Task :mojentic-websearch-serpapi:generateProjectStructureMetadata UP-TO-DATE
+> Task :mojentic-websearch-serpapi:metadataCommonMainClasses UP-TO-DATE
+> Task :mojentic-anthropic:checkAndroidMainAarMetadata UP-TO-DATE
+> Task :mojentic-websearch-serpapi:allMetadataJar UP-TO-DATE
+> Task :mojentic-ollama:transformCommonMainDependenciesMetadata
+> Task :mojentic-ollama:compileCommonMainKotlinMetadata SKIPPED
+> Task :mojentic-ollama:generateProjectStructureMetadata UP-TO-DATE
+> Task :mojentic-ollama:metadataCommonMainClasses UP-TO-DATE
+> Task :mojentic-websearch-serpapi:checkAndroidMainAarMetadata UP-TO-DATE
+> Task :mojentic-ollama:allMetadataJar UP-TO-DATE
+> Task :mojentic-realtime-openai:transformCommonMainDependenciesMetadata
+> Task :mojentic-realtime-openai:compileCommonMainKotlinMetadata SKIPPED
+> Task :mojentic-core:extractAndroidMainAnnotations
+> Task :mojentic-openai:transformCommonMainDependenciesMetadata
+> Task :mojentic-ollama:checkAndroidMainAarMetadata UP-TO-DATE
+> Task :mojentic-openai:compileCommonMainKotlinMetadata SKIPPED
+> Task :mojentic-core:generateAndroidMainEmptyResourceFiles UP-TO-DATE
+> Task :mojentic-realtime-openai:generateProjectStructureMetadata UP-TO-DATE
+> Task :mojentic-realtime-openai:metadataCommonMainClasses UP-TO-DATE
+> Task :mojentic-core:prepareAndroidMainArtProfile UP-TO-DATE
+> Task :mojentic-openai:generateProjectStructureMetadata UP-TO-DATE
+> Task :mojentic-openai:metadataCommonMainClasses UP-TO-DATE
+> Task :mojentic-core:prepareLintJarForPublish UP-TO-DATE
+> Task :mojentic-realtime-openai:allMetadataJar UP-TO-DATE
+> Task :mojentic-core:processAndroidMainManifest UP-TO-DATE
+> Task :mojentic-core:preAndroidHostTestBuild UP-TO-DATE
+> Task :mojentic-core:processAndroidHostTestJavaRes NO-SOURCE
+> Task :mojentic-core:klibApiExtractForValidation SKIPPED
+> Task :mojentic-core:klibApiMerge SKIPPED
+> Task :mojentic-core:klibApiCheck SKIPPED
+> Task :mojentic-openai:allMetadataJar UP-TO-DATE
+> Task :mojentic-openai:checkAndroidMainAarMetadata UP-TO-DATE
+> Task :mojentic-realtime-openai:checkAndroidMainAarMetadata UP-TO-DATE
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [CoroutineScope] in AsyncDispatcher.kt/com.mojentic.agents.AsyncDispatcher (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [CoroutineScope] in AsyncDispatcher.kt (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [Job] in AsyncDispatcher.kt/com.mojentic.agents.AsyncDispatcher.start (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [CoroutineScope] in AsyncDispatcher.kt/com.mojentic.agents.AsyncDispatcher (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [CoroutineScope] in AsyncDispatcher.kt (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [Job] in AsyncDispatcher.kt/com.mojentic.agents.AsyncDispatcher.start (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [SimpleRecursiveAgent.observe] in SimpleRecursiveAgent.kt/com.mojentic.agents.GoalState (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [SimpleRecursiveAgent.observe] in SimpleRecursiveAgent.kt (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [kotlinx.coroutines.flow.SharedFlow] in SimpleRecursiveAgent.kt/com.mojentic.agents.SimpleRecursiveAgent (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [kotlinx.coroutines.flow.SharedFlow] in SimpleRecursiveAgent.kt (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [Mutex] in SharedWorkingMemory.kt/com.mojentic.context.SharedWorkingMemory (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [Mutex] in SharedWorkingMemory.kt (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [SimpleRecursiveAgent.observe] in SimpleRecursiveAgent.kt/com.mojentic.agents.GoalState (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [SimpleRecursiveAgent.observe] in SimpleRecursiveAgent.kt (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [kotlinx.coroutines.flow.SharedFlow] in SimpleRecursiveAgent.kt/com.mojentic.agents.SimpleRecursiveAgent (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [kotlinx.coroutines.flow.SharedFlow] in SimpleRecursiveAgent.kt (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [Mutex] in SharedWorkingMemory.kt/com.mojentic.context.SharedWorkingMemory (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [Mutex] in SharedWorkingMemory.kt (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [SerialDescriptor] in JsonSchemaGenerator.kt/com.mojentic.internal.JsonSchemaGenerator (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [SerialDescriptor] in JsonSchemaGenerator.kt (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [Mutex] in ChatSession.kt/com.mojentic.llm.ChatSession (:mojentic-core/commonMain)
+> Task :mojentic-core:compileAndroidMain
+
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [Mutex] in ChatSession.kt (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [SerialDescriptor] in JsonSchemaGenerator.kt/com.mojentic.internal.JsonSchemaGenerator (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [SerialDescriptor] in JsonSchemaGenerator.kt (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [Mutex] in ChatSession.kt/com.mojentic.llm.ChatSession (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [Mutex] in ChatSession.kt (:mojentic-core/commonMain)
+
+> Task :mojentic-core:compileKotlinJvm
+
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [com.mojentic.llm.gateway.LlmGateway] in Messages.kt/com.mojentic.llm.LlmGatewayResponse (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [com.mojentic.llm.gateway.LlmGateway] in Messages.kt (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [com.mojentic.llm.gateway.LlmGateway] in Messages.kt/com.mojentic.llm.LlmGatewayResponse (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [com.mojentic.llm.gateway.LlmGateway] in Messages.kt (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [com.mojentic.llm.Broker.LlmBroker.stream] in StreamEvent.kt/com.mojentic.llm.StreamEvent (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [com.mojentic.llm.Broker.LlmBroker.stream] in StreamEvent.kt/com.mojentic.llm.StreamEvent (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [com.mojentic.llm.gateway.LlmGateway.stream] in StreamEvent.kt/com.mojentic.llm.GatewayStreamEvent (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [com.mojentic.llm.gateway.LlmGateway.stream] in StreamEvent.kt/com.mojentic.llm.GatewayStreamEvent (:mojentic-core/commonMain)
+
+> Task :mojentic-core:dokkaGenerateModuleHtml
+> Task :mojentic-core:dokkaGeneratePublicationHtml
+
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [Regex] in Glob.kt/com.mojentic.llm.tools.files.globToRegex (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [Regex] in Glob.kt/com.mojentic.llm.tools.files.globToRegex (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [okio.FileSystem] in OkioFilesystemGateway.kt/com.mojentic.llm.tools.files.OkioFilesystemGateway (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [okio.FileSystem] in OkioFilesystemGateway.kt (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [Mutex] in EphemeralTaskList.kt/com.mojentic.llm.tools.tasks.EphemeralTaskList (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [Mutex] in EphemeralTaskList.kt (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [okio.FileSystem] in OkioFilesystemGateway.kt/com.mojentic.llm.tools.files.OkioFilesystemGateway (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [okio.FileSystem] in OkioFilesystemGateway.kt (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [Mutex] in EphemeralTaskList.kt/com.mojentic.llm.tools.tasks.EphemeralTaskList (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [Mutex] in EphemeralTaskList.kt (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [create] in RealtimeSession.kt/com.mojentic.realtime.RealtimeSessionWiring (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [create] in RealtimeSession.kt (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [Job] in RealtimeSession.kt/com.mojentic.realtime.RealtimeSession.sendAudio (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [create] in RealtimeSession.kt/com.mojentic.realtime.RealtimeSessionWiring (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [create] in RealtimeSession.kt (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [Job] in RealtimeSession.kt/com.mojentic.realtime.RealtimeSession.sendAudio (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [SharedFlow] in EventStore.kt/com.mojentic.tracer.EventStore (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [Mutex] in EventStore.kt/com.mojentic.tracer.EventStore (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [SharedFlow] in EventStore.kt (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [Mutex] in EventStore.kt (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [SharedFlow] in EventStore.kt/com.mojentic.tracer.EventStore.store (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGeneratePublicationHtml] Couldn't resolve link: [MutableSharedFlow.tryEmit] in EventStore.kt/com.mojentic.tracer.EventStore.store (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [SharedFlow] in EventStore.kt/com.mojentic.tracer.EventStore (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [Mutex] in EventStore.kt/com.mojentic.tracer.EventStore (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [SharedFlow] in EventStore.kt (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [Mutex] in EventStore.kt (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [SharedFlow] in EventStore.kt/com.mojentic.tracer.EventStore.store (:mojentic-core/commonMain)
+w: [:mojentic-core:dokkaGenerateModuleHtml] Couldn't resolve link: [MutableSharedFlow.tryEmit] in EventStore.kt/com.mojentic.tracer.EventStore.store (:mojentic-core/commonMain)
+
+> Task :mojentic-core:logLinkDokkaGeneratePublicationHtml SKIPPED
+> Task :mojentic-core:dokkaGenerate
+> Task :mojentic-core:compileJvmMainJava NO-SOURCE
+> Task :mojentic-core:jvmMainClasses
+> Task :mojentic-core:jvmJar UP-TO-DATE
+
+> Task :mojentic-ollama:compileKotlinJvm
+
+> Task :mojentic-websearch-serpapi:compileKotlinJvm
+
+> Task :mojentic-realtime-openai:compileKotlinJvm
+w: file:///home/svetzal/Work/Projects/Personal/mojentic-unify/mojentic-kt/mojentic-realtime-openai/src/commonMain/kotlin/com/mojentic/realtime/openai/OpenAiRealtimeGateway.kt:110:25 'when' is exhaustive so 'else' is redundant here.
+
+> Task :mojentic-websearch-serpapi:compileJvmMainJava NO-SOURCE
+> Task :mojentic-websearch-serpapi:jvmMainClasses
+> Task :mojentic-websearch-serpapi:detektJvmMain NO-SOURCE
+> Task :mojentic-websearch-serpapi:jvmJar UP-TO-DATE
+> Task :mojentic-realtime-openai:compileJvmMainJava NO-SOURCE
+> Task :mojentic-realtime-openai:jvmMainClasses
+> Task :mojentic-realtime-openai:detektJvmMain NO-SOURCE
+> Task :mojentic-realtime-openai:jvmJar
+> Task :mojentic-websearch-serpapi:compileTestKotlinJvm
+> Task :mojentic-websearch-serpapi:compileJvmTestJava NO-SOURCE
+> Task :mojentic-websearch-serpapi:jvmTestClasses
+> Task :mojentic-websearch-serpapi:detektJvmTest NO-SOURCE
+> Task :mojentic-websearch-serpapi:jvmApiBuild
+> Task :mojentic-realtime-openai:jvmApiBuild
+> Task :mojentic-realtime-openai:jvmApiCheck
+> Task :mojentic-realtime-openai:apiCheck
+> Task :examples:realtime-text:compileKotlin
+> Task :examples:realtime-text:compileJava NO-SOURCE
+> Task :examples:realtime-text:classes UP-TO-DATE
+> Task :examples:realtime-text:jar UP-TO-DATE
+> Task :mojentic-realtime-openai:compileTestKotlinJvm
+> Task :mojentic-realtime-openai:compileJvmTestJava NO-SOURCE
+> Task :mojentic-realtime-openai:jvmTestClasses
+> Task :mojentic-realtime-openai:detektJvmTest NO-SOURCE
+> Task :mojentic-ollama:compileKotlinJvm FAILED
+> Task :mojentic-websearch-serpapi:jvmTest
+> Task :examples:realtime-text:startScripts
+> Task :mojentic-realtime-openai:jvmTest
+> Task :mojentic-core:detektJvmMain
+> Task :mojentic-anthropic:compileKotlinJvm
+> Task :mojentic-openai:compileKotlinJvm
+
+[Incubating] Problems report is available at: file:///home/svetzal/Work/Projects/Personal/mojentic-unify/mojentic-kt/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.8.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+172 actionable tasks: 33 executed, 139 up-to-date

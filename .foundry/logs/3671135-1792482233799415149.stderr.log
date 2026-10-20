@@ -1,0 +1,89 @@
+e: Incremental compilation failed: The following FqNames can't be derived from DirtyData.dirtyLookupSymbols: com.mojentic.llm.MessageRole.
+DirtyData = DirtyData(dirtyLookupSymbols=[LookupSymbol(name=<SAM-CONSTRUCTOR>, scope=com.mojentic.llm.MessageRole), LookupSymbol(name=serializer, scope=com.mojentic.llm.MessageRole.Companion), LookupSymbol(name=Companion, scope=com.mojentic.llm.MessageRole), LookupSymbol(name=timedGatewayStream, scope=com.mojentic.llm), LookupSymbol(name=timedCompletionStream, scope=com.mojentic.llm), LookupSymbol(name=readTimedLine, scope=com.mojentic.llm), LookupSymbol(name=<SAM-CONSTRUCTOR>, scope=com.mojentic.llm), LookupSymbol(name=executeTimed, scope=com.mojentic.llm), LookupSymbol(name=StreamTiming, scope=com.mojentic.llm), LookupSymbol(name=validateReasoning, scope=com.mojentic.llm), LookupSymbol(name=<SAM-CONSTRUCTOR>, scope=com.mojentic.llm.MessageRole.Companion), LookupSymbol(name=ModelContextWindow, scope=com.mojentic.llm), LookupSymbol(name=rejectNewReasoningControls, scope=com.mojentic.llm)], dirtyClassesFqNames=[com.mojentic.llm.MessageRole.Companion, com.mojentic.llm.MessageRole, com.mojentic.llm, com.mojentic.llm.ModelContextWindow, com.mojentic.llm.StreamTiming], dirtyClassesFqNamesForceRecompile=[])
+java.lang.IllegalStateException: The following FqNames can't be derived from DirtyData.dirtyLookupSymbols: com.mojentic.llm.MessageRole.
+DirtyData = DirtyData(dirtyLookupSymbols=[LookupSymbol(name=<SAM-CONSTRUCTOR>, scope=com.mojentic.llm.MessageRole), LookupSymbol(name=serializer, scope=com.mojentic.llm.MessageRole.Companion), LookupSymbol(name=Companion, scope=com.mojentic.llm.MessageRole), LookupSymbol(name=timedGatewayStream, scope=com.mojentic.llm), LookupSymbol(name=timedCompletionStream, scope=com.mojentic.llm), LookupSymbol(name=readTimedLine, scope=com.mojentic.llm), LookupSymbol(name=<SAM-CONSTRUCTOR>, scope=com.mojentic.llm), LookupSymbol(name=executeTimed, scope=com.mojentic.llm), LookupSymbol(name=StreamTiming, scope=com.mojentic.llm), LookupSymbol(name=validateReasoning, scope=com.mojentic.llm), LookupSymbol(name=<SAM-CONSTRUCTOR>, scope=com.mojentic.llm.MessageRole.Companion), LookupSymbol(name=ModelContextWindow, scope=com.mojentic.llm), LookupSymbol(name=rejectNewReasoningControls, scope=com.mojentic.llm)], dirtyClassesFqNames=[com.mojentic.llm.MessageRole.Companion, com.mojentic.llm.MessageRole, com.mojentic.llm, com.mojentic.llm.ModelContextWindow, com.mojentic.llm.StreamTiming], dirtyClassesFqNamesForceRecompile=[])
+	at org.jetbrains.kotlin.incremental.classpathDiff.ClasspathChangesComputer.toProgramSymbols(ClasspathChangesComputer.kt:386)
+	at org.jetbrains.kotlin.incremental.classpathDiff.ClasspathChangesComputer.computeFineGrainedKotlinClassChanges(ClasspathChangesComputer.kt:286)
+	at org.jetbrains.kotlin.incremental.classpathDiff.ClasspathChangesComputer.computeKotlinClassChanges(ClasspathChangesComputer.kt:168)
+	at org.jetbrains.kotlin.incremental.classpathDiff.ClasspathChangesComputer.computeClassChanges(ClasspathChangesComputer.kt:137)
+	at org.jetbrains.kotlin.incremental.classpathDiff.ClasspathChangesComputer.computeChangedAndImpactedSet(ClasspathChangesComputer.kt:87)
+	at org.jetbrains.kotlin.incremental.classpathDiff.ClasspathChangesComputer.computeClasspathChanges(ClasspathChangesComputer.kt:55)
+	at org.jetbrains.kotlin.incremental.dirtyFiles.ClasspathSnapshotBasedImpactDeterminer.determineChangedAndImpactedSymbols(ClasspathSnapshotBasedImpactDeterminer.kt:40)
+	at org.jetbrains.kotlin.incremental.dirtyFiles.JvmSourcesToCompileCalculator.calculateSourcesToCompileImpl(JvmSourcesToCompileCalculator.kt:35)
+	at org.jetbrains.kotlin.incremental.dirtyFiles.JvmSourcesToCompileCalculator.calculateWithClasspathSnapshot(JvmSourcesToCompileCalculator.kt:91)
+	at org.jetbrains.kotlin.incremental.IncrementalJvmCompilerRunner.calculateSourcesToCompile(IncrementalJvmCompilerRunner.kt:68)
+	at org.jetbrains.kotlin.incremental.IncrementalJvmCompilerRunner.calculateSourcesToCompile(IncrementalJvmCompilerRunner.kt:26)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.tryCompileIncrementally$lambda$0$compile(IncrementalCompilerRunner.kt:277)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.tryCompileIncrementally(IncrementalCompilerRunner.kt:319)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.compile(IncrementalCompilerRunner.kt:160)
+	at org.jetbrains.kotlin.daemon.CompileServiceImplBase.execIncrementalCompiler(CompileServiceImpl.kt:792)
+	at org.jetbrains.kotlin.daemon.CompileServiceImplBase.access$execIncrementalCompiler(CompileServiceImpl.kt:101)
+	at org.jetbrains.kotlin.daemon.CompileServiceImpl.compile(CompileServiceImpl.kt:2077)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.rmi/sun.rmi.server.UnicastServerRef.dispatch(UnicastServerRef.java:360)
+	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:200)
+	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:197)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:714)
+	at java.rmi/sun.rmi.transport.Transport.serviceCall(Transport.java:196)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport.handleMessages(TCPTransport.java:598)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run0(TCPTransport.java:844)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.lambda$run$0(TCPTransport.java:721)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:400)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run(TCPTransport.java:720)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':mojentic-ollama:compileKotlinJvm' (registered in build file 'mojentic-ollama/build.gradle.kts').
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.btapi.BuildToolsApiCompilationWork
+   > Kotlin compiler error
+       Kotlin compiler error
+         Incremental compilation failed: The following FqNames can't be derived from DirtyData.dirtyLookupSymbols: com.mojentic.llm.MessageRole.
+         DirtyData = DirtyData(dirtyLookupSymbols=[LookupSymbol(name=<SAM-CONSTRUCTOR>, scope=com.mojentic.llm.MessageRole), LookupSymbol(name=serializer, scope=com.mojentic.llm.MessageRole.Companion), LookupSymbol(name=Companion, scope=com.mojentic.llm.MessageRole), LookupSymbol(name=timedGatewayStream, scope=com.mojentic.llm), LookupSymbol(name=timedCompletionStream, scope=com.mojentic.llm), LookupSymbol(name=readTimedLine, scope=com.mojentic.llm), LookupSymbol(name=<SAM-CONSTRUCTOR>, scope=com.mojentic.llm), LookupSymbol(name=executeTimed, scope=com.mojentic.llm), LookupSymbol(name=StreamTiming, scope=com.mojentic.llm), LookupSymbol(name=validateReasoning, scope=com.mojentic.llm), LookupSymbol(name=<SAM-CONSTRUCTOR>, scope=com.mojentic.llm.MessageRole.Companion), LookupSymbol(name=ModelContextWindow, scope=com.mojentic.llm), LookupSymbol(name=rejectNewReasoningControls, scope=com.mojentic.llm)], dirtyClassesFqNames=[com.mojentic.llm.MessageRole.Companion, com.mojentic.llm.MessageRole, com.mojentic.llm, com.mojentic.llm.ModelContextWindow, com.mojentic.llm.StreamTiming], dirtyClassesFqNamesForceRecompile=[])
+         java.lang.IllegalStateException: The following FqNames can't be derived from DirtyData.dirtyLookupSymbols: com.mojentic.llm.MessageRole.
+         DirtyData = DirtyData(dirtyLookupSymbols=[LookupSymbol(name=<SAM-CONSTRUCTOR>, scope=com.mojentic.llm.MessageRole), LookupSymbol(name=serializer, scope=com.mojentic.llm.MessageRole.Companion), LookupSymbol(name=Companion, scope=com.mojentic.llm.MessageRole), LookupSymbol(name=timedGatewayStream, scope=com.mojentic.llm), LookupSymbol(name=timedCompletionStream, scope=com.mojentic.llm), LookupSymbol(name=readTimedLine, scope=com.mojentic.llm), LookupSymbol(name=<SAM-CONSTRUCTOR>, scope=com.mojentic.llm), LookupSymbol(name=executeTimed, scope=com.mojentic.llm), LookupSymbol(name=StreamTiming, scope=com.mojentic.llm), LookupSymbol(name=validateReasoning, scope=com.mojentic.llm), LookupSymbol(name=<SAM-CONSTRUCTOR>, scope=com.mojentic.llm.MessageRole.Companion), LookupSymbol(name=ModelContextWindow, scope=com.mojentic.llm), LookupSymbol(name=rejectNewReasoningControls, scope=com.mojentic.llm)], dirtyClassesFqNames=[com.mojentic.llm.MessageRole.Companion, com.mojentic.llm.MessageRole, com.mojentic.llm, com.mojentic.llm.ModelContextWindow, com.mojentic.llm.StreamTiming], dirtyClassesFqNamesForceRecompile=[])
+         	at org.jetbrains.kotlin.incremental.classpathDiff.ClasspathChangesComputer.toProgramSymbols(ClasspathChangesComputer.kt:386)
+         	at org.jetbrains.kotlin.incremental.classpathDiff.ClasspathChangesComputer.computeFineGrainedKotlinClassChanges(ClasspathChangesComputer.kt:286)
+         	at org.jetbrains.kotlin.incremental.classpathDiff.ClasspathChangesComputer.computeKotlinClassChanges(ClasspathChangesComputer.kt:168)
+         	at org.jetbrains.kotlin.incremental.classpathDiff.ClasspathChangesComputer.computeClassChanges(ClasspathChangesComputer.kt:137)
+         	at org.jetbrains.kotlin.incremental.classpathDiff.ClasspathChangesComputer.computeChangedAndImpactedSet(ClasspathChangesComputer.kt:87)
+         	at org.jetbrains.kotlin.incremental.classpathDiff.ClasspathChangesComputer.computeClasspathChanges(ClasspathChangesComputer.kt:55)
+         	at org.jetbrains.kotlin.incremental.dirtyFiles.ClasspathSnapshotBasedImpactDeterminer.determineChangedAndImpactedSymbols(ClasspathSnapshotBasedImpactDeterminer.kt:40)
+         	at org.jetbrains.kotlin.incremental.dirtyFiles.JvmSourcesToCompileCalculator.calculateSourcesToCompileImpl(JvmSourcesToCompileCalculator.kt:35)
+         	at org.jetbrains.kotlin.incremental.dirtyFiles.JvmSourcesToCompileCalculator.calculateWithClasspathSnapshot(JvmSourcesToCompileCalculator.kt:91)
+         	at org.jetbrains.kotlin.incremental.IncrementalJvmCompilerRunner.calculateSourcesToCompile(IncrementalJvmCompilerRunner.kt:68)
+         	at org.jetbrains.kotlin.incremental.IncrementalJvmCompilerRunner.calculateSourcesToCompile(IncrementalJvmCompilerRunner.kt:26)
+         	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.tryCompileIncrementally$lambda$0$compile(IncrementalCompilerRunner.kt:277)
+         	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.tryCompileIncrementally(IncrementalCompilerRunner.kt:319)
+         	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.compile(IncrementalCompilerRunner.kt:160)
+         	at org.jetbrains.kotlin.daemon.CompileServiceImplBase.execIncrementalCompiler(CompileServiceImpl.kt:792)
+         	at org.jetbrains.kotlin.daemon.CompileServiceImplBase.access$execIncrementalCompiler(CompileServiceImpl.kt:101)
+         	at org.jetbrains.kotlin.daemon.CompileServiceImpl.compile(CompileServiceImpl.kt:2077)
+         	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+         	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+         	at java.rmi/sun.rmi.server.UnicastServerRef.dispatch(UnicastServerRef.java:360)
+         	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:200)
+         	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:197)
+         	at java.base/java.security.AccessController.doPrivileged(AccessController.java:714)
+         	at java.rmi/sun.rmi.transport.Transport.serviceCall(Transport.java:196)
+         	at java.rmi/sun.rmi.transport.tcp.TCPTransport.handleMessages(TCPTransport.java:598)
+         	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run0(TCPTransport.java:844)
+         	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.lambda$run$0(TCPTransport.java:721)
+         	at java.base/java.security.AccessController.doPrivileged(AccessController.java:400)
+         	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run(TCPTransport.java:720)
+         	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+         	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+         	at java.base/java.lang.Thread.run(Thread.java:1583)
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 1m 41s

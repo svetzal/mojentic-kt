@@ -10,6 +10,10 @@ patch versions move independently.
 
 ## [Unreleased]
 
+### Changed
+
+- Update kotlinx-serialization from 1.11.0 to 1.12.0.
+
 ## [3.0.0] - 2026-10-18
 
 ### Distribution readiness
