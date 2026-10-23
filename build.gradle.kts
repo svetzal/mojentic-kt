@@ -11,27 +11,50 @@ plugins {
     alias(libs.plugins.dependency.check)
 }
 
+val auditDataDirectory = providers.gradleProperty("dependencyCheckDataDirectory")
+    .getOrElse("${System.getProperty("user.home")}/.gradle/dependency-check-data")
+val auditFeedDirectory = file("$auditDataDirectory/nvd-feed")
+// The legacy host setting for this same public feed must also use range recovery.
+val auditFeedOverride = providers.gradleProperty("dependencyCheckNvdDatafeedUrl").filter {
+    it.isNotBlank() && it != "https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-{0}.json.gz"
+}
+val auditJava = "${System.getProperty("java.home")}/bin/java"
+val auditJavac = "${System.getProperty("java.home")}/bin/javac"
+
 dependencyCheck {
     // Fail the build on findings with CVSS >= 7.0 (High / Critical). Mediums and
     // below are reported but not fatal — they tend to require triage, not action.
     failBuildOnCVSS = 7.0f
     formats = listOf("HTML", "JSON")
+    failOnError = true
+    scanDependencies = true
+    // Include test and build-tool graphs as well as all published JVM/Android graphs.
+    skipTestGroups = false
     suppressionFile = rootProject.file("dependency-check-suppressions.xml").absolutePath
     // The CVE database download lives outside the project tree so it survives
     // `./gradlew clean`. Override via -PdependencyCheckDataDirectory=... in CI.
     data {
-        directory = providers.gradleProperty("dependencyCheckDataDirectory")
-            .orNull
-            ?: "${System.getProperty("user.home")}/.gradle/dependency-check-data"
+        directory = auditDataDirectory
     }
-    // NVD API key — without it, downloads are heavily rate-limited and the build
-    // can stall for hours waiting on the public-tier feed. Set NVD_API_KEY in CI
-    // secrets; request a key at https://nvd.nist.gov/developers/request-an-api-key.
+    // Account-free public NVD bulk feeds; no NVD or Sonatype credentials required.
     nvd {
-        // Leave the key unset when the variable is empty: Dependency-Check 13
-        // rejects an empty key instead of treating it as absent.
-        System.getenv("NVD_API_KEY")?.takeIf { it.isNotBlank() }?.let { apiKey = it }
-        providers.gradleProperty("dependencyCheckNvdDatafeedUrl").orNull?.let { datafeedUrl = it }
+        // Always import the freshly verified local feed before advancing its marker.
+        validForHours = 0
+        datafeedUrl = auditFeedOverride.getOrElse(
+            auditFeedDirectory.toURI().toString().trimEnd('/') + "/nvdcve-2.0-{0}.json.gz",
+        )
+    }
+    analyzers {
+        // Owner policy: JVM tooling only. These are deliberate scope exclusions,
+        // not prerequisites to provision on CI or an audit host.
+        ossIndex { enabled = false }
+        assemblyEnabled = false
+        nuspecEnabled = false
+        nugetconfEnabled = false
+        msbuildEnabled = false
+        // Keep Java bytecode/POM and nested archive analysis explicit.
+        jarEnabled = true
+        archiveEnabled = true
     }
     // Examples and samples are demonstration code — never published, not part of
     // the published surface — so we don't need to gate them.
@@ -59,16 +82,89 @@ dependencyCheck {
     )
 }
 
+val compileAuditTransportTest = tasks.register<Exec>("compileAuditTransportTest") {
+    val classes = layout.buildDirectory.dir("audit-transport-test")
+    inputs.files("tools/NvdFeedCache.java", "tests/audit/NvdFeedCacheTest.java")
+    outputs.dir(classes)
+    doFirst { classes.get().asFile.mkdirs() }
+    commandLine(auditJavac, "-d", classes.get().asFile, "tools/NvdFeedCache.java", "tests/audit/NvdFeedCacheTest.java")
+}
+val testAuditTransport = tasks.register<Exec>("testAuditTransport") {
+    dependsOn(compileAuditTransportTest)
+    commandLine(auditJava, "-cp", layout.buildDirectory.dir("audit-transport-test").get().asFile, "NvdFeedCacheTest")
+}
+val prepareNvdFeed = tasks.register<Exec>("prepareNvdFeed") {
+    dependsOn(testAuditTransport)
+    onlyIf { !auditFeedOverride.isPresent }
+    commandLine(auditJava, "tools/NvdFeedCache.java", "prepare", auditFeedDirectory, libs.versions.dependency.check.get())
+}
+
 // Audit feeds and suppression rules change independently of resolved dependencies.
 // A release audit must not reuse a report produced before those changes.
+val auditDependencyInventory = tasks.register("auditDependencyInventory") {
+    description = "Record every resolved audit configuration and its transitive artifacts."
+    group = "verification"
+    val inventory = layout.buildDirectory.file("reports/dependency-check/dependency-inventory.tsv")
+    outputs.file(inventory)
+    outputs.upToDateWhen { false }
+    doLast {
+        val hashes = mutableMapOf<java.io.File, String>()
+        val lines = mutableListOf("project\tconfiguration\tcomponent\tsha256\tfile")
+        allprojects.sortedBy { it.path }
+            .filterNot { it.path in dependencyCheck.skipProjects.get() }
+            .forEach { project ->
+                project.configurations.filter { it.isCanBeResolved }.sortedBy { it.name }.forEach { configuration ->
+                    // Keep empty configurations identifiable too; resolution failures fail the task.
+                    lines += "${project.path}\t${configuration.name}\t\t\t"
+                    // Each library project is inventoried separately. Excluding project
+                    // outputs avoids ambiguous AGP artifact variants, not their transitives.
+                    val artifacts = configuration.incoming.artifactView {
+                        componentFilter { it is org.gradle.api.artifacts.component.ModuleComponentIdentifier }
+                    }.artifacts.artifacts
+                    artifacts.sortedBy { it.id.displayName }.forEach { artifact ->
+                        val hash = if (artifact.file.isDirectory) "directory" else hashes.getOrPut(artifact.file) {
+                            val digest = java.security.MessageDigest.getInstance("SHA-256")
+                            artifact.file.inputStream().use { input ->
+                                val buffer = ByteArray(8192)
+                                var count = input.read(buffer)
+                                while (count != -1) {
+                                    digest.update(buffer, 0, count)
+                                    count = input.read(buffer)
+                                }
+                            }
+                            digest.digest().joinToString("") { "%02x".format(it) }
+                        }
+                        lines += listOf(
+                            project.path, configuration.name, artifact.id.componentIdentifier.displayName,
+                            hash, artifact.file.name,
+                        ).joinToString("\t")
+                    }
+                }
+            }
+        inventory.get().asFile.apply {
+            parentFile.mkdirs()
+            writeText(lines.joinToString("\n", postfix = "\n"))
+        }
+    }
+}
+
 tasks.named("dependencyCheckAggregate") {
+    dependsOn(auditDependencyInventory, prepareNvdFeed)
     inputs.file("dependency-check-suppressions.xml")
     outputs.upToDateWhen { false }
+    doLast {
+        if (!auditFeedOverride.isPresent) {
+            providers.exec {
+                commandLine(auditJava, "tools/NvdFeedCache.java", "mark", auditFeedDirectory, libs.versions.dependency.check.get())
+            }.result.get().assertNormalExitValue()
+        }
+    }
 }
 
 // Pin the ktlint engine. The Gradle plugin otherwise falls back to its own,
 // older default (1.5.0 for plugin 14.2.0).
 subprojects {
+    tasks.matching { it.name == "check" }.configureEach { dependsOn(testAuditTransport) }
     plugins.withId("org.jlleitschuh.gradle.ktlint") {
         extensions.configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
             version.set(libs.versions.ktlint.engine)

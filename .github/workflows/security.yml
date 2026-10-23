@@ -2,8 +2,7 @@ name: Security (OWASP dependency-check)
 
 on:
   schedule:
-    # Mondays at 06:00 UTC — daily would chew through the NVD download
-    # quota; weekly catches new CVEs without thrashing the cache.
+    # Mondays at 06:00 UTC; reuse the incrementally updated public NVD database.
     - cron: "0 6 * * 1"
   push:
     branches: ["main"]
@@ -11,6 +10,8 @@ on:
       - "gradle/libs.versions.toml"
       - "**/build.gradle.kts"
       - "dependency-check-suppressions.xml"
+      - "tools/NvdFeedCache.java"
+      - "tests/audit/**"
       - ".github/workflows/security.yml"
   workflow_dispatch:
 
@@ -71,20 +72,11 @@ jobs:
             nvd-${{ runner.os }}-
 
       - name: Run dependencyCheckAggregate
-        env:
-          # NVD API key — request one at https://nvd.nist.gov/developers/request-an-api-key.
-          # Without it, downloads are heavily rate-limited and the build can hang for hours.
-          # The build script reads this directly from System.getenv("NVD_API_KEY").
-          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
-        # Without an API key, read NVD's bulk feed instead (see AGENTS.md,
-        # "Dependency audit"). Same audit scope and threshold.
+        # Account-free JVM audit: public NVD feeds, OSS Index and .NET disabled.
         run: |
-          feed=()
-          if [ -z "${NVD_API_KEY}" ]; then
-            feed=("-PdependencyCheckNvdDatafeedUrl=https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-{0}.json.gz")
-          fi
           ./gradlew dependencyCheckAggregate --no-parallel --no-daemon --stacktrace \
-            "-PdependencyCheckDataDirectory=$HOME/.dependency-check-data" "${feed[@]}"
+            "-PdependencyCheckDataDirectory=$HOME/.dependency-check-data" \
+            -PdependencyCheckNvdDatafeedUrl=
 
       - name: Upload report
         if: always()

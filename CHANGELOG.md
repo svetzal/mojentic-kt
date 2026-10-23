@@ -12,6 +12,11 @@ patch versions move independently.
 
 ### Changed
 
+- Make dependency audits account-free with JVM tooling, explicit Java analysis,
+  deliberate OSS Index/.NET exclusions, and a transitive configuration inventory.
+- Stage NVD feeds with bounded JDK range retries and metadata integrity checks
+  to recover truncated downloads without scanner accounts or another toolchain.
+
 - Update kotlinx-serialization from 1.11.0 to 1.12.0.
 
 ## [3.0.0] - 2026-10-18

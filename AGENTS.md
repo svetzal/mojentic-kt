@@ -107,49 +107,56 @@ Run the audit after any dependency or plugin change, and before a release:
 
 It must pass with zero findings at CVSS 7.0 or higher. `--no-parallel` is
 required: Gradle 9 refuses the aggregate task's cross-project resolution under
-parallel execution. The report is in `build/reports/dependency-check/`. A run
-takes 7 to 15 minutes.
+parallel execution. A successful audit writes fresh HTML/JSON reports to
+`build/reports/dependency-check/`; its transitive inventory is retained there
+even when the vulnerability-data update fails.
 
-Without an NVD API key (`NVD_API_KEY`), Dependency-Check can read NVD's bulk
-feed instead of the API. Check the feed's `modified.meta` timestamp first,
-because feeds can lag the API. This changes the data transport only, not the
-audit scope or the severity threshold. The API stays the default. See the
-[Dependency-Check feed documentation](https://dependency-check.github.io/DependencyCheck/data/mirrornvd.html).
+**Owner policy (Stacey, 2026-10-23): account-free JVM tooling only.** Use the
+existing Java/Gradle OWASP Dependency-Check with public NVD bulk feeds. Do not
+require .NET, a Sonatype account/token, a commercial service, or a scanner in
+another language. OSS Index and the .NET analyzers are deliberately disabled;
+Java JAR/POM and nested archive analysis stay enabled. This supersedes prior
+audit-recovery requirements to install .NET or provision scanner credentials.
+Maven publication credentials are a separate release concern.
 
-```bash
-./gradlew dependencyCheckAggregate --no-parallel \
-  '-PdependencyCheckNvdDatafeedUrl=https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-{0}.json.gz'
-```
+All resolvable library configurations, including JVM, Android, tests and their
+transitives, remain in scope, alongside build-tool classpaths (linters, Dokka,
+Android lint and Kotlin tooling). Only the existing demonstration projects are
+excluded. `auditDependencyInventory` runs before the aggregate audit and records
+configuration names, component coordinates, artifact filenames and SHA-256s;
+compare it with the JSON report when reviewing coverage. Do not narrow the graph
+to obtain a passing audit.
 
-The audit scans build-tool classpaths (linters, Dokka, Android lint, Kotlin
-tooling) as well as published configurations. Do not narrow it to published
-configurations to make it pass.
+`prepareNvdFeed` stages the public NVD feeds using JDK 21 only, before
+Dependency-Check reads their local file URLs. The source launcher
+`tools/NvdFeedCache.java` downloads 256 KiB byte ranges with ETag/Content-Range
+checks, at most three attempts, 15-second connect/read timeouts, four workers
+and a 20-minute preparation limit. It checks compressed length, decompressed
+length and NVD's SHA-256 before publishing a feed. It performs no advisory
+matching. A cold database or a gap of seven days requires all annual feeds;
+otherwise the modified feed supplies the delta. Only a successful aggregate
+audit advances the feed marker. CI caches the feeds together with the database.
 
-When the audit fails, fix in this order:
+A nonblank `-PdependencyCheckNvdDatafeedUrl=...` selects an alternate mirror
+and skips staging. The official NVD URL, including a legacy host-level setting,
+uses verified staging. Pass a blank value to override another old host-level
+setting and select the verified cache, as CI does. Retain feed metadata and
+failures; neither truncated data nor stale-cache fallback proves a fresh audit.
+See [upstream feed documentation](https://dependency-check.github.io/DependencyCheck/data/mirrornvd.html)
+and [audit verification](docs/dependency-audit.md). The in-process transport
+checks in `testAuditTransport` run under the normal `build` gate; they use
+scripted responses and fixed timestamps, without sockets or real-time waits.
 
-1. **Upgrade** the dependency, or the tool that brings it.
-2. **Floor** it. `buildToolSecurityFloors` in `build.gradle.kts` lifts a
-   transitive dependency on named build-tool configurations. Add a floor only
-   when the tool still works on the newer version, and prove it with the full
-   gate. For a published configuration, use a dependency constraint instead.
-3. **Replace** a tool whose bundled dependencies cannot be fixed.
-4. **Suppress** in `dependency-check-suppressions.xml`, only when one of these
-   is true:
-   - (i) the finding is a verified false positive: you checked the advisory,
-     the fix commit or the jar contents, and wrote down the evidence; or
-   - (ii) there is no upstream fix, and the dependency is build-time only and
-     cannot reach a published artifact.
+NVD does not replace Sonatype's advisory coverage. Excluding OSS Index removes
+that independent source; excluding .NET removes analysis of incidental bundled
+assemblies in build-tool archives. CVE matching does not prove provenance,
+integrity, absence of malware, or complete supply-chain safety.
 
-Every suppression needs both:
-
-- `<notes>` that name the case, (i) or (ii), and the evidence.
-- An `until="YYYY-MM-DDZ"` expiry **no more than 90 days out**. When it
-  expires, the audit fails again. Re-examine the finding: upgrade if a fix
-  now exists, or re-verify and set a new date. Do not re-date without
-  checking.
-
-Match exact artifact versions in `packageUrl` (or the shaded copy's path in
-`filePath`), so a tool upgrade brings its jars back for review.
+Fix findings by upgrading the dependency or the tool that brings it. A build-tool
+security floor is acceptable only with the full gate proving compatibility;
+published configurations need dependency constraints instead. Never suppress
+an advisory with a fixed release. Preserve existing reasoned, expiring
+suppressions; do not add, edit or re-date suppressions without a human decision.
 
 Also check what consumers receive: run `./gradlew publishToMavenLocal` and
 read the generated POMs and Gradle module files in
