@@ -132,7 +132,8 @@ A failed feed download (including a truncated HTTP response) is not evidence of
 a clean audit, even if Dependency-Check continues with its cached database.
 Restore reliable access to the configured NVD endpoint, or provision
 `NVD_API_KEY` and use the default API transport (remove any host-level
-`dependencyCheckNvdDatafeedUrl` override). After resolving prerequisites, rerun
+`dependencyCheckNvdDatafeedUrl` override, or pass a blank
+`-PdependencyCheckNvdDatafeedUrl=` to select the API for one run). After resolving prerequisites, rerun
 the complete aggregate command and confirm that both HTML and JSON reports
 were freshly generated and contain no findings at CVSS 7.0 or higher.
 
@@ -146,6 +147,20 @@ audit scope or the severity threshold. The API stays the default. See the
 ./gradlew dependencyCheckAggregate --no-parallel \
   '-PdependencyCheckNvdDatafeedUrl=https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-{0}.json.gz'
 ```
+
+The bulk feed is slow and stalls. The build therefore sets Dependency-Check's
+read timeout to 600 s and its connection timeout to 60 s; the library default
+read timeout is 60 s. To change them, set the
+`dependencyCheckReadTimeoutSeconds` and `dependencyCheckConnectionTimeoutSeconds`
+Gradle properties. Longer timeouts do not help when the server closes the
+connection early ("Premature end of Content-Length delimited message body").
+Then provision `NVD_API_KEY`.
+
+Dependency-Check 13.0.0 cannot use the API without a key. Its bundled
+`dependencycheck.properties` sets `nvd.api.key=` (empty), and
+`NvdApiDataSource` passes that empty key to the NVD client. NVD then answers
+"Invalid apiKey". So the API transport needs `NVD_API_KEY` until an upstream
+release fixes this.
 
 The audit scans build-tool classpaths (linters, Dokka, Android lint, Kotlin
 tooling) as well as published configurations. Do not narrow it to published

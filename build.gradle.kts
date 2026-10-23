@@ -19,6 +19,17 @@ dependencyCheck {
     suppressionFile = rootProject.file("dependency-check-suppressions.xml").absolutePath
     // The CVE database download lives outside the project tree so it survives
     // `./gradlew clean`. Override via -PdependencyCheckDataDirectory=... in CI.
+    // NVD serves the bulk feed slowly, with stalls longer than Dependency-Check's
+    // 60-second default read timeout (measured 2026-10-22: the 15 MB modified
+    // feed took 287 s at about 53 KB/s). That default aborts the update with
+    // "Read timed out" and no report. The longer limits change only how long a
+    // download may wait; the audit surface and severity threshold are the same.
+    connectionTimeout = java.time.Duration.ofSeconds(
+        providers.gradleProperty("dependencyCheckConnectionTimeoutSeconds").orNull?.toLongOrNull() ?: 60L,
+    )
+    readTimeout = java.time.Duration.ofSeconds(
+        providers.gradleProperty("dependencyCheckReadTimeoutSeconds").orNull?.toLongOrNull() ?: 600L,
+    )
     data {
         directory = providers.gradleProperty("dependencyCheckDataDirectory")
             .orNull
@@ -31,7 +42,11 @@ dependencyCheck {
         // Leave the key unset when the variable is empty: Dependency-Check 13
         // rejects an empty key instead of treating it as absent.
         System.getenv("NVD_API_KEY")?.takeIf { it.isNotBlank() }?.let { apiKey = it }
-        providers.gradleProperty("dependencyCheckNvdDatafeedUrl").orNull?.let { datafeedUrl = it }
+        // A blank value selects the default API transport, so a command-line
+        // `-PdependencyCheckNvdDatafeedUrl=` can override a host-level feed setting.
+        providers.gradleProperty("dependencyCheckNvdDatafeedUrl").orNull
+            ?.takeIf { it.isNotBlank() }
+            ?.let { datafeedUrl = it }
     }
     analyzers {
         ossIndex {

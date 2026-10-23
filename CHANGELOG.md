@@ -17,6 +17,12 @@ patch versions move independently.
   prerequisite for inspecting assemblies bundled in build-tool dependencies.
 - Wire the Sonatype Guide token from the audit environment and security workflow
   secrets into Dependency-Check's OSS Index analyzer.
+- Raise Dependency-Check's NVD read timeout to 600 s and its connection timeout
+  to 60 s, with Gradle-property overrides. The 60 s default aborted slow bulk-feed
+  downloads with "Read timed out" before a report was written.
+- Treat a blank `dependencyCheckNvdDatafeedUrl` as unset. A command-line
+  `-PdependencyCheckNvdDatafeedUrl=` then selects the default NVD API transport
+  over a host-level feed setting.
 
 ## [3.0.0] - 2026-10-18
 
