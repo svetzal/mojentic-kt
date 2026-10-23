@@ -71,20 +71,10 @@ jobs:
             nvd-${{ runner.os }}-
 
       - name: Run dependencyCheckAggregate
-        env:
-          # NVD API key — request one at https://nvd.nist.gov/developers/request-an-api-key.
-          # Without it, downloads are heavily rate-limited and the build can hang for hours.
-          # The build script reads this directly from System.getenv("NVD_API_KEY").
-          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
-        # Without an API key, read NVD's bulk feed instead (see AGENTS.md,
-        # "Dependency audit"). Same audit scope and threshold.
+        # Native JVM audit using public NVD feeds; no account or custom downloader.
         run: |
-          feed=()
-          if [ -z "${NVD_API_KEY}" ]; then
-            feed=("-PdependencyCheckNvdDatafeedUrl=https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-{0}.json.gz")
-          fi
           ./gradlew dependencyCheckAggregate --no-parallel --no-daemon --stacktrace \
-            "-PdependencyCheckDataDirectory=$HOME/.dependency-check-data" "${feed[@]}"
+            "-PdependencyCheckDataDirectory=$HOME/.dependency-check-data"
 
       - name: Upload report
         if: always()

@@ -16,6 +16,10 @@ dependencyCheck {
     // below are reported but not fatal — they tend to require triage, not action.
     failBuildOnCVSS = 7.0f
     formats = listOf("HTML", "JSON")
+    failOnError = true
+    scanDependencies = true
+    // Keep tests and build-tool dependencies alongside published JVM/Android graphs.
+    skipTestGroups = false
     suppressionFile = rootProject.file("dependency-check-suppressions.xml").absolutePath
     // The CVE database download lives outside the project tree so it survives
     // `./gradlew clean`. Override via -PdependencyCheckDataDirectory=... in CI.
@@ -24,14 +28,20 @@ dependencyCheck {
             .orNull
             ?: "${System.getProperty("user.home")}/.gradle/dependency-check-data"
     }
-    // NVD API key — without it, downloads are heavily rate-limited and the build
-    // can stall for hours waiting on the public-tier feed. Set NVD_API_KEY in CI
-    // secrets; request a key at https://nvd.nist.gov/developers/request-an-api-key.
+    // Public feeds through Dependency-Check's native updater and cache only.
     nvd {
-        // Leave the key unset when the variable is empty: Dependency-Check 13
-        // rejects an empty key instead of treating it as absent.
-        System.getenv("NVD_API_KEY")?.takeIf { it.isNotBlank() }?.let { apiKey = it }
-        providers.gradleProperty("dependencyCheckNvdDatafeedUrl").orNull?.let { datafeedUrl = it }
+        datafeedUrl = providers.gradleProperty("dependencyCheckNvdDatafeedUrl")
+            .getOrElse("https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-{0}.json.gz")
+    }
+    analyzers {
+        // Owner-authorized JVM scope: no Sonatype account or .NET runtime.
+        ossIndex { enabled = false }
+        assemblyEnabled = false
+        nuspecEnabled = false
+        nugetconfEnabled = false
+        msbuildEnabled = false
+        jarEnabled = true
+        archiveEnabled = true
     }
     // Examples and samples are demonstration code — never published, not part of
     // the published surface — so we don't need to gate them.

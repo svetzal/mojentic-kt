@@ -105,51 +105,37 @@ Run the audit after any dependency or plugin change, and before a release:
 ./gradlew dependencyCheckAggregate --no-parallel
 ```
 
-It must pass with zero findings at CVSS 7.0 or higher. `--no-parallel` is
-required: Gradle 9 refuses the aggregate task's cross-project resolution under
-parallel execution. The report is in `build/reports/dependency-check/`. A run
-takes 7 to 15 minutes.
+The CVSS failure threshold remains 7.0. `--no-parallel` is required because
+Gradle 9 refuses aggregate cross-project resolution under parallel execution.
+Reports are written to `build/reports/dependency-check/` when analysis completes.
 
-Without an NVD API key (`NVD_API_KEY`), Dependency-Check can read NVD's bulk
-feed instead of the API. Check the feed's `modified.meta` timestamp first,
-because feeds can lag the API. This changes the data transport only, not the
-audit scope or the severity threshold. The API stays the default. See the
-[Dependency-Check feed documentation](https://dependency-check.github.io/DependencyCheck/data/mirrornvd.html).
+**Owner policy (Stacey, 2026-10-23): use standard JVM tooling.** Dependency-Check
+uses its native updater and cache with public NVD feeds. No .NET runtime,
+Sonatype account/token, commercial service or other-language scanner is required.
+OSS Index and the .NET analyzers are deliberately disabled; Java JAR/POM and
+nested archive analysis remain enabled. Publication credentials are separate.
+An ordinary `dependencyCheckDataDirectory` or `dependencyCheckNvdDatafeedUrl`
+override is supported; do not add a bespoke feed downloader, cache, mirror,
+scanner or audit harness to force external data availability.
 
-```bash
-./gradlew dependencyCheckAggregate --no-parallel \
-  '-PdependencyCheckNvdDatafeedUrl=https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-{0}.json.gz'
-```
+The aggregate still scans all resolvable library configurations and transitives,
+including JVM, Android and tests, plus build-tool classpaths (linters, Dokka,
+Android lint and Kotlin tooling). Existing demonstration-project exclusions
+remain. Do not narrow dependency coverage or lower the advisory threshold.
+Disabling OSS Index removes an independent advisory source; NVD is not equivalent
+to it. CVE checks do not establish complete supply-chain safety.
 
-The audit scans build-tool classpaths (linters, Dokka, Android lint, Kotlin
-tooling) as well as published configurations. Do not narrow it to published
-configurations to make it pass.
+Run the standard audit once and record its actual outcome. If vulnerability data
+cannot be refreshed, report the failure and data limitation explicitly: a missing
+fresh audit is never clean or passed. Successful account-free data retrieval is
+not a prerequisite for completing this correction. See
+[the current audit record](docs/dependency-audit.md).
 
-When the audit fails, fix in this order:
-
-1. **Upgrade** the dependency, or the tool that brings it.
-2. **Floor** it. `buildToolSecurityFloors` in `build.gradle.kts` lifts a
-   transitive dependency on named build-tool configurations. Add a floor only
-   when the tool still works on the newer version, and prove it with the full
-   gate. For a published configuration, use a dependency constraint instead.
-3. **Replace** a tool whose bundled dependencies cannot be fixed.
-4. **Suppress** in `dependency-check-suppressions.xml`, only when one of these
-   is true:
-   - (i) the finding is a verified false positive: you checked the advisory,
-     the fix commit or the jar contents, and wrote down the evidence; or
-   - (ii) there is no upstream fix, and the dependency is build-time only and
-     cannot reach a published artifact.
-
-Every suppression needs both:
-
-- `<notes>` that name the case, (i) or (ii), and the evidence.
-- An `until="YYYY-MM-DDZ"` expiry **no more than 90 days out**. When it
-  expires, the audit fails again. Re-examine the finding: upgrade if a fix
-  now exists, or re-verify and set a new date. Do not re-date without
-  checking.
-
-Match exact artifact versions in `packageUrl` (or the shaded copy's path in
-`filePath`), so a tool upgrade brings its jars back for review.
+Fix findings by upgrading the dependency or the tool that brings it, including
+past normal update ceilings when needed. Build-tool security floors require the
+full gate to prove compatibility; published configurations need constraints.
+Never suppress an advisory with a fixed release. Do not add, edit or re-date
+suppressions: accepting an advisory requires a human decision.
 
 Also check what consumers receive: run `./gradlew publishToMavenLocal` and
 read the generated POMs and Gradle module files in
