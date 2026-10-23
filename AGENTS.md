@@ -110,6 +110,32 @@ required: Gradle 9 refuses the aggregate task's cross-project resolution under
 parallel execution. The report is in `build/reports/dependency-check/`. A run
 takes 7 to 15 minutes.
 
+The audit host must also have the **.NET 8 runtime or SDK** installed, with
+`dotnet` on the Gradle daemon's `PATH`. Check `dotnet --list-runtimes` for
+`Microsoft.NETCore.App 8.0.x` before running the audit. Build-tool archives
+contain exe/dll inputs, so Dependency-Check's Assembly Analyzer needs this
+runtime even for this JVM/Android project. A newer runtime alone is insufficient.
+See the [upstream prerequisites](https://github.com/dependency-check/DependencyCheck#requirements).
+The security workflow installs the SDK; Foundry audit hosts must provision it
+separately. A missing runtime is an operational blocker, not grounds to disable
+the analyzer or exclude its inputs.
+
+Provision `SONATYPE_GUIDE_TOKEN` in the audit host's secret environment and in
+the security workflow's repository secrets. The build passes it to the OSS
+Index analyzer as the Sonatype Guide personal access token. Without credentials,
+Dependency-Check automatically disables that analyzer; such a run does not
+verify the full intended audit surface. See the
+[OSS Index authentication documentation](https://dependency-check.github.io/DependencyCheck/analyzers/oss-index-analyzer.html).
+Do not put tokens in Gradle properties files or command-line arguments.
+
+A failed feed download (including a truncated HTTP response) is not evidence of
+a clean audit, even if Dependency-Check continues with its cached database.
+Restore reliable access to the configured NVD endpoint, or provision
+`NVD_API_KEY` and use the default API transport (remove any host-level
+`dependencyCheckNvdDatafeedUrl` override). After resolving prerequisites, rerun
+the complete aggregate command and confirm that both HTML and JSON reports
+were freshly generated and contain no findings at CVSS 7.0 or higher.
+
 Without an NVD API key (`NVD_API_KEY`), Dependency-Check can read NVD's bulk
 feed instead of the API. Check the feed's `modified.meta` timestamp first,
 because feeds can lag the API. This changes the data transport only, not the

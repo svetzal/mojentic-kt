@@ -33,6 +33,15 @@ dependencyCheck {
         System.getenv("NVD_API_KEY")?.takeIf { it.isNotBlank() }?.let { apiKey = it }
         providers.gradleProperty("dependencyCheckNvdDatafeedUrl").orNull?.let { datafeedUrl = it }
     }
+    analyzers {
+        ossIndex {
+            // Dependency-Check 13 uses Sonatype Guide authentication. Keep the
+            // token in the host's secret environment, never in project files.
+            providers.environmentVariable("SONATYPE_GUIDE_TOKEN").orNull
+                ?.takeIf { it.isNotBlank() }
+                ?.let { password = it }
+        }
+    }
     // Examples and samples are demonstration code — never published, not part of
     // the published surface — so we don't need to gate them.
     skipProjects = listOf(

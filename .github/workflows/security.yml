@@ -29,6 +29,13 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      # Build-tool archives contain exe/dll inputs, so the Assembly Analyzer
+      # needs .NET 8 even though the library targets JVM and Android only.
+      - name: Set up .NET 8 for Dependency-Check
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
+        with:
+          dotnet-version: '8.0.x'
+
       # JDK 17 compiles the library (jvmToolchain(17)); JDK 21 runs the Gradle
       # daemon (gradle/gradle-daemon-jvm.properties). Register both with Gradle,
       # which does not scan the runner's tool cache, and fail fast unless it
@@ -76,6 +83,7 @@ jobs:
           # Without it, downloads are heavily rate-limited and the build can hang for hours.
           # The build script reads this directly from System.getenv("NVD_API_KEY").
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+          SONATYPE_GUIDE_TOKEN: ${{ secrets.SONATYPE_GUIDE_TOKEN }}
         # Without an API key, read NVD's bulk feed instead (see AGENTS.md,
         # "Dependency audit"). Same audit scope and threshold.
         run: |

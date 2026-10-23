@@ -13,6 +13,10 @@ patch versions move independently.
 ### Changed
 
 - Update kotlinx-serialization from 1.11.0 to 1.12.0.
+- Provision .NET 8 in the security workflow and document the audit-host runtime
+  prerequisite for inspecting assemblies bundled in build-tool dependencies.
+- Wire the Sonatype Guide token from the audit environment and security workflow
+  secrets into Dependency-Check's OSS Index analyzer.
 
 ## [3.0.0] - 2026-10-18
 
