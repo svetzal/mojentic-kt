@@ -1,0 +1,90 @@
+> Task :mojentic-core:kmpPartiallyResolvedDependenciesChecker
+> Task :mojentic-core:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :mojentic-core:compileKotlinJvm UP-TO-DATE
+> Task :mojentic-core:compileJvmMainJava NO-SOURCE
+> Task :mojentic-core:jvmProcessResources NO-SOURCE
+> Task :mojentic-core:processJvmMainResources SKIPPED
+> Task :mojentic-core:jvmMainClasses UP-TO-DATE
+> Task :mojentic-core:jvmJar UP-TO-DATE
+> Task :mojentic-core:jvmApiBuild UP-TO-DATE
+> Task :mojentic-core:jvmApiCheck
+> Task :mojentic-core:klibApiExtractForValidation SKIPPED
+> Task :mojentic-core:klibApiMerge SKIPPED
+> Task :mojentic-core:klibApiCheck SKIPPED
+> Task :mojentic-core:apiCheck
+> Task :mojentic-ollama:kmpPartiallyResolvedDependenciesChecker
+> Task :mojentic-ollama:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :mojentic-websearch-serpapi:kmpPartiallyResolvedDependenciesChecker
+> Task :mojentic-openai:kmpPartiallyResolvedDependenciesChecker
+> Task :mojentic-websearch-serpapi:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :mojentic-openai:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :mojentic-anthropic:kmpPartiallyResolvedDependenciesChecker
+> Task :mojentic-anthropic:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :mojentic-realtime-openai:kmpPartiallyResolvedDependenciesChecker
+> Task :mojentic-realtime-openai:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :mojentic-ollama:compileKotlinJvm UP-TO-DATE
+> Task :mojentic-ollama:compileJvmMainJava NO-SOURCE
+> Task :mojentic-ollama:jvmProcessResources NO-SOURCE
+> Task :mojentic-ollama:processJvmMainResources SKIPPED
+> Task :mojentic-ollama:jvmMainClasses UP-TO-DATE
+> Task :mojentic-websearch-serpapi:compileKotlinJvm UP-TO-DATE
+> Task :mojentic-ollama:jvmApiBuild UP-TO-DATE
+> Task :mojentic-anthropic:compileKotlinJvm UP-TO-DATE
+> Task :mojentic-ollama:jvmApiCheck
+> Task :mojentic-anthropic:compileJvmMainJava NO-SOURCE
+> Task :mojentic-websearch-serpapi:compileJvmMainJava NO-SOURCE
+> Task :mojentic-ollama:klibApiExtractForValidation SKIPPED
+> Task :mojentic-ollama:klibApiMerge SKIPPED
+> Task :mojentic-ollama:klibApiCheck SKIPPED
+> Task :mojentic-ollama:apiCheck
+> Task :mojentic-anthropic:jvmProcessResources NO-SOURCE
+> Task :mojentic-openai:compileKotlinJvm UP-TO-DATE
+> Task :mojentic-anthropic:processJvmMainResources SKIPPED
+> Task :mojentic-anthropic:jvmMainClasses UP-TO-DATE
+> Task :mojentic-websearch-serpapi:jvmProcessResources NO-SOURCE
+> Task :mojentic-websearch-serpapi:processJvmMainResources SKIPPED
+> Task :mojentic-websearch-serpapi:jvmMainClasses UP-TO-DATE
+> Task :mojentic-openai:compileJvmMainJava NO-SOURCE
+> Task :mojentic-openai:jvmProcessResources NO-SOURCE
+> Task :mojentic-websearch-serpapi:jvmApiBuild UP-TO-DATE
+> Task :mojentic-openai:processJvmMainResources SKIPPED
+> Task :mojentic-openai:jvmMainClasses UP-TO-DATE
+> Task :mojentic-websearch-serpapi:jvmApiCheck
+> Task :mojentic-websearch-serpapi:klibApiExtractForValidation SKIPPED
+> Task :mojentic-websearch-serpapi:klibApiMerge SKIPPED
+> Task :mojentic-websearch-serpapi:klibApiCheck SKIPPED
+> Task :mojentic-anthropic:jvmApiBuild UP-TO-DATE
+> Task :mojentic-anthropic:jvmApiCheck
+> Task :mojentic-anthropic:klibApiExtractForValidation SKIPPED
+> Task :mojentic-anthropic:klibApiMerge SKIPPED
+> Task :mojentic-anthropic:klibApiCheck SKIPPED
+> Task :mojentic-anthropic:apiCheck
+> Task :mojentic-realtime-openai:compileKotlinJvm UP-TO-DATE
+> Task :mojentic-websearch-serpapi:apiCheck
+> Task :mojentic-realtime-openai:compileJvmMainJava NO-SOURCE
+> Task :mojentic-realtime-openai:jvmProcessResources NO-SOURCE
+> Task :mojentic-realtime-openai:processJvmMainResources SKIPPED
+> Task :mojentic-realtime-openai:jvmMainClasses UP-TO-DATE
+> Task :mojentic-openai:jvmApiBuild UP-TO-DATE
+> Task :mojentic-openai:jvmApiCheck
+> Task :mojentic-openai:klibApiExtractForValidation SKIPPED
+> Task :mojentic-realtime-openai:jvmApiBuild UP-TO-DATE
+> Task :mojentic-realtime-openai:jvmApiCheck
+> Task :mojentic-openai:klibApiMerge SKIPPED
+> Task :mojentic-openai:klibApiCheck SKIPPED
+> Task :mojentic-openai:apiCheck
+> Task :mojentic-realtime-openai:klibApiExtractForValidation SKIPPED
+> Task :mojentic-realtime-openai:klibApiMerge SKIPPED
+> Task :mojentic-realtime-openai:klibApiCheck SKIPPED
+> Task :mojentic-realtime-openai:apiCheck
+
+[Incubating] Problems report is available at: file:///home/svetzal/Work/Projects/Personal/mojentic-unify/mojentic-kt/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.8.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 3s
+25 actionable tasks: 12 executed, 13 up-to-date
