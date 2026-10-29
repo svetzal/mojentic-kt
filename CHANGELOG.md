@@ -13,6 +13,7 @@ patch versions move independently.
 ### Changed
 
 - Update kotlinx-serialization from 1.11.0 to 1.12.0.
+- Update Android Gradle Plugin from 9.4.1 to 9.5.0.
 - Use native JVM Dependency-Check with public NVD feeds and its built-in cache;
   disable OSS Index and .NET analyzers without changing dependency coverage or
   the CVSS 7.0 threshold. Do not adopt the preserved custom feed tooling.

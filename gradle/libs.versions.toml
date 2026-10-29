@@ -1,7 +1,7 @@
 [versions]
 # Language & build
 kotlin = "2.4.21"
-agp = "9.4.1"
+agp = "9.5.0"
 
 # Core KMP libraries
 kotlinx-coroutines = "1.11.0"

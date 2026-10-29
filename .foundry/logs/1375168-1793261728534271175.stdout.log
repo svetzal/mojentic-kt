@@ -1,0 +1,38 @@
+
+> Task :dependencyCheckAggregate
+Verifying dependencies for project mojentic-kt
+Checking for updates and analyzing dependencies for vulnerabilities
+Generating report for project mojentic-kt
+Found 34 vulnerabilities in project mojentic-kt
+
+
+One or more dependencies were identified with known vulnerabilities in mojentic-kt:
+
+kotlin-compiler-32.5.0.jar/META-INF/maven/com.google.protobuf/protobuf-java/pom.xml (pkg:maven/com.google.protobuf/protobuf-java@2.6.1, cpe:2.3:a:google:protobuf-java:2.6.1:*:*:*:*:*:*:*) : CVE-2024-7254, CVE-2022-3171, CVE-2021-22569
+kotlin-compiler-32.5.0.jar/META-INF/maven/org.jline/jline-builtins/pom.xml (pkg:maven/org.jline/jline-builtins@3.24.1, cpe:2.3:a:jline:jline:3.24.1:*:*:*:*:*:*:*) : CVE-2026-56740, CVE-2026-56741, CVE-2023-50572
+kotlin-compiler-32.5.0.jar/META-INF/maven/org.jline/jline-reader/pom.xml (pkg:maven/org.jline/jline-reader@3.24.1, cpe:2.3:a:jline:jline:3.24.1:*:*:*:*:*:*:*) : CVE-2026-56740, CVE-2026-56741, CVE-2023-50572
+kotlin-compiler-32.5.0.jar/META-INF/maven/org.jline/jline-remote-ssh/pom.xml (pkg:maven/org.jline/jline-remote-ssh@3.24.1, cpe:2.3:a:jline:jline:3.24.1:*:*:*:*:*:*:*) : CVE-2026-56740, CVE-2026-56741, CVE-2023-50572
+kotlin-compiler-32.5.0.jar/META-INF/maven/org.jline/jline-remote-telnet/pom.xml (pkg:maven/org.jline/jline-remote-telnet@3.24.1, cpe:2.3:a:jline:jline:3.24.1:*:*:*:*:*:*:*) : CVE-2026-56740, CVE-2026-56741, CVE-2023-50572
+kotlin-compiler-32.5.0.jar/META-INF/maven/org.jline/jline-style/pom.xml (pkg:maven/org.jline/jline-style@3.24.1, cpe:2.3:a:jline:jline:3.24.1:*:*:*:*:*:*:*) : CVE-2026-56740, CVE-2026-56741, CVE-2023-50572
+kotlin-compiler-32.5.0.jar/META-INF/maven/org.jline/jline-terminal-jansi/pom.xml (pkg:maven/org.jline/jline-terminal-jansi@3.24.1, cpe:2.3:a:jline:jline:3.24.1:*:*:*:*:*:*:*) : CVE-2026-56740, CVE-2026-56741, CVE-2023-50572
+kotlin-compiler-32.5.0.jar/META-INF/maven/org.jline/jline-terminal-jna/pom.xml (pkg:maven/org.jline/jline-terminal-jna@3.24.1, cpe:2.3:a:jline:jline:3.24.1:*:*:*:*:*:*:*) : CVE-2026-56740, CVE-2026-56741, CVE-2023-50572
+kotlin-compiler-32.5.0.jar/META-INF/maven/org.jline/jline-terminal-jni/pom.xml (pkg:maven/org.jline/jline-terminal-jni@3.24.1, cpe:2.3:a:jline:jline:3.24.1:*:*:*:*:*:*:*) : CVE-2026-56740, CVE-2026-56741, CVE-2023-50572
+kotlin-compiler-32.5.0.jar/META-INF/maven/org.jline/jline-terminal/pom.xml (pkg:maven/org.jline/jline-terminal@3.24.1, cpe:2.3:a:jline:jline:3.24.1:*:*:*:*:*:*:*) : CVE-2026-56740, CVE-2026-56741, CVE-2023-50572
+kotlin-compiler-32.5.0.jar/META-INF/maven/org.jline/jline/pom.xml (pkg:maven/org.jline/jline@3.24.1, cpe:2.3:a:jline:jline:3.24.1:*:*:*:*:*:*:*) : CVE-2026-56740, CVE-2026-56741, CVE-2023-50572
+protos-32.5.0.jar (pkg:maven/com.android.tools.analytics-library/protos@32.5.0, cpe:2.3:a:google:android_sdk:32.5.0:*:*:*:*:*:*:*) : CVE-2008-0986
+
+
+See the dependency-check report for more details.
+
+
+
+> Task :dependencyCheckAggregate FAILED
+
+[Incubating] Problems report is available at: file:///home/svetzal/Work/Projects/Personal/mojentic-unify/mojentic-kt/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.8.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+1 actionable task: 1 executed
