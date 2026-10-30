@@ -1,0 +1,13 @@
+
+1 test completed, 1 failed
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':mojentic-anthropic:jvmTest'.
+> There were failing tests. See the report at: file:///home/svetzal/Work/Projects/Personal/mojentic-unify/mojentic-kt/mojentic-anthropic/build/reports/tests/jvmTest/index.html
+
+* Try:
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+
+BUILD FAILED in 4s

@@ -2,7 +2,7 @@
 kotlin = "2.4.21"
 ktlint-plugin = "14.2.0"
 ktlint-engine = "1.8.0"
-ktor = "3.6.0"
+ktor = "3.6.1"
 kotlinx-coroutines = "1.11.0"
 
 [libraries]

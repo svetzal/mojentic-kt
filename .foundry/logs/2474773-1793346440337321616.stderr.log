@@ -1,0 +1,24 @@
+WARNING: A restricted method in java.lang.foreign.Linker has been called
+WARNING: java.lang.foreign.Linker::downcallHandle has been called by the unnamed module
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for this module
+
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':dependencyCheckAggregate' (registered by plugin 'org.owasp.dependencycheck').
+> 
+  
+  Dependency-Analyze Failure:
+  One or more dependencies were identified with vulnerabilities that have a CVSS score greater than '7.0': CVE-2008-0986, CVE-2026-56741, CVE-2026-56740, CVE-2022-3171, CVE-2024-7254
+  See the dependency-check report for more details.
+  
+
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 1m 29s

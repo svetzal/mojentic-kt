@@ -19,7 +19,8 @@ internal class TruncatedResponseEngine(private val delegate: HttpClientEngine) :
         }
     }
 
+    /** Ktor may wrap the transport failure in cancellation layers, so assert on the root cause. */
     fun assertFailure() {
-        assertIs<IOException>(channel.closedCause)
+        assertIs<IOException>(generateSequence(channel.closedCause) { it.cause }.lastOrNull())
     }
 }
