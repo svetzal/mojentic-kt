@@ -1,0 +1,62 @@
+> Task :mojentic-core:kmpPartiallyResolvedDependenciesChecker
+> Task :mojentic-core:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :mojentic-core:transformCommonMainDependenciesMetadata UP-TO-DATE
+> Task :mojentic-core:compileCommonMainKotlinMetadata SKIPPED
+> Task :mojentic-core:generateProjectStructureMetadata UP-TO-DATE
+> Task :mojentic-core:metadataCommonMainProcessResources NO-SOURCE
+> Task :mojentic-core:metadataCommonMainClasses UP-TO-DATE
+> Task :mojentic-core:allMetadataJar UP-TO-DATE
+> Task :mojentic-core:exportCommonSourceSetsMetadataLocationsForMetadataApiElements UP-TO-DATE
+> Task :mojentic-ollama:transformCommonMainDependenciesMetadata UP-TO-DATE
+> Task :mojentic-openai:transformCommonMainDependenciesMetadata UP-TO-DATE
+> Task :mojentic-anthropic:transformCommonMainDependenciesMetadata UP-TO-DATE
+> Task :mojentic-websearch-serpapi:transformCommonMainDependenciesMetadata UP-TO-DATE
+> Task :mojentic-realtime-openai:transformCommonMainDependenciesMetadata UP-TO-DATE
+> Task :mojentic-core:compileAndroidMain UP-TO-DATE
+> Task :mojentic-core:androidPreBuild UP-TO-DATE
+> Task :mojentic-core:preAndroidMainBuild UP-TO-DATE
+> Task :mojentic-core:bundleAndroidMainClassesToCompileJar UP-TO-DATE
+> Task :mojentic-core:compileKotlinJvm UP-TO-DATE
+> Task :mojentic-core:compileJvmMainJava NO-SOURCE
+> Task :mojentic-core:jvmProcessResources NO-SOURCE
+> Task :mojentic-core:processJvmMainResources SKIPPED
+> Task :mojentic-core:jvmMainClasses UP-TO-DATE
+> Task :mojentic-core:jvmJar UP-TO-DATE
+> Task :mojentic-anthropic:dokkaGenerateModuleHtml UP-TO-DATE
+> Task :mojentic-openai:dokkaGenerateModuleHtml UP-TO-DATE
+> Task :mojentic-realtime-openai:dokkaGenerateModuleHtml UP-TO-DATE
+> Task :mojentic-ollama:dokkaGenerateModuleHtml UP-TO-DATE
+> Task :mojentic-websearch-serpapi:dokkaGenerateModuleHtml UP-TO-DATE
+> Task :mojentic-core:dokkaGenerateModuleHtml UP-TO-DATE
+> Task :mojentic-websearch-serpapi:dokkaGeneratePublicationHtml UP-TO-DATE
+> Task :mojentic-realtime-openai:dokkaGeneratePublicationHtml UP-TO-DATE
+> Task :mojentic-anthropic:dokkaGeneratePublicationHtml UP-TO-DATE
+> Task :mojentic-ollama:dokkaGeneratePublicationHtml UP-TO-DATE
+> Task :mojentic-openai:dokkaGeneratePublicationHtml UP-TO-DATE
+> Task :mojentic-realtime-openai:logLinkDokkaGeneratePublicationHtml SKIPPED
+> Task :mojentic-openai:logLinkDokkaGeneratePublicationHtml SKIPPED
+> Task :mojentic-anthropic:logLinkDokkaGeneratePublicationHtml SKIPPED
+> Task :mojentic-ollama:logLinkDokkaGeneratePublicationHtml SKIPPED
+> Task :mojentic-websearch-serpapi:logLinkDokkaGeneratePublicationHtml SKIPPED
+> Task :mojentic-openai:dokkaGenerate UP-TO-DATE
+> Task :mojentic-realtime-openai:dokkaGenerate UP-TO-DATE
+> Task :mojentic-ollama:dokkaGenerate UP-TO-DATE
+> Task :mojentic-websearch-serpapi:dokkaGenerate UP-TO-DATE
+> Task :mojentic-anthropic:dokkaGenerate UP-TO-DATE
+> Task :dokkaGeneratePublicationHtml UP-TO-DATE
+> Task :logLinkDokkaGeneratePublicationHtml SKIPPED
+> Task :dokkaGenerate UP-TO-DATE
+> Task :mojentic-core:dokkaGeneratePublicationHtml UP-TO-DATE
+> Task :mojentic-core:logLinkDokkaGeneratePublicationHtml SKIPPED
+> Task :mojentic-core:dokkaGenerate UP-TO-DATE
+
+[Incubating] Problems report is available at: file:///home/svetzal/Work/Projects/Personal/mojentic-unify/mojentic-kt/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.8.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 3s
+27 actionable tasks: 1 executed, 26 up-to-date
