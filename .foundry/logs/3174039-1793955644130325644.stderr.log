@@ -1,0 +1,15 @@
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':mojentic-core:signAndroidPublication' (registered in build file 'mojentic-core/build.gradle.kts').
+> No configured signatory
+    Cannot perform signing task ':mojentic-core:signAndroidPublication' because it has no configured signatory
+      A signatory holds the PGP key used to sign artifacts. It must be configured in the 'signing {}' block before signing tasks can run.
+      For more information, please refer to https://docs.gradle.org/9.8.0/userguide/signing_plugin.html.
+      Possible solution: Configure a signatory in the 'signing {}' block.
+
+* Try:
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+
+BUILD FAILED in 6s
