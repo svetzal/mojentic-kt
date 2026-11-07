@@ -1,0 +1,212 @@
+> Task :mojentic-ollama:androidSourcesJar UP-TO-DATE
+> Task :mojentic-ollama:androidPreBuild UP-TO-DATE
+> Task :mojentic-ollama:preAndroidMainBuild UP-TO-DATE
+> Task :mojentic-openai:androidSourcesJar UP-TO-DATE
+> Task :mojentic-openai:androidPreBuild UP-TO-DATE
+> Task :mojentic-openai:preAndroidMainBuild UP-TO-DATE
+> Task :mojentic-websearch-serpapi:androidSourcesJar UP-TO-DATE
+> Task :mojentic-anthropic:androidSourcesJar UP-TO-DATE
+> Task :mojentic-anthropic:androidPreBuild UP-TO-DATE
+> Task :mojentic-anthropic:preAndroidMainBuild UP-TO-DATE
+> Task :mojentic-realtime-openai:androidSourcesJar UP-TO-DATE
+> Task :mojentic-realtime-openai:androidPreBuild UP-TO-DATE
+> Task :mojentic-realtime-openai:preAndroidMainBuild UP-TO-DATE
+> Task :mojentic-websearch-serpapi:androidPreBuild UP-TO-DATE
+> Task :mojentic-websearch-serpapi:preAndroidMainBuild UP-TO-DATE
+> Task :mojentic-ollama:mergeAndroidMainJniLibFolders UP-TO-DATE
+> Task :mojentic-anthropic:mergeAndroidMainJniLibFolders UP-TO-DATE
+> Task :mojentic-realtime-openai:mergeAndroidMainJniLibFolders UP-TO-DATE
+> Task :mojentic-websearch-serpapi:mergeAndroidMainJniLibFolders UP-TO-DATE
+> Task :mojentic-openai:mergeAndroidMainJniLibFolders UP-TO-DATE
+> Task :mojentic-ollama:mergeAndroidMainNativeLibs NO-SOURCE
+> Task :mojentic-openai:mergeAndroidMainNativeLibs NO-SOURCE
+> Task :mojentic-websearch-serpapi:mergeAndroidMainNativeLibs NO-SOURCE
+> Task :mojentic-anthropic:mergeAndroidMainNativeLibs NO-SOURCE
+> Task :mojentic-ollama:copyAndroidMainJniLibsProjectOnly UP-TO-DATE
+> Task :mojentic-websearch-serpapi:copyAndroidMainJniLibsProjectOnly UP-TO-DATE
+> Task :mojentic-realtime-openai:mergeAndroidMainNativeLibs NO-SOURCE
+> Task :mojentic-ollama:generateAndroidMainEmptyResourceFiles UP-TO-DATE
+> Task :mojentic-openai:copyAndroidMainJniLibsProjectOnly UP-TO-DATE
+> Task :mojentic-realtime-openai:copyAndroidMainJniLibsProjectOnly UP-TO-DATE
+> Task :mojentic-websearch-serpapi:generateAndroidMainEmptyResourceFiles UP-TO-DATE
+> Task :mojentic-anthropic:copyAndroidMainJniLibsProjectOnly UP-TO-DATE
+> Task :mojentic-openai:generateAndroidMainEmptyResourceFiles UP-TO-DATE
+> Task :mojentic-realtime-openai:generateAndroidMainEmptyResourceFiles UP-TO-DATE
+> Task :mojentic-anthropic:generateAndroidMainEmptyResourceFiles UP-TO-DATE
+> Task :mojentic-core:kmpPartiallyResolvedDependenciesChecker
+> Task :mojentic-core:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :mojentic-websearch-serpapi:kmpPartiallyResolvedDependenciesChecker
+> Task :mojentic-websearch-serpapi:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :mojentic-realtime-openai:kmpPartiallyResolvedDependenciesChecker
+> Task :mojentic-realtime-openai:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :mojentic-realtime-openai:prepareAndroidMainArtProfile UP-TO-DATE
+> Task :mojentic-websearch-serpapi:prepareAndroidMainArtProfile UP-TO-DATE
+> Task :mojentic-realtime-openai:prepareLintJarForPublish UP-TO-DATE
+> Task :mojentic-websearch-serpapi:prepareLintJarForPublish UP-TO-DATE
+> Task :mojentic-openai:kmpPartiallyResolvedDependenciesChecker
+> Task :mojentic-ollama:kmpPartiallyResolvedDependenciesChecker
+> Task :mojentic-anthropic:kmpPartiallyResolvedDependenciesChecker
+> Task :mojentic-ollama:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :mojentic-anthropic:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :mojentic-realtime-openai:processAndroidMainManifest UP-TO-DATE
+> Task :mojentic-realtime-openai:writeAndroidMainAarMetadata UP-TO-DATE
+> Task :mojentic-ollama:prepareAndroidMainArtProfile UP-TO-DATE
+> Task :mojentic-anthropic:prepareAndroidMainArtProfile UP-TO-DATE
+> Task :mojentic-websearch-serpapi:processAndroidMainManifest UP-TO-DATE
+> Task :mojentic-openai:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :mojentic-ollama:prepareLintJarForPublish UP-TO-DATE
+> Task :mojentic-anthropic:prepareLintJarForPublish UP-TO-DATE
+> Task :mojentic-ollama:processAndroidMainManifest UP-TO-DATE
+> Task :mojentic-websearch-serpapi:writeAndroidMainAarMetadata UP-TO-DATE
+> Task :mojentic-realtime-openai:jvmProcessResources NO-SOURCE
+> Task :mojentic-openai:prepareAndroidMainArtProfile UP-TO-DATE
+> Task :mojentic-realtime-openai:processJvmMainResources SKIPPED
+> Task :mojentic-openai:prepareLintJarForPublish UP-TO-DATE
+> Task :mojentic-ollama:writeAndroidMainAarMetadata UP-TO-DATE
+> Task :mojentic-anthropic:processAndroidMainManifest UP-TO-DATE
+> Task :mojentic-websearch-serpapi:jvmProcessResources NO-SOURCE
+> Task :mojentic-websearch-serpapi:processJvmMainResources SKIPPED
+> Task :mojentic-core:transformCommonMainDependenciesMetadata UP-TO-DATE
+> Task :mojentic-ollama:jvmProcessResources NO-SOURCE
+> Task :mojentic-anthropic:writeAndroidMainAarMetadata UP-TO-DATE
+> Task :mojentic-ollama:processJvmMainResources SKIPPED
+> Task :mojentic-core:compileCommonMainKotlinMetadata SKIPPED
+> Task :mojentic-openai:processAndroidMainManifest UP-TO-DATE
+> Task :mojentic-anthropic:jvmProcessResources NO-SOURCE
+> Task :mojentic-core:generateProjectStructureMetadata UP-TO-DATE
+> Task :mojentic-core:metadataCommonMainProcessResources NO-SOURCE
+> Task :mojentic-core:metadataCommonMainClasses UP-TO-DATE
+> Task :mojentic-core:allMetadataJar UP-TO-DATE
+> Task :mojentic-openai:writeAndroidMainAarMetadata UP-TO-DATE
+> Task :mojentic-realtime-openai:jvmSourcesJar UP-TO-DATE
+> Task :mojentic-anthropic:processJvmMainResources SKIPPED
+> Task :mojentic-realtime-openai:metadataCommonMainProcessResources NO-SOURCE
+> Task :mojentic-websearch-serpapi:jvmSourcesJar UP-TO-DATE
+> Task :mojentic-openai:jvmProcessResources NO-SOURCE
+> Task :mojentic-openai:processJvmMainResources SKIPPED
+> Task :mojentic-ollama:jvmSourcesJar UP-TO-DATE
+> Task :mojentic-ollama:metadataCommonMainProcessResources NO-SOURCE
+> Task :mojentic-core:exportCommonSourceSetsMetadataLocationsForMetadataApiElements UP-TO-DATE
+> Task :mojentic-openai:jvmSourcesJar UP-TO-DATE
+> Task :mojentic-openai:transformCommonMainDependenciesMetadata UP-TO-DATE
+> Task :mojentic-anthropic:transformCommonMainDependenciesMetadata UP-TO-DATE
+> Task :mojentic-websearch-serpapi:transformCommonMainDependenciesMetadata UP-TO-DATE
+> Task :mojentic-websearch-serpapi:compileCommonMainKotlinMetadata SKIPPED
+> Task :mojentic-websearch-serpapi:metadataCommonMainProcessResources NO-SOURCE
+> Task :mojentic-openai:compileCommonMainKotlinMetadata SKIPPED
+> Task :mojentic-openai:metadataCommonMainProcessResources NO-SOURCE
+> Task :mojentic-websearch-serpapi:metadataCommonMainClasses UP-TO-DATE
+> Task :mojentic-openai:metadataCommonMainClasses UP-TO-DATE
+> Task :mojentic-anthropic:jvmSourcesJar UP-TO-DATE
+> Task :mojentic-anthropic:compileCommonMainKotlinMetadata SKIPPED
+> Task :mojentic-anthropic:metadataCommonMainProcessResources NO-SOURCE
+> Task :mojentic-anthropic:metadataCommonMainClasses UP-TO-DATE
+> Task :mojentic-core:compileAndroidMain UP-TO-DATE
+> Task :mojentic-core:androidPreBuild UP-TO-DATE
+> Task :mojentic-core:preAndroidMainBuild UP-TO-DATE
+> Task :mojentic-core:bundleAndroidMainClassesToCompileJar UP-TO-DATE
+> Task :mojentic-core:compileKotlinJvm UP-TO-DATE
+> Task :mojentic-core:compileJvmMainJava NO-SOURCE
+> Task :mojentic-core:jvmProcessResources NO-SOURCE
+> Task :mojentic-core:processJvmMainResources SKIPPED
+> Task :mojentic-core:jvmMainClasses UP-TO-DATE
+> Task :mojentic-core:jvmJar UP-TO-DATE
+> Task :mojentic-core:writeAndroidMainAarMetadata UP-TO-DATE
+> Task :mojentic-core:exportTargetPublicationCoordinatesForAndroidApiElements UP-TO-DATE
+> Task :mojentic-core:exportTargetPublicationCoordinatesForAndroidRuntimeElements UP-TO-DATE
+> Task :mojentic-core:exportTargetPublicationCoordinatesForJvmApiElements UP-TO-DATE
+> Task :mojentic-core:exportTargetPublicationCoordinatesForJvmRuntimeElements UP-TO-DATE
+> Task :mojentic-core:exportRootPublicationCoordinatesForMetadataApiElements UP-TO-DATE
+> Task :mojentic-core:dokkaGeneratePublicationHtml UP-TO-DATE
+> Task :mojentic-core:logLinkDokkaGeneratePublicationHtml SKIPPED
+> Task :mojentic-core:androidDokkaJavadocJar UP-TO-DATE
+> Task :mojentic-core:androidSourcesJar UP-TO-DATE
+> Task :mojentic-core:checkAndroidMainAarMetadata UP-TO-DATE
+> Task :mojentic-core:mergeAndroidMainJniLibFolders UP-TO-DATE
+> Task :mojentic-core:mergeAndroidMainNativeLibs NO-SOURCE
+> Task :mojentic-core:copyAndroidMainJniLibsProjectOnly UP-TO-DATE
+> Task :mojentic-openai:buildKotlinToolingMetadata UP-TO-DATE
+> Task :mojentic-anthropic:buildKotlinToolingMetadata UP-TO-DATE
+> Task :mojentic-realtime-openai:buildKotlinToolingMetadata UP-TO-DATE
+> Task :mojentic-websearch-serpapi:buildKotlinToolingMetadata UP-TO-DATE
+> Task :mojentic-ollama:buildKotlinToolingMetadata UP-TO-DATE
+> Task :mojentic-ollama:transformCommonMainDependenciesMetadata UP-TO-DATE
+> Task :mojentic-realtime-openai:transformCommonMainDependenciesMetadata UP-TO-DATE
+> Task :mojentic-core:extractAndroidMainAnnotations UP-TO-DATE
+> Task :mojentic-core:generateAndroidMainEmptyResourceFiles UP-TO-DATE
+> Task :mojentic-core:mergeAndroidMainGeneratedProguardFiles UP-TO-DATE
+> Task :mojentic-anthropic:dokkaGeneratePublicationHtml UP-TO-DATE
+> Task :mojentic-core:mergeAndroidMainConsumerProguardFiles UP-TO-DATE
+> Task :mojentic-websearch-serpapi:dokkaGeneratePublicationHtml UP-TO-DATE
+> Task :mojentic-openai:dokkaGeneratePublicationHtml UP-TO-DATE
+> Task :mojentic-websearch-serpapi:logLinkDokkaGeneratePublicationHtml SKIPPED
+> Task :mojentic-anthropic:logLinkDokkaGeneratePublicationHtml SKIPPED
+> Task :mojentic-core:prepareAndroidMainArtProfile UP-TO-DATE
+> Task :mojentic-realtime-openai:dokkaGeneratePublicationHtml UP-TO-DATE
+> Task :mojentic-realtime-openai:logLinkDokkaGeneratePublicationHtml SKIPPED
+> Task :mojentic-openai:logLinkDokkaGeneratePublicationHtml SKIPPED
+> Task :mojentic-core:prepareLintJarForPublish UP-TO-DATE
+> Task :mojentic-core:processAndroidMainManifest UP-TO-DATE
+> Task :mojentic-core:compressAndroidMainJavaRes UP-TO-DATE
+> Task :mojentic-realtime-openai:androidDokkaJavadocJar UP-TO-DATE
+> Task :mojentic-anthropic:androidDokkaJavadocJar UP-TO-DATE
+> Task :mojentic-core:mergeAndroidMainJavaResource UP-TO-DATE
+> Task :mojentic-websearch-serpapi:androidDokkaJavadocJar UP-TO-DATE
+> Task :mojentic-ollama:dokkaGeneratePublicationHtml UP-TO-DATE
+> Task :mojentic-ollama:logLinkDokkaGeneratePublicationHtml SKIPPED
+> Task :mojentic-core:syncAndroidMainLibJars UP-TO-DATE
+> Task :mojentic-core:bundleAndroidMainAar UP-TO-DATE
+> Task :mojentic-realtime-openai:checkAndroidMainAarMetadata UP-TO-DATE
+> Task :mojentic-anthropic:checkAndroidMainAarMetadata UP-TO-DATE
+> Task :mojentic-websearch-serpapi:checkAndroidMainAarMetadata UP-TO-DATE
+> Task :mojentic-ollama:androidDokkaJavadocJar UP-TO-DATE
+> Task :mojentic-anthropic:extractAndroidMainAnnotations UP-TO-DATE
+> Task :mojentic-realtime-openai:extractAndroidMainAnnotations UP-TO-DATE
+> Task :mojentic-ollama:checkAndroidMainAarMetadata UP-TO-DATE
+> Task :mojentic-websearch-serpapi:extractAndroidMainAnnotations UP-TO-DATE
+> Task :mojentic-anthropic:compileAndroidMain UP-TO-DATE
+> Task :mojentic-anthropic:mergeAndroidMainGeneratedProguardFiles UP-TO-DATE
+> Task :mojentic-anthropic:mergeAndroidMainConsumerProguardFiles UP-TO-DATE
+> Task :mojentic-anthropic:compressAndroidMainJavaRes UP-TO-DATE
+> Task :mojentic-anthropic:mergeAndroidMainJavaResource UP-TO-DATE
+> Task :mojentic-anthropic:syncAndroidMainLibJars UP-TO-DATE
+> Task :mojentic-realtime-openai:compileAndroidMain UP-TO-DATE
+> Task :mojentic-websearch-serpapi:compileAndroidMain UP-TO-DATE
+> Task :mojentic-ollama:extractAndroidMainAnnotations UP-TO-DATE
+> Task :mojentic-anthropic:bundleAndroidMainAar UP-TO-DATE
+> Task :mojentic-realtime-openai:mergeAndroidMainGeneratedProguardFiles UP-TO-DATE
+> Task :mojentic-websearch-serpapi:mergeAndroidMainGeneratedProguardFiles UP-TO-DATE
+> Task :mojentic-realtime-openai:mergeAndroidMainConsumerProguardFiles UP-TO-DATE
+> Task :mojentic-realtime-openai:compressAndroidMainJavaRes UP-TO-DATE
+> Task :mojentic-websearch-serpapi:mergeAndroidMainConsumerProguardFiles UP-TO-DATE
+> Task :mojentic-realtime-openai:mergeAndroidMainJavaResource UP-TO-DATE
+> Task :mojentic-websearch-serpapi:compressAndroidMainJavaRes UP-TO-DATE
+> Task :mojentic-websearch-serpapi:mergeAndroidMainJavaResource UP-TO-DATE
+> Task :mojentic-realtime-openai:syncAndroidMainLibJars UP-TO-DATE
+> Task :mojentic-realtime-openai:bundleAndroidMainAar UP-TO-DATE
+> Task :mojentic-websearch-serpapi:syncAndroidMainLibJars UP-TO-DATE
+> Task :mojentic-core:generateMetadataFileForAndroidPublication
+> Task :mojentic-websearch-serpapi:bundleAndroidMainAar UP-TO-DATE
+> Task :mojentic-ollama:compileAndroidMain UP-TO-DATE
+> Task :mojentic-ollama:mergeAndroidMainGeneratedProguardFiles UP-TO-DATE
+> Task :mojentic-ollama:mergeAndroidMainConsumerProguardFiles UP-TO-DATE
+> Task :mojentic-ollama:compressAndroidMainJavaRes UP-TO-DATE
+> Task :mojentic-ollama:mergeAndroidMainJavaResource UP-TO-DATE
+> Task :mojentic-ollama:syncAndroidMainLibJars UP-TO-DATE
+> Task :mojentic-ollama:bundleAndroidMainAar UP-TO-DATE
+> Task :mojentic-core:generatePomFileForAndroidPublication
+> Task :mojentic-core:signAndroidPublication FAILED
+> Task :mojentic-websearch-serpapi:generateMetadataFileForAndroidPublication
+> Task :mojentic-realtime-openai:generateMetadataFileForAndroidPublication
+> Task :mojentic-anthropic:generateMetadataFileForAndroidPublication
+> Task :mojentic-ollama:generateMetadataFileForAndroidPublication
+> Task :mojentic-openai:androidDokkaJavadocJar
+
+[Incubating] Problems report is available at: file:///home/svetzal/Work/Projects/Personal/mojentic-unify/mojentic-kt/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.8.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+145 actionable tasks: 14 executed, 131 up-to-date

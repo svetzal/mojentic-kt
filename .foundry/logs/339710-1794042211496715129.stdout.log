@@ -1,0 +1,843 @@
+
+> Configure project :
+w: file:///home/svetzal/Work/Projects/Personal/mojentic-unify/mojentic-kt/build/distribution-verification/candidate.vbW1Nd/consumer/build.gradle.kts:39:40: 'fun RegisteringDomainObjectDelegateProviderWithAction<out TaskContainer, Task>.provideDelegate(receiver: Any?, property: KProperty<*>): ExistingDomainObjectDelegate<TaskProvider<Task>>' is deprecated. Use 'val task = tasks.register(name) { }' instead. See the Gradle 9.6 upgrading guide.
+w: file:///home/svetzal/Work/Projects/Personal/mojentic-unify/mojentic-kt/build/distribution-verification/candidate.vbW1Nd/consumer/build.gradle.kts:39:40: 'fun <T : Any, C : NamedDomainObjectContainer<T>> C.registering(action: T.() -> Unit): RegisteringDomainObjectDelegateProviderWithAction<out C, T>' is deprecated. Use 'val element = register(name) { }' instead. See the Gradle 9.6 upgrading guide.
+w: file:///home/svetzal/Work/Projects/Personal/mojentic-unify/mojentic-kt/build/distribution-verification/candidate.vbW1Nd/consumer/build.gradle.kts:39:40: 'fun <T> ExistingDomainObjectDelegate<out T>.getValue(receiver: Any?, property: KProperty<*>): T' is deprecated. Use the named() API instead. See the Gradle 9.6 upgrading guide.
+
+> Task :checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :compileKotlin NO-SOURCE
+> Task :compileJava NO-SOURCE
+> Task :processResources NO-SOURCE
+> Task :classes UP-TO-DATE
+> Task :jar
+> Task :loadKtlintReporters
+> Task :runKtlintCheckOverMainSourceSet NO-SOURCE
+> Task :ktlintMainSourceSetCheck SKIPPED
+> Task :processTestResources NO-SOURCE
+> Task :verifyCandidateResolution
+
+> Task :dependencies
+
+------------------------------------------------------------
+Root project 'mojentic-distribution-consumer'
+------------------------------------------------------------
+
+annotationProcessor - Annotation processors and their dependencies for source set 'main'.
+No dependencies
+
+api - API dependencies for 'main'. (n)
+\--- org.jetbrains.kotlin:kotlin-stdlib:2.4.21 (n)
+
+apiElements - API elements for the 'main' feature. (n)
+No dependencies
+
+apiElements-published (n)
+No dependencies
+
+compileClasspath - Compile classpath for 'main'.
+\--- org.jetbrains.kotlin:kotlin-stdlib:2.4.21
+     \--- org.jetbrains:annotations:13.0
+
+compileOnly - Compile only dependencies for 'main'. (n)
+No dependencies
+
+default - Configuration for default artifacts. (n)
+No dependencies
+
+implementation - Implementation only dependencies for 'main'. (n)
+No dependencies
+
+implementationDependenciesMetadata
+No dependencies
+
+kotlinAbiValidationCompatClasspath
++--- org.jetbrains.kotlin:kotlin-build-tools-compat:2.4.21
+|    \--- org.jetbrains.kotlin:kotlin-tooling-core:2.4.21
+\--- org.jetbrains.kotlin:kotlin-build-tools-impl:{strictly 2.4.0} -> 2.4.0
+     +--- org.jetbrains.kotlin:kotlin-build-tools-api:2.4.0
+     +--- org.jetbrains.kotlin:kotlin-stdlib:2.4.0
+     |    \--- org.jetbrains:annotations:13.0
+     +--- org.jetbrains.kotlin:kotlin-build-tools-cri-impl:2.4.0
+     |    +--- org.jetbrains.kotlin:kotlin-build-tools-api:2.4.0
+     |    \--- org.jetbrains.kotlin:kotlin-stdlib:2.4.0 (*)
+     +--- org.jetbrains.kotlin:kotlin-compiler-embeddable:2.4.0
+     |    +--- org.jetbrains.kotlin:kotlin-build-tools-api:2.4.0
+     |    +--- org.jetbrains.kotlin:kotlin-stdlib:2.4.0 (*)
+     |    +--- org.jetbrains.kotlin:kotlin-script-runtime:2.4.0
+     |    +--- org.jetbrains.kotlin:kotlin-reflect:1.6.10
+     |    +--- org.jetbrains.kotlin:kotlin-daemon-embeddable:2.4.0
+     |    \--- org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.8.0
+     \--- org.jetbrains.kotlin:kotlin-compiler-runner:2.4.0
+          +--- org.jetbrains.kotlin:kotlin-daemon-client:2.4.0
+          |    \--- org.jetbrains.kotlin:kotlin-stdlib:2.2.21 -> 2.4.0 (*)
+          +--- org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.8.0
+          \--- org.jetbrains.kotlin:kotlin-compiler-embeddable:2.4.0 (*)
+
+kotlinBuildToolsApiClasspath
++--- org.jetbrains.kotlin:kotlin-build-tools-compat:2.4.21
+|    \--- org.jetbrains.kotlin:kotlin-tooling-core:2.4.21
+\--- org.jetbrains.kotlin:kotlin-build-tools-impl:{strictly 2.4.21} -> 2.4.21
+     +--- org.jetbrains.kotlin:kotlin-build-tools-api:2.4.21
+     +--- org.jetbrains.kotlin:kotlin-stdlib:2.4.21
+     |    \--- org.jetbrains:annotations:13.0
+     +--- org.jetbrains.kotlin:kotlin-build-tools-cri-impl:2.4.21
+     |    +--- org.jetbrains.kotlin:kotlin-build-tools-api:2.4.21
+     |    \--- org.jetbrains.kotlin:kotlin-stdlib:2.4.21 (*)
+     +--- org.jetbrains.kotlin:kotlin-tooling-core:2.4.21
+     +--- org.jetbrains.kotlin:kotlin-compiler-embeddable:2.4.21
+     |    +--- org.jetbrains.kotlin:kotlin-build-tools-api:2.4.21
+     |    +--- org.jetbrains.kotlin:kotlin-stdlib:2.4.21 (*)
+     |    +--- org.jetbrains.kotlin:kotlin-script-runtime:2.4.21
+     |    +--- org.jetbrains.kotlin:kotlin-reflect:1.6.10
+     |    +--- org.jetbrains.kotlin:kotlin-daemon-embeddable:2.4.21
+     |    \--- org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.8.0
+     \--- org.jetbrains.kotlin:kotlin-compiler-runner:2.4.21
+          +--- org.jetbrains.kotlin:kotlin-daemon-client:2.4.21
+          |    \--- org.jetbrains.kotlin:kotlin-stdlib:2.2.21 -> 2.4.21 (*)
+          +--- org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.8.0
+          \--- org.jetbrains.kotlin:kotlin-compiler-embeddable:2.4.21 (*)
+
+kotlinCompilerClasspath
++--- org.jetbrains.kotlin:kotlin-build-tools-compat:2.4.21
+|    \--- org.jetbrains.kotlin:kotlin-tooling-core:2.4.21
+\--- org.jetbrains.kotlin:kotlin-build-tools-impl:2.4.21
+     +--- org.jetbrains.kotlin:kotlin-build-tools-api:2.4.21
+     +--- org.jetbrains.kotlin:kotlin-stdlib:2.4.21
+     |    \--- org.jetbrains:annotations:13.0
+     +--- org.jetbrains.kotlin:kotlin-build-tools-cri-impl:2.4.21
+     |    +--- org.jetbrains.kotlin:kotlin-build-tools-api:2.4.21
+     |    \--- org.jetbrains.kotlin:kotlin-stdlib:2.4.21 (*)
+     +--- org.jetbrains.kotlin:kotlin-tooling-core:2.4.21
+     +--- org.jetbrains.kotlin:kotlin-compiler-embeddable:2.4.21
+     |    +--- org.jetbrains.kotlin:kotlin-build-tools-api:2.4.21
+     |    +--- org.jetbrains.kotlin:kotlin-stdlib:2.4.21 (*)
+     |    +--- org.jetbrains.kotlin:kotlin-script-runtime:2.4.21
+     |    +--- org.jetbrains.kotlin:kotlin-reflect:1.6.10
+     |    +--- org.jetbrains.kotlin:kotlin-daemon-embeddable:2.4.21
+     |    \--- org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.8.0
+     \--- org.jetbrains.kotlin:kotlin-compiler-runner:2.4.21
+          +--- org.jetbrains.kotlin:kotlin-daemon-client:2.4.21
+          |    \--- org.jetbrains.kotlin:kotlin-stdlib:2.2.21 -> 2.4.21 (*)
+          +--- org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.8.0
+          \--- org.jetbrains.kotlin:kotlin-compiler-embeddable:2.4.21 (*)
+
+kotlinCompilerPluginClasspath
+No dependencies
+
+kotlinCompilerPluginClasspathMain - Kotlin compiler plugins for compilation
+\--- org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:2.4.21
+     +--- org.jetbrains.kotlin:kotlin-scripting-common:2.4.21
+     |    \--- org.jetbrains.kotlin:kotlin-stdlib:2.4.21
+     |         \--- org.jetbrains:annotations:13.0
+     +--- org.jetbrains.kotlin:kotlin-scripting-jvm:2.4.21
+     |    +--- org.jetbrains.kotlin:kotlin-script-runtime:2.4.21
+     |    +--- org.jetbrains.kotlin:kotlin-stdlib:2.4.21 (*)
+     |    \--- org.jetbrains.kotlin:kotlin-scripting-common:2.4.21 (*)
+     +--- org.jetbrains.kotlin:kotlin-scripting-compiler-impl-embeddable:2.4.21
+     |    +--- org.jetbrains.kotlin:kotlin-scripting-common:2.4.21 (*)
+     |    +--- org.jetbrains.kotlin:kotlin-scripting-jvm:2.4.21 (*)
+     |    \--- org.jetbrains.kotlin:kotlin-stdlib:2.4.21 (*)
+     \--- org.jetbrains.kotlin:kotlin-stdlib:2.4.21 (*)
+
+kotlinCompilerPluginClasspathTest - Kotlin compiler plugins for compilation
+\--- org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:2.4.21
+     +--- org.jetbrains.kotlin:kotlin-scripting-common:2.4.21
+     |    \--- org.jetbrains.kotlin:kotlin-stdlib:2.4.21
+     |         \--- org.jetbrains:annotations:13.0
+     +--- org.jetbrains.kotlin:kotlin-scripting-jvm:2.4.21
+     |    +--- org.jetbrains.kotlin:kotlin-script-runtime:2.4.21
+     |    +--- org.jetbrains.kotlin:kotlin-stdlib:2.4.21 (*)
+     |    \--- org.jetbrains.kotlin:kotlin-scripting-common:2.4.21 (*)
+     +--- org.jetbrains.kotlin:kotlin-scripting-compiler-impl-embeddable:2.4.21
+     |    +--- org.jetbrains.kotlin:kotlin-scripting-common:2.4.21 (*)
+     |    +--- org.jetbrains.kotlin:kotlin-scripting-jvm:2.4.21 (*)
+     |    \--- org.jetbrains.kotlin:kotlin-stdlib:2.4.21 (*)
+     \--- org.jetbrains.kotlin:kotlin-stdlib:2.4.21 (*)
+
+kotlinKlibCommonizerClasspath
+\--- org.jetbrains.kotlin:kotlin-klib-commonizer-embeddable:2.4.21
+     +--- org.jetbrains.kotlin:kotlin-stdlib:2.4.21
+     |    \--- org.jetbrains:annotations:13.0
+     \--- org.jetbrains.kotlin:kotlin-compiler-embeddable:2.4.21
+          +--- org.jetbrains.kotlin:kotlin-build-tools-api:2.4.21
+          +--- org.jetbrains.kotlin:kotlin-stdlib:2.4.21 (*)
+          +--- org.jetbrains.kotlin:kotlin-script-runtime:2.4.21
+          +--- org.jetbrains.kotlin:kotlin-reflect:1.6.10
+          +--- org.jetbrains.kotlin:kotlin-daemon-embeddable:2.4.21
+          \--- org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.8.0
+
+kotlinNativeCompilerPluginClasspath
+No dependencies
+
+kotlinScriptDef - Script filename extensions discovery classpath configuration (n)
+No dependencies
+
+kotlinScriptDefExtensions
+No dependencies
+
+ktlint - Main ktlint-gradle configuration
++--- com.pinterest.ktlint:ktlint-cli:1.8.0
+|    +--- com.pinterest.ktlint:ktlint-logger:1.8.0
+|    |    +--- dev.drewhamilton.poko:poko-annotations:0.20.1
+|    |    |    \--- dev.drewhamilton.poko:poko-annotations-jvm:0.20.1
+|    |    +--- io.github.oshai:kotlin-logging-jvm:7.0.13
+|    |    \--- org.jetbrains.kotlin:kotlin-stdlib:2.2.21
+|    |         \--- org.jetbrains:annotations:13.0
+|    +--- com.pinterest.ktlint:ktlint-cli-reporter-baseline:1.8.0
+|    |    +--- com.pinterest.ktlint:ktlint-logger:1.8.0 (*)
+|    |    +--- com.pinterest.ktlint:ktlint-rule-engine-core:1.8.0
+|    |    |    +--- com.pinterest.ktlint:ktlint-logger:1.8.0 (*)
+|    |    |    +--- dev.drewhamilton.poko:poko-annotations:0.20.1 (*)
+|    |    |    +--- org.jetbrains.kotlin:kotlin-compiler-embeddable:2.2.21
+|    |    |    |    +--- org.jetbrains.kotlin:kotlin-stdlib:2.2.21 (*)
+|    |    |    |    +--- org.jetbrains.kotlin:kotlin-script-runtime:2.2.21
+|    |    |    |    +--- org.jetbrains.kotlin:kotlin-reflect:1.6.10
+|    |    |    |    +--- org.jetbrains.kotlin:kotlin-daemon-embeddable:2.2.21
+|    |    |    |    \--- org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.8.0
+|    |    |    +--- org.ec4j.core:ec4j-core:1.1.1
+|    |    |    \--- org.jetbrains.kotlin:kotlin-stdlib:2.2.21 (*)
+|    |    +--- com.pinterest.ktlint:ktlint-cli-reporter-core:1.8.0
+|    |    |    +--- dev.drewhamilton.poko:poko-annotations:0.20.1 (*)
+|    |    |    \--- org.jetbrains.kotlin:kotlin-stdlib:2.2.21 (*)
+|    |    +--- dev.drewhamilton.poko:poko-annotations:0.20.1 (*)
+|    |    \--- org.jetbrains.kotlin:kotlin-stdlib:2.2.21 (*)
+|    +--- com.pinterest.ktlint:ktlint-cli-reporter-core:1.8.0 (*)
+|    +--- com.pinterest.ktlint:ktlint-cli-reporter-plain:1.8.0
+|    |    +--- com.pinterest.ktlint:ktlint-cli-reporter-core:1.8.0 (*)
+|    |    +--- dev.drewhamilton.poko:poko-annotations:0.20.1 (*)
+|    |    \--- org.jetbrains.kotlin:kotlin-stdlib:2.2.21 (*)
+|    +--- com.pinterest.ktlint:ktlint-rule-engine:1.8.0
+|    |    +--- com.pinterest.ktlint:ktlint-logger:1.8.0 (*)
+|    |    +--- dev.drewhamilton.poko:poko-annotations:0.20.1 (*)
+|    |    +--- com.pinterest.ktlint:ktlint-rule-engine-core:1.8.0 (*)
+|    |    +--- org.jetbrains.kotlin:kotlin-compiler-embeddable:2.2.21 (*)
+|    |    +--- org.ec4j.core:ec4j-core:1.1.1
+|    |    \--- org.jetbrains.kotlin:kotlin-stdlib:2.2.21 (*)
+|    +--- com.pinterest.ktlint:ktlint-ruleset-standard:1.8.0
+|    |    +--- com.pinterest.ktlint:ktlint-logger:1.8.0 (*)
+|    |    +--- dev.drewhamilton.poko:poko-annotations:0.20.1 (*)
+|    |    +--- com.pinterest.ktlint:ktlint-cli-ruleset-core:1.8.0
+|    |    |    +--- dev.drewhamilton.poko:poko-annotations:0.20.1 (*)
+|    |    |    +--- com.pinterest.ktlint:ktlint-rule-engine-core:1.8.0 (*)
+|    |    |    \--- org.jetbrains.kotlin:kotlin-stdlib:2.2.21 (*)
+|    |    +--- com.pinterest.ktlint:ktlint-rule-engine-core:1.8.0 (*)
+|    |    \--- org.jetbrains.kotlin:kotlin-stdlib:2.2.21 (*)
+|    +--- com.github.ajalt.clikt:clikt:5.0.3
+|    |    \--- com.github.ajalt.clikt:clikt-jvm:5.0.3
+|    +--- ch.qos.logback:logback-classic:1.3.16
+|    |    +--- ch.qos.logback:logback-core:1.3.16
+|    |    \--- org.slf4j:slf4j-api:2.0.7
+|    +--- dev.drewhamilton.poko:poko-annotations:0.20.1 (*)
+|    +--- org.jetbrains.kotlin:kotlin-stdlib:2.2.21 (*)
+|    +--- com.pinterest.ktlint:ktlint-cli-reporter-checkstyle:1.8.0
+|    |    +--- com.pinterest.ktlint:ktlint-cli-reporter-core:1.8.0 (*)
+|    |    +--- dev.drewhamilton.poko:poko-annotations:0.20.1 (*)
+|    |    \--- org.jetbrains.kotlin:kotlin-stdlib:2.2.21 (*)
+|    +--- com.pinterest.ktlint:ktlint-cli-reporter-json:1.8.0
+|    |    +--- com.pinterest.ktlint:ktlint-cli-reporter-core:1.8.0 (*)
+|    |    +--- dev.drewhamilton.poko:poko-annotations:0.20.1 (*)
+|    |    \--- org.jetbrains.kotlin:kotlin-stdlib:2.2.21 (*)
+|    +--- com.pinterest.ktlint:ktlint-cli-reporter-format:1.8.0
+|    |    +--- com.pinterest.ktlint:ktlint-cli-reporter-core:1.8.0 (*)
+|    |    +--- dev.drewhamilton.poko:poko-annotations:0.20.1 (*)
+|    |    \--- org.jetbrains.kotlin:kotlin-stdlib:2.2.21 (*)
+|    +--- com.pinterest.ktlint:ktlint-cli-reporter-html:1.8.0
+|    |    +--- com.pinterest.ktlint:ktlint-cli-reporter-core:1.8.0 (*)
+|    |    +--- dev.drewhamilton.poko:poko-annotations:0.20.1 (*)
+|    |    \--- org.jetbrains.kotlin:kotlin-stdlib:2.2.21 (*)
+|    +--- com.pinterest.ktlint:ktlint-cli-reporter-plain-summary:1.8.0
+|    |    +--- com.pinterest.ktlint:ktlint-cli-reporter-core:1.8.0 (*)
+|    |    +--- dev.drewhamilton.poko:poko-annotations:0.20.1 (*)
+|    |    \--- org.jetbrains.kotlin:kotlin-stdlib:2.2.21 (*)
+|    \--- com.pinterest.ktlint:ktlint-cli-reporter-sarif:1.8.0
+|         +--- com.pinterest.ktlint:ktlint-cli-reporter-core:1.8.0 (*)
+|         +--- io.github.detekt.sarif4k:sarif4k:0.6.0
+|         |    \--- io.github.detekt.sarif4k:sarif4k-jvm:0.6.0
+|         +--- dev.drewhamilton.poko:poko-annotations:0.20.1 (*)
+|         \--- org.jetbrains.kotlin:kotlin-stdlib:2.2.21 (*)
++--- io.github.oshai:kotlin-logging:5.1.0
+|    \--- io.github.oshai:kotlin-logging-jvm:5.1.0 -> 7.0.13
+\--- io.github.detekt.sarif4k:sarif4k:0.5.0 -> 0.6.0 (*)
+
+ktlintBaselineReporter - Provides KtLint baseline reporter required to generate baseline file
++--- com.pinterest.ktlint:ktlint-cli-reporter-baseline:1.8.0
+|    +--- com.pinterest.ktlint:ktlint-logger:1.8.0
+|    |    +--- dev.drewhamilton.poko:poko-annotations:0.20.1
+|    |    |    \--- dev.drewhamilton.poko:poko-annotations-jvm:0.20.1
+|    |    |         \--- org.jetbrains.kotlin:kotlin-stdlib:2.2.20 -> 2.2.21
+|    |    |              \--- org.jetbrains:annotations:13.0
+|    |    +--- io.github.oshai:kotlin-logging-jvm:7.0.13
+|    |    |    \--- org.jetbrains.kotlin:kotlin-stdlib:2.1.21 -> 2.2.21 (*)
+|    |    \--- org.jetbrains.kotlin:kotlin-stdlib:2.2.21 (*)
+|    +--- com.pinterest.ktlint:ktlint-rule-engine-core:1.8.0
+|    |    +--- com.pinterest.ktlint:ktlint-logger:1.8.0 (*)
+|    |    +--- dev.drewhamilton.poko:poko-annotations:0.20.1 (*)
+|    |    +--- org.jetbrains.kotlin:kotlin-compiler-embeddable:2.2.21
+|    |    |    +--- org.jetbrains.kotlin:kotlin-stdlib:2.2.21 (*)
+|    |    |    +--- org.jetbrains.kotlin:kotlin-script-runtime:2.2.21
+|    |    |    +--- org.jetbrains.kotlin:kotlin-reflect:1.6.10
+|    |    |    +--- org.jetbrains.kotlin:kotlin-daemon-embeddable:2.2.21
+|    |    |    \--- org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.8.0
+|    |    +--- org.ec4j.core:ec4j-core:1.1.1
+|    |    \--- org.jetbrains.kotlin:kotlin-stdlib:2.2.21 (*)
+|    +--- com.pinterest.ktlint:ktlint-cli-reporter-core:1.8.0
+|    |    +--- dev.drewhamilton.poko:poko-annotations:0.20.1 (*)
+|    |    \--- org.jetbrains.kotlin:kotlin-stdlib:2.2.21 (*)
+|    +--- dev.drewhamilton.poko:poko-annotations:0.20.1 (*)
+|    \--- org.jetbrains.kotlin:kotlin-stdlib:2.2.21 (*)
++--- io.github.oshai:kotlin-logging:5.1.0
+|    \--- io.github.oshai:kotlin-logging-jvm:5.1.0 -> 7.0.13 (*)
++--- io.github.oshai:kotlin-logging:{strictly 5.1.0} -> 5.1.0 (c)
++--- com.pinterest.ktlint:ktlint-cli-reporter-baseline:{strictly 1.8.0} -> 1.8.0 (c)
++--- com.pinterest.ktlint:ktlint-logger:{strictly 1.8.0} -> 1.8.0 (c)
++--- com.pinterest.ktlint:ktlint-rule-engine-core:{strictly 1.8.0} -> 1.8.0 (c)
++--- com.pinterest.ktlint:ktlint-cli-reporter-core:{strictly 1.8.0} -> 1.8.0 (c)
++--- dev.drewhamilton.poko:poko-annotations:{strictly 0.20.1} -> 0.20.1 (c)
++--- org.jetbrains.kotlin:kotlin-stdlib:{strictly 2.2.21} -> 2.2.21 (c)
++--- io.github.oshai:kotlin-logging-jvm:{strictly 7.0.13} -> 7.0.13 (c)
++--- org.jetbrains.kotlin:kotlin-compiler-embeddable:{strictly 2.2.21} -> 2.2.21 (c)
++--- org.ec4j.core:ec4j-core:{strictly 1.1.1} -> 1.1.1 (c)
++--- dev.drewhamilton.poko:poko-annotations-jvm:{strictly 0.20.1} -> 0.20.1 (c)
++--- org.jetbrains:annotations:{strictly 13.0} -> 13.0 (c)
++--- org.jetbrains.kotlin:kotlin-script-runtime:{strictly 2.2.21} -> 2.2.21 (c)
++--- org.jetbrains.kotlin:kotlin-reflect:{strictly 1.6.10} -> 1.6.10 (c)
++--- org.jetbrains.kotlin:kotlin-daemon-embeddable:{strictly 2.2.21} -> 2.2.21 (c)
+\--- org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:{strictly 1.8.0} -> 1.8.0 (c)
+
+ktlintReporter - All ktlint custom reporters dependencies
++--- io.github.oshai:kotlin-logging:5.1.0
+|    \--- io.github.oshai:kotlin-logging-jvm:5.1.0 -> 7.0.13
+|         \--- org.jetbrains.kotlin:kotlin-stdlib:2.1.21 -> 2.2.21
+|              +--- org.jetbrains:annotations:13.0
+|              +--- org.jetbrains.kotlin:kotlin-stdlib-common:2.2.21 (c)
+|              +--- org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.0 (c)
+|              \--- org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.0 (c)
++--- io.github.detekt.sarif4k:sarif4k:0.5.0 -> 0.6.0
+|    \--- io.github.detekt.sarif4k:sarif4k-jvm:0.6.0
+|         +--- org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1
+|         |    \--- org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.4.1
+|         |         +--- org.jetbrains.kotlin:kotlin-stdlib:1.7.20 -> 2.2.21 (*)
+|         |         +--- org.jetbrains.kotlin:kotlin-stdlib-common:1.7.20 -> 2.2.21
+|         |         |    \--- org.jetbrains.kotlin:kotlin-stdlib:2.2.21 (*)
+|         |         +--- org.jetbrains.kotlinx:kotlinx-serialization-core:1.4.1
+|         |         |    \--- org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.4.1
+|         |         |         +--- org.jetbrains.kotlin:kotlin-stdlib:1.7.20 -> 2.2.21 (*)
+|         |         |         +--- org.jetbrains.kotlin:kotlin-stdlib-common:1.7.20 -> 2.2.21 (*)
+|         |         |         \--- org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.7.20 -> 1.8.0
+|         |         |              +--- org.jetbrains.kotlin:kotlin-stdlib:1.8.0 -> 2.2.21 (*)
+|         |         |              \--- org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.0
+|         |         |                   \--- org.jetbrains.kotlin:kotlin-stdlib:1.8.0 -> 2.2.21 (*)
+|         |         \--- org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.7.20 -> 1.8.0 (*)
+|         \--- org.jetbrains.kotlin:kotlin-stdlib:1.9.23 -> 2.2.21 (*)
++--- io.github.oshai:kotlin-logging:{strictly 5.1.0} -> 5.1.0 (c)
++--- io.github.detekt.sarif4k:sarif4k:{strictly 0.6.0} -> 0.6.0 (c)
++--- io.github.oshai:kotlin-logging-jvm:{strictly 7.0.13} -> 7.0.13 (c)
++--- io.github.detekt.sarif4k:sarif4k-jvm:{strictly 0.6.0} -> 0.6.0 (c)
++--- org.jetbrains.kotlin:kotlin-stdlib:{strictly 2.2.21} -> 2.2.21 (c)
+\--- org.jetbrains:annotations:{strictly 13.0} -> 13.0 (c)
+
+ktlintRuleset - All ktlint rulesets dependencies
++--- com.pinterest.ktlint:ktlint-ruleset-standard:1.8.0
+|    +--- com.pinterest.ktlint:ktlint-logger:1.8.0
+|    |    +--- dev.drewhamilton.poko:poko-annotations:0.20.1
+|    |    |    \--- dev.drewhamilton.poko:poko-annotations-jvm:0.20.1
+|    |    |         \--- org.jetbrains.kotlin:kotlin-stdlib:2.2.20 -> 2.2.21
+|    |    |              \--- org.jetbrains:annotations:13.0
+|    |    +--- io.github.oshai:kotlin-logging-jvm:7.0.13
+|    |    |    \--- org.jetbrains.kotlin:kotlin-stdlib:2.1.21 -> 2.2.21 (*)
+|    |    \--- org.jetbrains.kotlin:kotlin-stdlib:2.2.21 (*)
+|    +--- dev.drewhamilton.poko:poko-annotations:0.20.1 (*)
+|    +--- com.pinterest.ktlint:ktlint-cli-ruleset-core:1.8.0
+|    |    +--- dev.drewhamilton.poko:poko-annotations:0.20.1 (*)
+|    |    +--- com.pinterest.ktlint:ktlint-rule-engine-core:1.8.0
+|    |    |    +--- com.pinterest.ktlint:ktlint-logger:1.8.0 (*)
+|    |    |    +--- dev.drewhamilton.poko:poko-annotations:0.20.1 (*)
+|    |    |    +--- org.jetbrains.kotlin:kotlin-compiler-embeddable:2.2.21
+|    |    |    |    +--- org.jetbrains.kotlin:kotlin-stdlib:2.2.21 (*)
+|    |    |    |    +--- org.jetbrains.kotlin:kotlin-script-runtime:2.2.21
+|    |    |    |    +--- org.jetbrains.kotlin:kotlin-reflect:1.6.10
+|    |    |    |    +--- org.jetbrains.kotlin:kotlin-daemon-embeddable:2.2.21
+|    |    |    |    \--- org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.8.0
+|    |    |    +--- org.ec4j.core:ec4j-core:1.1.1
+|    |    |    \--- org.jetbrains.kotlin:kotlin-stdlib:2.2.21 (*)
+|    |    \--- org.jetbrains.kotlin:kotlin-stdlib:2.2.21 (*)
+|    +--- com.pinterest.ktlint:ktlint-rule-engine-core:1.8.0 (*)
+|    \--- org.jetbrains.kotlin:kotlin-stdlib:2.2.21 (*)
++--- com.pinterest.ktlint:ktlint-ruleset-standard:{strictly 1.8.0} -> 1.8.0 (c)
++--- com.pinterest.ktlint:ktlint-logger:{strictly 1.8.0} -> 1.8.0 (c)
++--- dev.drewhamilton.poko:poko-annotations:{strictly 0.20.1} -> 0.20.1 (c)
++--- com.pinterest.ktlint:ktlint-cli-ruleset-core:{strictly 1.8.0} -> 1.8.0 (c)
++--- com.pinterest.ktlint:ktlint-rule-engine-core:{strictly 1.8.0} -> 1.8.0 (c)
++--- org.jetbrains.kotlin:kotlin-stdlib:{strictly 2.2.21} -> 2.2.21 (c)
++--- io.github.oshai:kotlin-logging-jvm:{strictly 7.0.13} -> 7.0.13 (c)
++--- dev.drewhamilton.poko:poko-annotations-jvm:{strictly 0.20.1} -> 0.20.1 (c)
++--- org.jetbrains.kotlin:kotlin-compiler-embeddable:{strictly 2.2.21} -> 2.2.21 (c)
++--- org.ec4j.core:ec4j-core:{strictly 1.1.1} -> 1.1.1 (c)
++--- org.jetbrains:annotations:{strictly 13.0} -> 13.0 (c)
++--- org.jetbrains.kotlin:kotlin-script-runtime:{strictly 2.2.21} -> 2.2.21 (c)
++--- org.jetbrains.kotlin:kotlin-reflect:{strictly 1.6.10} -> 1.6.10 (c)
++--- org.jetbrains.kotlin:kotlin-daemon-embeddable:{strictly 2.2.21} -> 2.2.21 (c)
+\--- org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:{strictly 1.8.0} -> 1.8.0 (c)
+
+mainSourceElements - List of source directories contained in the Main SourceSet. (n)
+No dependencies
+
+runtimeClasspath - Runtime classpath of 'main'.
+\--- org.jetbrains.kotlin:kotlin-stdlib:2.4.21
+     \--- org.jetbrains:annotations:13.0
+
+runtimeElements - Runtime elements for the 'main' feature. (n)
+No dependencies
+
+runtimeElements-published (n)
+No dependencies
+
+runtimeOnly - Runtime only dependencies for 'main'. (n)
+No dependencies
+
+testAnnotationProcessor - Annotation processors and their dependencies for source set 'test'.
+No dependencies
+
+testApi - API dependencies for 'test'. (n)
+No dependencies
+
+testCompileClasspath - Compile classpath for 'test'.
++--- org.jetbrains.kotlin:kotlin-stdlib:2.4.21
+|    \--- org.jetbrains:annotations:13.0 -> 23.0.0
++--- com.vetzal.mojentic:mojentic-openai:3.0.0
+|    \--- com.vetzal.mojentic:mojentic-openai-jvm:3.0.0
+|         +--- com.vetzal.mojentic:mojentic-core:3.0.0
+|         |    \--- com.vetzal.mojentic:mojentic-core-jvm:3.0.0
+|         |         +--- org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0
+|         |         |    \--- org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.11.0
+|         |         |         +--- org.jetbrains:annotations:23.0.0
+|         |         |         +--- org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.11.0
+|         |         |         |    +--- org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.11.0 (c)
+|         |         |         |    +--- org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0 (c)
+|         |         |         |    +--- org.jetbrains.kotlinx:kotlinx-coroutines-test-jvm:1.11.0 (c)
+|         |         |         |    \--- org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0 (c)
+|         |         |         \--- org.jetbrains.kotlin:kotlin-stdlib:2.2.20 -> 2.4.21 (*)
+|         |         +--- org.jetbrains.kotlinx:kotlinx-serialization-json:1.12.0
+|         |         |    \--- org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.12.0
+|         |         |         +--- org.jetbrains.kotlinx:kotlinx-serialization-bom:1.12.0
+|         |         |         |    +--- org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.12.0 (c)
+|         |         |         |    +--- org.jetbrains.kotlinx:kotlinx-serialization-core:1.12.0 (c)
+|         |         |         |    +--- org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.12.0 (c)
+|         |         |         |    \--- org.jetbrains.kotlinx:kotlinx-serialization-json:1.12.0 (c)
+|         |         |         +--- org.jetbrains.kotlin:kotlin-stdlib:2.4.10 -> 2.4.21 (*)
+|         |         |         \--- org.jetbrains.kotlinx:kotlinx-serialization-core:1.12.0
+|         |         |              \--- org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.12.0
+|         |         |                   +--- org.jetbrains.kotlinx:kotlinx-serialization-bom:1.12.0 (*)
+|         |         |                   \--- org.jetbrains.kotlin:kotlin-stdlib:2.4.10 -> 2.4.21 (*)
+|         |         +--- org.jetbrains.kotlinx:kotlinx-datetime:0.8.0
+|         |         |    \--- org.jetbrains.kotlinx:kotlinx-datetime-jvm:0.8.0
+|         |         |         \--- org.jetbrains.kotlin:kotlin-stdlib:2.1.20 -> 2.4.21 (*)
+|         |         +--- io.ktor:ktor-client-core:3.6.1
+|         |         |    \--- io.ktor:ktor-client-core-jvm:3.6.1
+|         |         |         +--- org.slf4j:slf4j-api:2.0.19
+|         |         |         +--- org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0 (*)
+|         |         |         +--- io.ktor:ktor-http:3.6.1
+|         |         |         |    \--- io.ktor:ktor-http-jvm:3.6.1
+|         |         |         |         +--- org.slf4j:slf4j-api:2.0.19
+|         |         |         |         +--- org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0 (*)
+|         |         |         |         +--- io.ktor:ktor-utils:3.6.1
+|         |         |         |         |    \--- io.ktor:ktor-utils-jvm:3.6.1
+|         |         |         |         |         +--- org.slf4j:slf4j-api:2.0.19
+|         |         |         |         |         +--- org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0 (*)
+|         |         |         |         |         +--- io.ktor:ktor-io:3.6.1
+|         |         |         |         |         |    \--- io.ktor:ktor-io-jvm:3.6.1
+|         |         |         |         |         |         +--- org.slf4j:slf4j-api:2.0.19
+|         |         |         |         |         |         +--- org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0 (*)
+|         |         |         |         |         |         +--- org.jetbrains.kotlinx:kotlinx-io-core:0.9.1
+|         |         |         |         |         |         |    \--- org.jetbrains.kotlinx:kotlinx-io-core-jvm:0.9.1
+|         |         |         |         |         |         |         +--- org.jetbrains.kotlinx:kotlinx-io-bytestring:0.9.1
+|         |         |         |         |         |         |         |    \--- org.jetbrains.kotlinx:kotlinx-io-bytestring-jvm:0.9.1
+|         |         |         |         |         |         |         |         \--- org.jetbrains.kotlin:kotlin-stdlib:2.3.0 -> 2.4.21 (*)
+|         |         |         |         |         |         |         \--- org.jetbrains.kotlin:kotlin-stdlib:2.3.0 -> 2.4.21 (*)
+|         |         |         |         |         |         \--- org.jetbrains.kotlin:kotlin-stdlib:2.3.21 -> 2.4.21 (*)
+|         |         |         |         |         +--- org.jetbrains.kotlinx:kotlinx-serialization-core:1.11.0 -> 1.12.0 (*)
+|         |         |         |         |         \--- org.jetbrains.kotlin:kotlin-stdlib:2.3.21 -> 2.4.21 (*)
+|         |         |         |         +--- org.jetbrains.kotlinx:kotlinx-serialization-core:1.11.0 -> 1.12.0 (*)
+|         |         |         |         \--- org.jetbrains.kotlin:kotlin-stdlib:2.3.21 -> 2.4.21 (*)
+|         |         |         +--- io.ktor:ktor-http-cio:3.6.1
+|         |         |         |    \--- io.ktor:ktor-http-cio-jvm:3.6.1
+|         |         |         |         +--- org.slf4j:slf4j-api:2.0.19
+|         |         |         |         +--- io.ktor:ktor-network:3.6.1
+|         |         |         |         |    \--- io.ktor:ktor-network-jvm:3.6.1
+|         |         |         |         |         +--- org.slf4j:slf4j-api:2.0.19
+|         |         |         |         |         +--- org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0 (*)
+|         |         |         |         |         +--- io.ktor:ktor-utils:3.6.1 (*)
+|         |         |         |         |         \--- org.jetbrains.kotlin:kotlin-stdlib:2.3.21 -> 2.4.21 (*)
+|         |         |         |         +--- org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0 (*)
+|         |         |         |         +--- io.ktor:ktor-http:3.6.1 (*)
+|         |         |         |         +--- io.ktor:ktor-io:3.6.1 (*)
+|         |         |         |         \--- org.jetbrains.kotlin:kotlin-stdlib:2.3.21 -> 2.4.21 (*)
+|         |         |         +--- io.ktor:ktor-events:3.6.1
+|         |         |         |    \--- io.ktor:ktor-events-jvm:3.6.1
+|         |         |         |         +--- org.slf4j:slf4j-api:2.0.19
+|         |         |         |         +--- org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0 (*)
+|         |         |         |         +--- io.ktor:ktor-utils:3.6.1 (*)
+|         |         |         |         \--- org.jetbrains.kotlin:kotlin-stdlib:2.3.21 -> 2.4.21 (*)
+|         |         |         +--- io.ktor:ktor-websocket-serialization:3.6.1
+|         |         |         |    \--- io.ktor:ktor-websocket-serialization-jvm:3.6.1
+|         |         |         |         +--- org.slf4j:slf4j-api:2.0.19
+|         |         |         |         +--- org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0 (*)
+|         |         |         |         +--- io.ktor:ktor-serialization:3.6.1
+|         |         |         |         |    \--- io.ktor:ktor-serialization-jvm:3.6.1
+|         |         |         |         |         +--- org.slf4j:slf4j-api:2.0.19
+|         |         |         |         |         +--- org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0 (*)
+|         |         |         |         |         +--- io.ktor:ktor-websockets:3.6.1
+|         |         |         |         |         |    \--- io.ktor:ktor-websockets-jvm:3.6.1
+|         |         |         |         |         |         +--- org.slf4j:slf4j-api:2.0.19
+|         |         |         |         |         |         +--- org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0 (*)
+|         |         |         |         |         |         +--- io.ktor:ktor-utils:3.6.1 (*)
+|         |         |         |         |         |         +--- io.ktor:ktor-http:3.6.1 (*)
+|         |         |         |         |         |         \--- org.jetbrains.kotlin:kotlin-stdlib:2.3.21 -> 2.4.21 (*)
+|         |         |         |         |         \--- org.jetbrains.kotlin:kotlin-stdlib:2.3.21 -> 2.4.21 (*)
+|         |         |         |         \--- org.jetbrains.kotlin:kotlin-stdlib:2.3.21 -> 2.4.21 (*)
+|         |         |         +--- io.ktor:ktor-sse:3.6.1
+|         |         |         |    \--- io.ktor:ktor-sse-jvm:3.6.1
+|         |         |         |         +--- org.slf4j:slf4j-api:2.0.19
+|         |         |         |         +--- org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0 (*)
+|         |         |         |         +--- io.ktor:ktor-utils:3.6.1 (*)
+|         |         |         |         \--- org.jetbrains.kotlin:kotlin-stdlib:2.3.21 -> 2.4.21 (*)
+|         |         |         \--- org.jetbrains.kotlin:kotlin-stdlib:2.3.21 -> 2.4.21 (*)
+|         |         +--- io.github.oshai:kotlin-logging:8.0.6
+|         |         |    \--- io.github.oshai:kotlin-logging-jvm:8.0.6
+|         |         |         \--- org.jetbrains.kotlin:kotlin-stdlib:2.1.21 -> 2.4.21 (*)
+|         |         \--- org.jetbrains.kotlin:kotlin-stdlib:2.4.21 (*)
+|         \--- org.jetbrains.kotlin:kotlin-stdlib:2.4.21 (*)
++--- com.vetzal.mojentic:mojentic-ollama:3.0.0
+|    \--- com.vetzal.mojentic:mojentic-ollama-jvm:3.0.0
+|         +--- com.vetzal.mojentic:mojentic-core:3.0.0 (*)
+|         \--- org.jetbrains.kotlin:kotlin-stdlib:2.4.21 (*)
++--- com.vetzal.mojentic:mojentic-anthropic:3.0.0
+|    \--- com.vetzal.mojentic:mojentic-anthropic-jvm:3.0.0
+|         +--- com.vetzal.mojentic:mojentic-core:3.0.0 (*)
+|         \--- org.jetbrains.kotlin:kotlin-stdlib:2.4.21 (*)
++--- com.vetzal.mojentic:mojentic-realtime-openai:3.0.0
+|    \--- com.vetzal.mojentic:mojentic-realtime-openai-jvm:3.0.0
+|         +--- com.vetzal.mojentic:mojentic-core:3.0.0 (*)
+|         \--- org.jetbrains.kotlin:kotlin-stdlib:2.4.21 (*)
++--- com.vetzal.mojentic:mojentic-websearch-serpapi:3.0.0
+|    \--- com.vetzal.mojentic:mojentic-websearch-serpapi-jvm:3.0.0
+|         +--- com.vetzal.mojentic:mojentic-core:3.0.0 (*)
+|         \--- org.jetbrains.kotlin:kotlin-stdlib:2.4.21 (*)
++--- org.jetbrains.kotlin:kotlin-test -> 2.4.21
+|    +--- org.jetbrains.kotlin:kotlin-stdlib:2.4.21 (*)
+|    \--- org.jetbrains.kotlin:kotlin-test-junit:2.4.21
+|         +--- org.jetbrains.kotlin:kotlin-test:2.4.21 (*)
+|         \--- junit:junit:4.13.2
+|              \--- org.hamcrest:hamcrest-core:1.3
++--- io.ktor:ktor-client-mock:3.6.1
+|    \--- io.ktor:ktor-client-mock-jvm:3.6.1
+|         +--- org.slf4j:slf4j-api:2.0.19
+|         +--- org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0 (*)
+|         +--- io.ktor:ktor-http:3.6.1 (*)
+|         +--- io.ktor:ktor-client-core:3.6.1 (*)
+|         \--- org.jetbrains.kotlin:kotlin-stdlib:2.3.21 -> 2.4.21 (*)
++--- org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0
+|    \--- org.jetbrains.kotlinx:kotlinx-coroutines-test-jvm:1.11.0
+|         +--- org.jetbrains:annotations:23.0.0
+|         +--- org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.11.0 (*)
+|         +--- org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0 (*)
+|         \--- org.jetbrains.kotlin:kotlin-stdlib:2.2.20 -> 2.4.21 (*)
++--- org.jetbrains.kotlin:kotlin-test:2.4.21 (*)
+\--- org.jetbrains.kotlin:kotlin-test:2.4.21 (c)
+
+testCompileOnly - Compile only dependencies for 'test'. (n)
+No dependencies
+
+testImplementation - Implementation only dependencies for 'test'. (n)
++--- com.vetzal.mojentic:mojentic-openai:3.0.0 (n)
++--- com.vetzal.mojentic:mojentic-ollama:3.0.0 (n)
++--- com.vetzal.mojentic:mojentic-anthropic:3.0.0 (n)
++--- com.vetzal.mojentic:mojentic-realtime-openai:3.0.0 (n)
++--- com.vetzal.mojentic:mojentic-websearch-serpapi:3.0.0 (n)
++--- org.jetbrains.kotlin:kotlin-test (n)
++--- io.ktor:ktor-client-mock:3.6.1 (n)
++--- org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0 (n)
++--- org.jetbrains.kotlin:kotlin-stdlib:2.4.21 (n)
+\--- org.jetbrains.kotlin:kotlin-test:2.4.21 (n)
+
+testImplementationDependenciesMetadata
+No dependencies
+
+testKotlinScriptDef - Script filename extensions discovery classpath configuration (n)
+No dependencies
+
+testKotlinScriptDefExtensions
+No dependencies
+
+testRuntimeClasspath - Runtime classpath of 'test'.
++--- org.jetbrains.kotlin:kotlin-stdlib:2.4.21
+|    \--- org.jetbrains:annotations:13.0 -> 23.0.0
++--- com.vetzal.mojentic:mojentic-openai:3.0.0
+|    \--- com.vetzal.mojentic:mojentic-openai-jvm:3.0.0
+|         +--- com.vetzal.mojentic:mojentic-core:3.0.0
+|         |    \--- com.vetzal.mojentic:mojentic-core-jvm:3.0.0
+|         |         +--- org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0
+|         |         |    \--- org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.11.0
+|         |         |         +--- org.jetbrains:annotations:23.0.0
+|         |         |         +--- org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.11.0
+|         |         |         |    +--- org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.11.0 (c)
+|         |         |         |    +--- org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0 (c)
+|         |         |         |    +--- org.jetbrains.kotlinx:kotlinx-coroutines-test-jvm:1.11.0 (c)
+|         |         |         |    +--- org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0 (c)
+|         |         |         |    \--- org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:1.11.0 (c)
+|         |         |         \--- org.jetbrains.kotlin:kotlin-stdlib:2.2.20 -> 2.4.21 (*)
+|         |         +--- org.jetbrains.kotlinx:kotlinx-serialization-json:1.12.0
+|         |         |    \--- org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.12.0
+|         |         |         +--- org.jetbrains.kotlinx:kotlinx-serialization-bom:1.12.0
+|         |         |         |    +--- org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.12.0 (c)
+|         |         |         |    +--- org.jetbrains.kotlinx:kotlinx-serialization-core:1.12.0 (c)
+|         |         |         |    +--- org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.12.0 (c)
+|         |         |         |    +--- org.jetbrains.kotlinx:kotlinx-serialization-json:1.12.0 (c)
+|         |         |         |    +--- org.jetbrains.kotlinx:kotlinx-serialization-json-io:1.12.0 (c)
+|         |         |         |    \--- org.jetbrains.kotlinx:kotlinx-serialization-json-io-jvm:1.12.0 (c)
+|         |         |         +--- org.jetbrains.kotlin:kotlin-stdlib:2.4.10 -> 2.4.21 (*)
+|         |         |         \--- org.jetbrains.kotlinx:kotlinx-serialization-core:1.12.0
+|         |         |              \--- org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.12.0
+|         |         |                   +--- org.jetbrains.kotlinx:kotlinx-serialization-bom:1.12.0 (*)
+|         |         |                   \--- org.jetbrains.kotlin:kotlin-stdlib:2.4.10 -> 2.4.21 (*)
+|         |         +--- org.jetbrains.kotlinx:kotlinx-datetime:0.8.0 -> 0.8.0-0.6.x-compat
+|         |         |    \--- org.jetbrains.kotlinx:kotlinx-datetime-jvm:0.8.0-0.6.x-compat
+|         |         |         \--- org.jetbrains.kotlin:kotlin-stdlib:2.1.20 -> 2.4.21 (*)
+|         |         +--- io.ktor:ktor-client-core:3.6.1
+|         |         |    \--- io.ktor:ktor-client-core-jvm:3.6.1
+|         |         |         +--- org.slf4j:slf4j-api:2.0.19
+|         |         |         +--- org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0 (*)
+|         |         |         +--- io.ktor:ktor-http:3.6.1
+|         |         |         |    \--- io.ktor:ktor-http-jvm:3.6.1
+|         |         |         |         +--- org.slf4j:slf4j-api:2.0.19
+|         |         |         |         +--- org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0 (*)
+|         |         |         |         +--- io.ktor:ktor-utils:3.6.1
+|         |         |         |         |    \--- io.ktor:ktor-utils-jvm:3.6.1
+|         |         |         |         |         +--- org.slf4j:slf4j-api:2.0.19
+|         |         |         |         |         +--- org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0 (*)
+|         |         |         |         |         +--- io.ktor:ktor-io:3.6.1
+|         |         |         |         |         |    \--- io.ktor:ktor-io-jvm:3.6.1
+|         |         |         |         |         |         +--- org.slf4j:slf4j-api:2.0.19
+|         |         |         |         |         |         +--- org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0 (*)
+|         |         |         |         |         |         +--- org.jetbrains.kotlinx:kotlinx-io-core:0.9.1
+|         |         |         |         |         |         |    \--- org.jetbrains.kotlinx:kotlinx-io-core-jvm:0.9.1
+|         |         |         |         |         |         |         +--- org.jetbrains.kotlinx:kotlinx-io-bytestring:0.9.1
+|         |         |         |         |         |         |         |    \--- org.jetbrains.kotlinx:kotlinx-io-bytestring-jvm:0.9.1
+|         |         |         |         |         |         |         |         \--- org.jetbrains.kotlin:kotlin-stdlib:2.3.0 -> 2.4.21 (*)
+|         |         |         |         |         |         |         \--- org.jetbrains.kotlin:kotlin-stdlib:2.3.0 -> 2.4.21 (*)
+|         |         |         |         |         |         \--- org.jetbrains.kotlin:kotlin-stdlib:2.3.21 -> 2.4.21 (*)
+|         |         |         |         |         +--- org.jetbrains.kotlinx:kotlinx-serialization-core:1.11.0 -> 1.12.0 (*)
+|         |         |         |         |         \--- org.jetbrains.kotlin:kotlin-stdlib:2.3.21 -> 2.4.21 (*)
+|         |         |         |         +--- org.jetbrains.kotlinx:kotlinx-serialization-core:1.11.0 -> 1.12.0 (*)
+|         |         |         |         \--- org.jetbrains.kotlin:kotlin-stdlib:2.3.21 -> 2.4.21 (*)
+|         |         |         +--- io.ktor:ktor-http-cio:3.6.1
+|         |         |         |    \--- io.ktor:ktor-http-cio-jvm:3.6.1
+|         |         |         |         +--- org.slf4j:slf4j-api:2.0.19
+|         |         |         |         +--- io.ktor:ktor-network:3.6.1
+|         |         |         |         |    \--- io.ktor:ktor-network-jvm:3.6.1
+|         |         |         |         |         +--- org.slf4j:slf4j-api:2.0.19
+|         |         |         |         |         +--- org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0 (*)
+|         |         |         |         |         +--- io.ktor:ktor-utils:3.6.1 (*)
+|         |         |         |         |         \--- org.jetbrains.kotlin:kotlin-stdlib:2.3.21 -> 2.4.21 (*)
+|         |         |         |         +--- org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0 (*)
+|         |         |         |         +--- io.ktor:ktor-http:3.6.1 (*)
+|         |         |         |         +--- io.ktor:ktor-io:3.6.1 (*)
+|         |         |         |         \--- org.jetbrains.kotlin:kotlin-stdlib:2.3.21 -> 2.4.21 (*)
+|         |         |         +--- io.ktor:ktor-events:3.6.1
+|         |         |         |    \--- io.ktor:ktor-events-jvm:3.6.1
+|         |         |         |         +--- org.slf4j:slf4j-api:2.0.19
+|         |         |         |         +--- org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0 (*)
+|         |         |         |         +--- io.ktor:ktor-utils:3.6.1 (*)
+|         |         |         |         \--- org.jetbrains.kotlin:kotlin-stdlib:2.3.21 -> 2.4.21 (*)
+|         |         |         +--- io.ktor:ktor-websocket-serialization:3.6.1
+|         |         |         |    \--- io.ktor:ktor-websocket-serialization-jvm:3.6.1
+|         |         |         |         +--- org.slf4j:slf4j-api:2.0.19
+|         |         |         |         +--- org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0 (*)
+|         |         |         |         +--- io.ktor:ktor-serialization:3.6.1
+|         |         |         |         |    \--- io.ktor:ktor-serialization-jvm:3.6.1
+|         |         |         |         |         +--- org.slf4j:slf4j-api:2.0.19
+|         |         |         |         |         +--- org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0 (*)
+|         |         |         |         |         +--- io.ktor:ktor-websockets:3.6.1
+|         |         |         |         |         |    \--- io.ktor:ktor-websockets-jvm:3.6.1
+|         |         |         |         |         |         +--- org.slf4j:slf4j-api:2.0.19
+|         |         |         |         |         |         +--- org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0 (*)
+|         |         |         |         |         |         +--- io.ktor:ktor-utils:3.6.1 (*)
+|         |         |         |         |         |         +--- io.ktor:ktor-http:3.6.1 (*)
+|         |         |         |         |         |         \--- org.jetbrains.kotlin:kotlin-stdlib:2.3.21 -> 2.4.21 (*)
+|         |         |         |         |         \--- org.jetbrains.kotlin:kotlin-stdlib:2.3.21 -> 2.4.21 (*)
+|         |         |         |         \--- org.jetbrains.kotlin:kotlin-stdlib:2.3.21 -> 2.4.21 (*)
+|         |         |         +--- io.ktor:ktor-sse:3.6.1
+|         |         |         |    \--- io.ktor:ktor-sse-jvm:3.6.1
+|         |         |         |         +--- org.slf4j:slf4j-api:2.0.19
+|         |         |         |         +--- org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0 (*)
+|         |         |         |         +--- io.ktor:ktor-utils:3.6.1 (*)
+|         |         |         |         \--- org.jetbrains.kotlin:kotlin-stdlib:2.3.21 -> 2.4.21 (*)
+|         |         |         +--- org.jetbrains.kotlin:kotlin-stdlib:2.3.21 -> 2.4.21 (*)
+|         |         |         \--- org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:1.11.0
+|         |         |              +--- org.slf4j:slf4j-api:1.7.32 -> 2.0.19
+|         |         |              +--- org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0 (*)
+|         |         |              +--- org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.11.0 (*)
+|         |         |              \--- org.jetbrains.kotlin:kotlin-stdlib:2.2.20 -> 2.4.21 (*)
+|         |         +--- io.github.oshai:kotlin-logging:8.0.6
+|         |         |    \--- io.github.oshai:kotlin-logging-jvm:8.0.6
+|         |         |         \--- org.jetbrains.kotlin:kotlin-stdlib:2.1.21 -> 2.4.21 (*)
+|         |         +--- org.jetbrains.kotlin:kotlin-stdlib:2.4.21 (*)
+|         |         +--- io.ktor:ktor-client-okhttp:3.6.1
+|         |         |    \--- io.ktor:ktor-client-okhttp-jvm:3.6.1
+|         |         |         +--- org.slf4j:slf4j-api:2.0.19
+|         |         |         +--- io.ktor:ktor-client-core:3.6.1 (*)
+|         |         |         +--- com.squareup.okhttp3:okhttp:5.5.1
+|         |         |         |    \--- com.squareup.okhttp3:okhttp-jvm:5.5.1
+|         |         |         |         +--- org.jetbrains.kotlin:kotlin-stdlib:2.1.21 -> 2.4.21 (*)
+|         |         |         |         +--- com.squareup.okio:okio:3.18.1 -> 3.18.2
+|         |         |         |         |    \--- com.squareup.okio:okio-jvm:3.18.2
+|         |         |         |         |         \--- org.jetbrains.kotlin:kotlin-stdlib:2.1.21 -> 2.4.21 (*)
+|         |         |         |         \--- org.jetbrains.kotlin:kotlin-stdlib:2.2.21 -> 2.4.21 (*)
+|         |         |         +--- com.squareup.okio:okio:3.18.2 (*)
+|         |         |         +--- org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0 (*)
+|         |         |         \--- org.jetbrains.kotlin:kotlin-stdlib:2.3.21 -> 2.4.21 (*)
+|         |         \--- com.squareup.okio:okio:3.18.2 (*)
+|         +--- org.jetbrains.kotlin:kotlin-stdlib:2.4.21 (*)
+|         +--- io.ktor:ktor-client-okhttp:3.6.1 (*)
+|         +--- com.knuddels:jtokkit:1.1.0
+|         +--- io.ktor:ktor-client-core:3.6.1 (*)
+|         +--- io.ktor:ktor-client-content-negotiation:3.6.1
+|         |    \--- io.ktor:ktor-client-content-negotiation-jvm:3.6.1
+|         |         +--- org.slf4j:slf4j-api:2.0.19
+|         |         +--- org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0 (*)
+|         |         +--- io.ktor:ktor-client-core:3.6.1 (*)
+|         |         +--- io.ktor:ktor-serialization:3.6.1 (*)
+|         |         \--- org.jetbrains.kotlin:kotlin-stdlib:2.3.21 -> 2.4.21 (*)
+|         \--- io.ktor:ktor-serialization-kotlinx-json:3.6.1
+|              \--- io.ktor:ktor-serialization-kotlinx-json-jvm:3.6.1
+|                   +--- org.slf4j:slf4j-api:2.0.19
+|                   +--- org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0 (*)
+|                   +--- io.ktor:ktor-serialization-kotlinx:3.6.1
+|                   |    \--- io.ktor:ktor-serialization-kotlinx-jvm:3.6.1
+|                   |         +--- org.slf4j:slf4j-api:2.0.19
+|                   |         +--- org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0 (*)
+|                   |         +--- io.ktor:ktor-serialization:3.6.1 (*)
+|                   |         +--- org.jetbrains.kotlinx:kotlinx-serialization-core:1.11.0 -> 1.12.0 (*)
+|                   |         +--- io.ktor:ktor-openapi-schema:3.6.1
+|                   |         |    \--- io.ktor:ktor-openapi-schema-jvm:3.6.1
+|                   |         |         +--- org.slf4j:slf4j-api:2.0.19
+|                   |         |         +--- org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0 (*)
+|                   |         |         +--- io.ktor:ktor-http:3.6.1 (*)
+|                   |         |         +--- org.jetbrains.kotlin:kotlin-stdlib:2.3.21 -> 2.4.21 (*)
+|                   |         |         +--- com.charleskorn.kaml:kaml:0.79.0
+|                   |         |         |    \--- com.charleskorn.kaml:kaml-jvm:0.79.0
+|                   |         |         |         +--- org.jetbrains.kotlinx:kotlinx-serialization-core:1.7.3 -> 1.12.0 (*)
+|                   |         |         |         +--- org.jetbrains.kotlin:kotlin-stdlib:2.1.21 -> 2.4.21 (*)
+|                   |         |         |         +--- it.krzeminski:snakeyaml-engine-kmp:3.1.1
+|                   |         |         |         |    \--- it.krzeminski:snakeyaml-engine-kmp-jvm:3.1.1
+|                   |         |         |         |         +--- org.jetbrains.kotlin:kotlin-stdlib:2.1.10 -> 2.4.21 (*)
+|                   |         |         |         |         +--- com.squareup.okio:okio:3.10.2 -> 3.18.2 (*)
+|                   |         |         |         |         \--- net.thauvin.erik.urlencoder:urlencoder-lib:1.6.0
+|                   |         |         |         |              \--- net.thauvin.erik.urlencoder:urlencoder-lib-jvm:1.6.0
+|                   |         |         |         |                   \--- org.jetbrains.kotlin:kotlin-stdlib:1.9.24 -> 2.4.21 (*)
+|                   |         |         |         \--- com.squareup.okio:okio:3.12.0 -> 3.18.2 (*)
+|                   |         |         +--- io.ktor:ktor-io:3.6.1 (*)
+|                   |         |         +--- org.jetbrains.kotlinx:kotlinx-serialization-core:1.11.0 -> 1.12.0 (*)
+|                   |         |         +--- org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0 -> 1.12.0 (*)
+|                   |         |         \--- org.jetbrains.kotlinx:kotlinx-datetime:0.8.0-0.6.x-compat (*)
+|                   |         \--- org.jetbrains.kotlin:kotlin-stdlib:2.3.21 -> 2.4.21 (*)
+|                   +--- org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0 -> 1.12.0 (*)
+|                   +--- org.jetbrains.kotlinx:kotlinx-serialization-json-io:1.11.0 -> 1.12.0
+|                   |    \--- org.jetbrains.kotlinx:kotlinx-serialization-json-io-jvm:1.12.0
+|                   |         +--- org.jetbrains.kotlinx:kotlinx-serialization-bom:1.12.0 (*)
+|                   |         +--- org.jetbrains.kotlin:kotlin-stdlib:2.4.10 -> 2.4.21 (*)
+|                   |         +--- org.jetbrains.kotlinx:kotlinx-serialization-core:1.12.0 (*)
+|                   |         +--- org.jetbrains.kotlinx:kotlinx-serialization-json:1.12.0 (*)
+|                   |         \--- org.jetbrains.kotlinx:kotlinx-io-core:0.6.0 -> 0.9.1 (*)
+|                   \--- org.jetbrains.kotlin:kotlin-stdlib:2.3.21 -> 2.4.21 (*)
++--- com.vetzal.mojentic:mojentic-ollama:3.0.0
+|    \--- com.vetzal.mojentic:mojentic-ollama-jvm:3.0.0
+|         +--- com.vetzal.mojentic:mojentic-core:3.0.0 (*)
+|         +--- org.jetbrains.kotlin:kotlin-stdlib:2.4.21 (*)
+|         +--- io.ktor:ktor-client-okhttp:3.6.1 (*)
+|         +--- io.ktor:ktor-client-core:3.6.1 (*)
+|         +--- io.ktor:ktor-client-content-negotiation:3.6.1 (*)
+|         \--- io.ktor:ktor-serialization-kotlinx-json:3.6.1 (*)
++--- com.vetzal.mojentic:mojentic-anthropic:3.0.0
+|    \--- com.vetzal.mojentic:mojentic-anthropic-jvm:3.0.0
+|         +--- com.vetzal.mojentic:mojentic-core:3.0.0 (*)
+|         +--- org.jetbrains.kotlin:kotlin-stdlib:2.4.21 (*)
+|         +--- io.ktor:ktor-client-okhttp:3.6.1 (*)
+|         +--- io.ktor:ktor-client-core:3.6.1 (*)
+|         +--- io.ktor:ktor-client-content-negotiation:3.6.1 (*)
+|         \--- io.ktor:ktor-serialization-kotlinx-json:3.6.1 (*)
++--- com.vetzal.mojentic:mojentic-realtime-openai:3.0.0
+|    \--- com.vetzal.mojentic:mojentic-realtime-openai-jvm:3.0.0
+|         +--- com.vetzal.mojentic:mojentic-core:3.0.0 (*)
+|         +--- org.jetbrains.kotlin:kotlin-stdlib:2.4.21 (*)
+|         +--- io.ktor:ktor-client-okhttp:3.6.1 (*)
+|         +--- io.ktor:ktor-client-core:3.6.1 (*)
+|         +--- io.ktor:ktor-client-websockets:3.6.1
+|         |    \--- io.ktor:ktor-client-websockets-jvm:3.6.1
+|         |         +--- org.slf4j:slf4j-api:2.0.19
+|         |         +--- org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0 (*)
+|         |         +--- io.ktor:ktor-client-core:3.6.1 (*)
+|         |         \--- org.jetbrains.kotlin:kotlin-stdlib:2.3.21 -> 2.4.21 (*)
+|         +--- io.ktor:ktor-client-content-negotiation:3.6.1 (*)
+|         \--- io.ktor:ktor-serialization-kotlinx-json:3.6.1 (*)
++--- com.vetzal.mojentic:mojentic-websearch-serpapi:3.0.0
+|    \--- com.vetzal.mojentic:mojentic-websearch-serpapi-jvm:3.0.0
+|         +--- com.vetzal.mojentic:mojentic-core:3.0.0 (*)
+|         +--- org.jetbrains.kotlin:kotlin-stdlib:2.4.21 (*)
+|         +--- io.ktor:ktor-client-okhttp:3.6.1 (*)
+|         +--- io.ktor:ktor-client-core:3.6.1 (*)
+|         +--- io.ktor:ktor-client-content-negotiation:3.6.1 (*)
+|         \--- io.ktor:ktor-serialization-kotlinx-json:3.6.1 (*)
++--- org.jetbrains.kotlin:kotlin-test -> 2.4.21
+|    +--- org.jetbrains.kotlin:kotlin-stdlib:2.4.21 (*)
+|    \--- org.jetbrains.kotlin:kotlin-test-junit:2.4.21
+|         +--- org.jetbrains.kotlin:kotlin-test:2.4.21 (*)
+|         \--- junit:junit:4.13.2
+|              \--- org.hamcrest:hamcrest-core:1.3
++--- io.ktor:ktor-client-mock:3.6.1
+|    \--- io.ktor:ktor-client-mock-jvm:3.6.1
+|         +--- org.slf4j:slf4j-api:2.0.19
+|         +--- org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0 (*)
+|         +--- io.ktor:ktor-http:3.6.1 (*)
+|         +--- io.ktor:ktor-client-core:3.6.1 (*)
+|         \--- org.jetbrains.kotlin:kotlin-stdlib:2.3.21 -> 2.4.21 (*)
++--- org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0
+|    \--- org.jetbrains.kotlinx:kotlinx-coroutines-test-jvm:1.11.0
+|         +--- org.jetbrains:annotations:23.0.0
+|         +--- org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.11.0 (*)
+|         +--- org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0 (*)
+|         \--- org.jetbrains.kotlin:kotlin-stdlib:2.2.20 -> 2.4.21 (*)
++--- org.jetbrains.kotlin:kotlin-test:2.4.21 (*)
+\--- org.jetbrains.kotlin:kotlin-test:2.4.21 (c)
+
+testRuntimeOnly - Runtime only dependencies for 'test'. (n)
+No dependencies
+
+(c) - A dependency constraint, not a dependency. The dependency affected by the constraint occurs elsewhere in the tree.
+(*) - Indicates repeated occurrences of a transitive dependency subtree. Gradle expands transitive dependency subtrees only once per project; repeat occurrences only display the root of the subtree, followed by this annotation.
+
+(n) - A dependency or dependency configuration that cannot be resolved.
+
+A web-based, searchable dependency report is available by adding the --scan option.
+
+> Task :runKtlintCheckOverKotlinScripts
+> Task :ktlintKotlinScriptCheck
+> Task :runKtlintCheckOverTestSourceSet
+> Task :ktlintTestSourceSetCheck
+> Task :ktlintCheck
+> Task :compileTestKotlin
+> Task :compileTestJava NO-SOURCE
+> Task :testClasses UP-TO-DATE
+> Task :test
+
+[Incubating] Problems report is available at: file:///home/svetzal/Work/Projects/Personal/mojentic-unify/mojentic-kt/build/distribution-verification/candidate.vbW1Nd/consumer/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.8.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 28s
+10 actionable tasks: 10 executed
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.8.0/userguide/configuration_cache_enabling.html
