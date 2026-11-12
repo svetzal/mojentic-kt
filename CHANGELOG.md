@@ -12,7 +12,7 @@ patch versions move independently.
 
 ### Changed
 
-- Update kotlinx-serialization from 1.11.0 to 1.12.0.
+- Update kotlinx-serialization from 1.11.0 to 1.12.0, then to 1.13.0.
 - Update Android Gradle Plugin from 9.4.1 to 9.5.1.
 - Update Dokka from 2.2.0 to 2.3.0.
 - Update kotlin-logging from 8.0.4 to 8.0.7.
